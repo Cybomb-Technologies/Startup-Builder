@@ -16,7 +16,8 @@ const Footer = () => {
               <span className="text-xl font-bold">StartupDocs</span>
             </div>
             <p className="text-gray-300 text-sm">
-              Simplify Compliance. Amplify Growth.
+            Your all-in-one platform for business documentation. Access 1000+ verified templates, 
+            streamline compliance, and focus on what matters most - growing your business.
             </p>
           </div>
 
@@ -41,11 +42,21 @@ const Footer = () => {
           <div>
             <span className="font-semibold text-lg mb-4 block">Categories</span>
             <div className="space-y-2">
-              <p className="text-gray-300">Accounts</p>
-              <p className="text-gray-300">Human Resources</p>
-              <p className="text-gray-300">Legal</p>
-              <p className="text-gray-300">Business</p>
-              <p className="text-gray-300">Marketing</p>
+            <Link to="/categories/accounts" className="text-gray-300 hover:text-gray-300">
+              Accounts
+              </Link><br/>
+              <Link to="/categories/hr" className="text-gray-300 hover:text-gray-300">
+                Human Resource
+              </Link><br/>
+              <Link to="/categories/legal" className="text-gray-300 hover:text-gray-300">
+                Legal
+              </Link><br/>
+              <Link to="/categories/business" className="text-gray-300 hover:text-gray-300">
+                Business
+              </Link><br/>
+              <Link to="/categories/marketing" className="text-gray-300 hover:text-gray-300">
+                Marketing
+              </Link>
             </div>
           </div>
 
@@ -70,7 +81,21 @@ const Footer = () => {
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
           <p>&copy; 2025 StartupDocs Builder. All rights reserved.</p>
+          
         </div>
+        
+        <div className=" flex  justify-end  space-x-6">
+  <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
+    Privacy Policy
+  </Link>
+  <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
+    Terms of Service
+  </Link>
+  <Link to="/cookies" className="text-gray-400 hover:text-white transition-colors">
+    Cookies Policy
+  </Link>
+</div>
+        
       </div>
     </footer>
   );

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
@@ -15,7 +14,7 @@ const BlogPage = () => {
       author: 'Priya Sharma',
       date: '2025-01-15',
       category: 'HR',
-      image: 'HR policies and employee handbook for startups'
+      image: 'https://www.clovehrms.com/wp-content/uploads/2025/08/10-Essential-HR-Policies-Every-Organization-Must-Implement.png'
     },
     {
       title: 'Legal Documents Checklist for New Businesses',
@@ -23,7 +22,7 @@ const BlogPage = () => {
       author: 'Rajesh Kumar',
       date: '2025-01-12',
       category: 'Legal',
-      image: 'Legal documents and contracts for business registration'
+      image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
     },
     {
       title: 'How to Create Professional Invoices',
@@ -31,7 +30,7 @@ const BlogPage = () => {
       author: 'Amit Patel',
       date: '2025-01-10',
       category: 'Accounts',
-      image: 'Professional invoice template with GST compliance'
+      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
     },
     {
       title: 'Building Your First Business Plan',
@@ -39,7 +38,7 @@ const BlogPage = () => {
       author: 'Neha Gupta',
       date: '2025-01-08',
       category: 'Business',
-      image: 'Business plan presentation and strategy documents'
+      image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
     },
     {
       title: 'Email Marketing Templates That Convert',
@@ -47,7 +46,7 @@ const BlogPage = () => {
       author: 'Vikram Singh',
       date: '2025-01-05',
       category: 'Marketing',
-      image: 'Email marketing campaign templates and designs'
+      image: 'https://images.unsplash.com/photo-1611605698335-8b1569810432?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
     },
     {
       title: 'Productivity Tips for Startup Founders',
@@ -55,7 +54,7 @@ const BlogPage = () => {
       author: 'Ananya Reddy',
       date: '2025-01-03',
       category: 'Business',
-      image: 'Productive workspace with planning tools and documents'
+      image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'
     }
   ];
 
@@ -91,12 +90,16 @@ const BlogPage = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-blue-100"
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-blue-100 flex flex-col"
               >
-                <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center p-4">
-                  <img alt={post.title} src="https://images.unsplash.com/photo-1595872018818-97555653a011" />
+                <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 overflow-hidden">
+                  <img 
+                    alt={post.title} 
+                    src={post.image} 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                       {post.category}
@@ -105,7 +108,7 @@ const BlogPage = () => {
                   <h2 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2">
                     {post.title}
                   </h2>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
+                  <p className="text-gray-600 mb-4 line-clamp-3 flex-grow">
                     {post.excerpt}
                   </p>
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
@@ -118,10 +121,12 @@ const BlogPage = () => {
                       {new Date(post.date).toLocaleDateString()}
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
-                    Read More
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="mt-auto">
+                    <Button variant="outline" className="w-full">
+                      Read More
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
               </motion.article>
             ))}
@@ -135,4 +140,3 @@ const BlogPage = () => {
 };
 
 export default BlogPage;
-  

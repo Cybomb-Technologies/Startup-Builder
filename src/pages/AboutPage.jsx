@@ -100,7 +100,7 @@ const AboutPage = () => {
             <div className="space-y-2">
               <p className="text-lg">Email: support@startupdocs.com</p>
               <p className="text-lg">Phone: +91 98765 43210</p>
-              <p className="text-lg">Location: Mumbai, India</p>
+              <p className="text-lg">Location: Chennai, India</p>
             </div>
           </motion.div>
         </div>
