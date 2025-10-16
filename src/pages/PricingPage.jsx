@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
@@ -108,7 +107,7 @@ const PricingPage = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`bg-white rounded-2xl shadow-xl overflow-hidden ${
+                className={`bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col ${
                   plan.popular ? 'ring-4 ring-blue-600 scale-105' : ''
                 }`}
               >
@@ -119,14 +118,18 @@ const PricingPage = () => {
                   </div>
                 )}
                 
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">{plan.name}</h3>
+                <div className="p-8 flex flex-col flex-grow">
+                  {/* Header section */}
                   <div className="mb-6">
-                    <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
-                    {plan.period && <span className="text-gray-600 text-lg">{plan.period}</span>}
+                    <h3 className="text-2xl font-bold mb-2 text-gray-900">{plan.name}</h3>
+                    <div className="mb-4">
+                      <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
+                      {plan.period && <span className="text-gray-600 text-lg">{plan.period}</span>}
+                    </div>
                   </div>
 
-                  <ul className="space-y-4 mb-8">
+                  {/* Features list - this will grow to fill available space */}
+                  <ul className="space-y-4 mb-8 flex-grow">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start">
                         <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
@@ -135,17 +138,20 @@ const PricingPage = () => {
                     ))}
                   </ul>
 
-                  <Button
-                    onClick={() => handleSubscribe(plan.name)}
-                    className={`w-full ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                        : ''
-                    }`}
-                    variant={plan.popular ? 'default' : 'outline'}
-                  >
-                    {plan.name === 'Free' ? 'Get Started' : plan.name === 'Enterprise' ? 'Contact Sales' : 'Subscribe Now'}
-                  </Button>
+                  {/* Button at the bottom - always aligned */}
+                  <div className="mt-auto">
+                    <Button
+                      onClick={() => handleSubscribe(plan.name)}
+                      className={`w-full ${
+                        plan.popular
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                          : ''
+                      }`}
+                      variant={plan.popular ? 'default' : 'outline'}
+                    >
+                      {plan.name === 'Free' ? 'Get Started' : plan.name === 'Enterprise' ? 'Contact Sales' : 'Subscribe Now'}
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -191,4 +197,3 @@ const PricingPage = () => {
 };
 
 export default PricingPage;
-  
