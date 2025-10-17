@@ -17,7 +17,7 @@ const AdminPage = () => {
 
   useEffect(() => {
     if (!user || !user.isAdmin) {
-      navigate('/');
+      navigate('/admin');
     }
     const storedTemplates = JSON.parse(localStorage.getItem('templates') || '[]');
     setTemplates(storedTemplates);

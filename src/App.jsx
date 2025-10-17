@@ -4,7 +4,7 @@ import HomePage from "./pages/HomePage"
 import TemplateLibraryPage from '@/pages/TemplateLibraryPage';
 import EditorPage from '@/pages/EditorPage';
 import PricingPage from '@/pages/PricingPage';
-import DashboardPage from '@/pages/DashboardPage';
+import DashboardPage from './pages/DashboardPage';
 import AdminPage from '@/pages/AdminPage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
@@ -20,6 +20,7 @@ import HRPage from './pages/Categories/HrPage';
 import LegalPage from './pages/Categories/Legal';
 import BusinessPage from './pages/Categories/Business';
 import MarketingPage from './pages/Categories/Marketing';
+import Settings from "./pages/Settings"
 
 
 
@@ -27,6 +28,7 @@ import MarketingPage from './pages/Categories/Marketing';
 function App() {
   return (
     <ScrollToTop>
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/templates" element={<TemplateLibraryPage />} />
@@ -47,6 +49,8 @@ function App() {
         <Route path="/categories/legal" element={<LegalPage />} />
         <Route path="/categories/business" element={<BusinessPage />} />
         <Route path="/categories/marketing" element={<MarketingPage />} />
+        <Route path="/settings" element={<Settings />} />
+
 
 
 
