@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from "./pages/HomePage"
 import TemplateLibraryPage from '@/pages/TemplateLibraryPage';
 import EditorPage from '@/pages/EditorPage';
@@ -21,21 +21,22 @@ import LegalPage from './pages/Categories/Legal';
 import BusinessPage from './pages/Categories/Business';
 import MarketingPage from './pages/Categories/Marketing';
 import Settings from "./pages/Settings"
-
-
-
+import AdminLoginPage from './pages/AdminLogin';
 
 function App() {
   return (
     <ScrollToTop>
-
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/templates" element={<TemplateLibraryPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/*" element={<AdminPage />} />
+        <Route path="/adminlogin" element={<AdminLoginPage />} />
+        
         <Route path="/admin/upload" element={<AdminUploadPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -50,15 +51,6 @@ function App() {
         <Route path="/categories/business" element={<BusinessPage />} />
         <Route path="/categories/marketing" element={<MarketingPage />} />
         <Route path="/settings" element={<Settings />} />
-
-
-
-
-
-
-
-
-
       </Routes>
     </ScrollToTop>
   );
