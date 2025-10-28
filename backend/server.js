@@ -68,11 +68,13 @@ app.post('/api/admin', async (req, res) => {
 });
 
 // -------------------- CORS Configuration --------------------
+// ✅ REMOVED the duplicate app.use(cors()) that was causing the issue
 const corsOptions = {
   origin: process.env.CLIENT_URL || 'http://localhost:3000', // ⚠️ Changed from 3001 to 3000
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 
@@ -94,9 +96,12 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/newsletter', newsletterRoutes); // ⚠️ ADDED THIS MISSING LINE
 
+
+
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
 console.log("✅ Newsletter routes mounted at /api/newsletter"); // ⚠️ ADDED THIS
+
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
