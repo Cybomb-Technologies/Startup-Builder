@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from "./pages/HomePage"
@@ -23,6 +24,18 @@ import MarketingPage from './pages/Categories/Marketing';
 import Settings from "./pages/Settings"
 import AdminLoginPage from './pages/AdminLogin';
 
+// Protected Admin Route Component
+const ProtectedAdminRoute = ({ children }) => {
+  // Check if admin is logged in (from localStorage)
+  const adminUser = localStorage.getItem('adminUser');
+  
+  if (!adminUser) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
   return (
     <ScrollToTop>
@@ -31,11 +44,22 @@ function App() {
         <Route path="/templates" element={<TemplateLibraryPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
         
         {/* Admin Routes */}
-        <Route path="/admin/*" element={<AdminPage />} />
-        <Route path="/adminlogin" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/dashboard" element={<AdminPage />} />
+
+        {/* Protected Admin Dashboard Routes */}
+        <Route 
+          path="/admin/*" 
+          element={
+            <ProtectedAdminRoute>
+              <AdminPage />
+            </ProtectedAdminRoute>
+          } 
+        />
         
         <Route path="/admin/upload" element={<AdminUploadPage />} />
         <Route path="/about" element={<AboutPage />} />
