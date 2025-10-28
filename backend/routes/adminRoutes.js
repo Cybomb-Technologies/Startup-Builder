@@ -1,11 +1,15 @@
-const express = require("express");
-const { registerAdmin, loginAdmin ,getAllUsers} = require("../controllers/adminController");
-
+const express = require('express');
 const router = express.Router();
+const { loginAdmin, registerAdmin, getAdminProfile, updateAdminProfile, getAllUsers } = require('../controllers/adminController');
+const { adminProtect } = require('../middleware/adminAuth');
 
-router.post("/register", registerAdmin);
-router.post("/login", loginAdmin);
+// Auth routes
+router.post('/login', loginAdmin);
+router.post('/register', registerAdmin);
 
-router.get("/users", getAllUsers); // ✅ New route for registered users
+// Protected routes
+router.get('/profile', adminProtect, getAdminProfile);
+router.put('/profile', adminProtect, updateAdminProfile);
+router.get('/users', adminProtect, getAllUsers);
 
 module.exports = router;
