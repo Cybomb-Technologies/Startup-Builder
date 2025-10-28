@@ -12,7 +12,6 @@ const userRoutes = require('./routes/users');
 
 // Initialize Express
 const app = express();
-app.use(cors()); // ✅ allow all cross-origin requests
 
 // -------------------- Security Middleware --------------------
 app.use(helmet());
@@ -25,14 +24,15 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // -------------------- CORS Configuration --------------------
+// ✅ REMOVED the duplicate app.use(cors()) that was causing the issue
 const corsOptions = {
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // -------------------- Parsers --------------------
 app.use(cookieParser());
@@ -48,11 +48,9 @@ app.get('/', (req, res) => {
 });
 
 // -------------------- API Routes --------------------
-// ✅ Use clean prefixes
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 console.log("✅ Admin routes mounted at /api/admin");
-
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
@@ -64,14 +62,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-
-// -------------------- Start Server --------------------
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
 // -------------------- 404 Handler --------------------
-
 app.use('*', (req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
+
+// -------------------- Start Server --------------------
+const PORT = process.env.PORT || 5000; // ✅ Changed to 5000
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

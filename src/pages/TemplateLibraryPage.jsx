@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Search, FileText, Download, Edit, BookmarkPlus, Filter, FileType, FileUp, FileDown, FileX, X, Star } from 'lucide-react';
+import { Search, FileX } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
   Select,
@@ -18,56 +17,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const categories = {
-  accounts: {
-    name: 'Accounts',
-    icon: '📊',
-    subcategories: ['Accounting Templates', 'Income Tax', 'Inventory Management', 'Invoices', 'MIS Reports', 'Sales Tax', 'TDS & TCS']
-  },
-  hr: {
-    name: 'Human Resources',
-    icon: '👥',
-    subcategories: ['Statutories', 'Engagement Plans', 'Performance Management', 'Records & Formats', 'Training Modules', 'Employee Policy', 'Exit Process', 'Employee Onboarding', 'Company Forms', 'HR Forms', 'Job Descriptions']
-  },
-  legal: {
-    name: 'Legal',
-    icon: '📑',
-    subcategories: ['Affidavits', 'Agreement Formats', 'Board Resolutions', 'Bonds', 'Copyrights']
-  },
-  business: {
-    name: 'Business',
-    icon: '💼',
-    subcategories: ['Business Plans', 'MIS Templates', 'Notices', 'Pitch Decks', 'Quotations', 'Sales Reports', 'Survey Templates']
-  },
-  marketing: {
-    name: 'Marketing',
-    icon: '📢',
-    subcategories: ['Email Templates', 'Indian Festival Infographics']
-  }
-};
+// Import individual sidebar components AND their subcategories
+import AccountsSidebar, { accountsSubcategories } from '../components/sidebars/AccountsSidebar';
+import HRSidebar, { hrSubcategories } from '../components/sidebars/HRSidebar';
+import LegalSidebar, { legalSubcategories } from '../components/sidebars/LegalSidebar';
+import BusinessSidebar, { businessSubcategories } from '../components/sidebars/BusinessSidebar';
+import MarketingSidebar, { marketingSubcategories } from '../components/sidebars/MarketingSidebar';
 
-const initialTemplates = [
-    { id: 1, title: 'Employee Appointment Letter', category: 'hr', subcategory: 'Employee Onboarding', format: 'DOCX', description: 'Standard format for new employee onboarding.', access: 'Pro', tags: ['HR', 'Agreement'], lastUpdated: '2025-10-15', size: '24KB' },
-    { id: 2, name: 'Employment Agreement', category: 'legal', subcategory: 'Agreement Formats', format: 'DOCX', description: 'Standard employment contract', access: 'Business', tags: ['Legal', 'Contract'], lastUpdated: '2025-10-14', size: '32KB' },
-    { id: 3, name: 'Offer Letter', category: 'hr', subcategory: 'Employee Onboarding', format: 'DOCX', description: 'Professional offer letter template', access: 'Free', tags: ['HR', 'Onboarding'], lastUpdated: '2025-10-12', size: '22KB' },
-    { id: 4, name: 'Business Plan', category: 'business', subcategory: 'Business Plans', format: 'DOCX', description: 'Comprehensive business plan template', access: 'Pro', tags: ['Business', 'Strategy'], lastUpdated: '2025-10-11', size: '128KB' },
-    { id: 5, name: 'Email Campaign', category: 'marketing', subcategory: 'Email Templates', format: 'PDF', description: 'Marketing email template', access: 'Free', tags: ['Marketing', 'Email'], lastUpdated: '2025-10-10', size: '45KB' },
-    { id: 6, name: 'Balance Sheet', category: 'accounts', subcategory: 'Accounting Templates', format: 'XLSX', description: 'Financial balance sheet template', access: 'Pro', tags: ['Accounts', 'Finance'], lastUpdated: '2025-10-09', size: '56KB' },
-    { id: 7, name: 'NDA Agreement', category: 'legal', subcategory: 'Agreement Formats', format: 'DOCX', description: 'Non-disclosure agreement', access: 'Business', tags: ['Legal', 'NDA'], lastUpdated: '2025-10-08', size: '28KB' },
-    { id: 8, name: 'Performance Review', category: 'hr', subcategory: 'Performance Management', format: 'DOCX', description: 'Employee performance evaluation', access: 'Pro', tags: ['HR', 'Review'], lastUpdated: '2025-10-07', size: '35KB' },
-    { id: 9, name: 'Sales Proposal', category: 'business', subcategory: 'Sales Reports', format: 'DOCX', description: 'Professional sales proposal', access: 'Pro', tags: ['Business', 'Sales'], lastUpdated: '2025-10-06', size: '48KB' },
-    { id: 10, name: 'Pitch Deck', category: 'business', subcategory: 'Pitch Decks', format: 'PDF', description: 'Investor pitch deck template', access: 'Free', tags: ['Business', 'Pitch'], lastUpdated: '2025-10-05', size: '2.3MB' },
-    { id: 11, name: 'GST Invoice', category: 'accounts', subcategory: 'Invoices', format: 'XLSX', description: 'GST compliant invoice format.', access: 'Free', tags: ['Accounts', 'Invoice', 'GST'], lastUpdated: '2025-10-16', size: '18KB' },
-];
+// Import all subcategory components
+import {
+  AccountingTemplates,
+  IncomeTax,
+  InventoryManagement,
+  Invoices,
+  MISReports,
+  SalesTax,
+  TDSTCS
+} from '../components/subcategories/accounts';
 
-const FileIcon = ({ format }) => {
-  if (format === 'DOCX') return <FileType className="w-20 h-20 text-blue-600" />;
-  if (format === 'XLSX') return <FileUp className="w-20 h-20 text-green-600" />;
-  if (format === 'PDF') return <FileDown className="w-20 h-20 text-red-600" />;
-  return <FileText className="w-20 h-20 text-gray-600" />;
-};
+import {
+  Statutories,
+  EngagementPlans,
+  PerformanceManagement,
+  RecordsFormats,
+  TrainingModules,
+  EmployeePolicy,
+  ExitProcess,
+  EmployeeOnboarding,
+  CompanyForms,
+  HRForms,
+  JobDescriptions
+} from '../components/subcategories/hr';
+
+import {
+  Affidavits,
+  AgreementFormats,
+  BoardResolutions,
+  Bonds,
+  Copyrights
+} from '../components/subcategories/legal';
+
+import {
+  BusinessPlans,
+  MISTemplates,
+  Notices,
+  PitchDecks,
+  Quotations,
+  SalesReports,
+  SurveyTemplates
+} from '../components/subcategories/business';
+
+import {
+  EmailTemplates,
+  IndianFestivalInfographics,
+  SocialMediaTemplates,
+  MarketingReports,
+  CampaignPlans
+} from '../components/subcategories/marketing';
+
+// Import template components
+import TemplateGrid from '../components/template/TemplateGrid';
+import PreviewDialog from '../components/template/PreviewDialog';
+import UpgradeDialog from '../components/template/UpgradeDialog';
 
 const TemplateLibraryPage = () => {
   const [templates, setTemplates] = useState([]);
@@ -77,20 +89,33 @@ const TemplateLibraryPage = () => {
   const [filters, setFilters] = useState({ fileType: 'all', access: 'all' });
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    const storedTemplates = JSON.parse(localStorage.getItem('templates'));
-    if (storedTemplates && storedTemplates.length > 0) {
-      setTemplates(storedTemplates);
-    } else {
-      localStorage.setItem('templates', JSON.stringify(initialTemplates));
-      setTemplates(initialTemplates);
-    }
+    fetchTemplates();
   }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/templates');
+      const data = await response.json();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load templates. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAction = (action, template) => {
     if (!user) {
@@ -113,7 +138,10 @@ const TemplateLibraryPage = () => {
         navigate(`/editor/${template.id}`);
         break;
       case 'download':
-        toast({ title: "Download Started", description: `${template.title || template.name} is being downloaded...` });
+        toast({ 
+          title: "Download Started", 
+          description: `${template.title || template.name} is being downloaded...` 
+        });
         break;
       case 'preview':
         setPreviewTemplate(template);
@@ -128,16 +156,134 @@ const TemplateLibraryPage = () => {
       setUpgradeModalOpen(true);
       return;
     }
-    toast({ title: "Added to Favorites!", description: "You can find this template in your dashboard." });
+    toast({ 
+      title: "Added to Favorites!", 
+      description: "You can find this template in your dashboard." 
+    });
+  };
+
+  const handleCategoryChange = (category, defaultSubcategory) => {
+    setSelectedCategory(category);
+    setSelectedSubCategory(defaultSubcategory);
+  };
+
+  // Common props for all sidebar components
+  const sidebarProps = {
+    selectedCategory,
+    onCategoryChange: handleCategoryChange
+  };
+
+  // Map subcategory names to components
+  const getSubcategoryComponent = (category, subcategory) => {
+    const componentMap = {
+      accounts: {
+        'Accounting Templates': AccountingTemplates,
+        'Income Tax': IncomeTax,
+        'Inventory Management': InventoryManagement,
+        'Invoices': Invoices,
+        'MIS Reports': MISReports,
+        'Sales Tax': SalesTax,
+        'TDS & TCS': TDSTCS
+      },
+      hr: {
+        'Statutories': Statutories,
+        'Engagement Plans': EngagementPlans,
+        'Performance Management': PerformanceManagement,
+        'Records & Formats': RecordsFormats,
+        'Training Modules': TrainingModules,
+        'Employee Policy': EmployeePolicy,
+        'Exit Process': ExitProcess,
+        'Employee Onboarding': EmployeeOnboarding,
+        'Company Forms': CompanyForms,
+        'HR Forms': HRForms,
+        'Job Descriptions': JobDescriptions
+      },
+      legal: {
+        'Affidavits': Affidavits,
+        'Agreement Formats': AgreementFormats,
+        'Board Resolutions': BoardResolutions,
+        'Bonds': Bonds,
+        'Copyrights': Copyrights
+      },
+      business: {
+        'Business Plans': BusinessPlans,
+        'MIS Templates': MISTemplates,
+        'Notices': Notices,
+        'Pitch Decks': PitchDecks,
+        'Quotations': Quotations,
+        'Sales Reports': SalesReports,
+        'Survey Templates': SurveyTemplates
+      },
+      marketing: {
+        'Email Templates': EmailTemplates,
+        'Indian Festival Infographics': IndianFestivalInfographics,
+        'Social Media Templates': SocialMediaTemplates,
+        'Marketing Reports': MarketingReports,
+        'Campaign Plans': CampaignPlans
+      }
+    };
+
+    const Component = componentMap[category]?.[subcategory];
+    return Component ? <Component /> : <div className="bg-white rounded-xl shadow-lg p-6"><h2 className="text-2xl font-bold text-gray-900">Content for {subcategory} coming soon...</h2></div>;
   };
 
   const filteredTemplates = templates.filter(template =>
     template.category === selectedCategory &&
     template.subcategory === selectedSubCategory &&
-    (searchQuery === '' || (template.title || template.name).toLowerCase().includes(searchQuery.toLowerCase()) || template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) &&
+    (searchQuery === '' || 
+     (template.title || template.name).toLowerCase().includes(searchQuery.toLowerCase()) || 
+     template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) &&
     (filters.fileType === 'all' || template.format.toLowerCase() === filters.fileType) &&
     (filters.access === 'all' || template.access.toLowerCase() === filters.access)
   );
+
+  const renderTabs = () => {
+    // Use the imported subcategories from sidebar components
+    const categories = {
+      accounts: { subcategories: accountsSubcategories },
+      hr: { subcategories: hrSubcategories },
+      legal: { subcategories: legalSubcategories },
+      business: { subcategories: businessSubcategories },
+      marketing: { subcategories: marketingSubcategories }
+    };
+
+    const currentCategory = categories[selectedCategory];
+
+    return (
+      <Tabs value={selectedSubCategory} onValueChange={setSelectedSubCategory} className="w-full">
+        <TabsList className="mb-6 flex-wrap h-auto bg-white p-2 rounded-lg shadow">
+          {currentCategory.subcategories.map((sub) => (
+            <TabsTrigger key={sub} value={sub} className="px-4 py-2">
+              {sub}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value={selectedSubCategory}>
+          {loading ? (
+            <div className="grid md:grid-cols-2 gap-6">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-200"></div>
+                  <div className="p-6 space-y-3">
+                    <div className="h-6 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="flex gap-2">
+                      <div className="h-6 bg-gray-200 rounded w-16"></div>
+                      <div className="h-6 bg-gray-200 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Render the specific subcategory component
+            getSubcategoryComponent(selectedCategory, selectedSubCategory)
+          )}
+        </TabsContent>
+      </Tabs>
+    );
+  };
 
   return (
     <>
@@ -150,19 +296,33 @@ const TemplateLibraryPage = () => {
         <Navbar />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="mb-8"
+          >
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               📂 Explore Templates
             </h1>
             <p className="text-xl text-gray-600">Browse and customize professional business templates</p>
           </motion.div>
 
+          {/* Search and Filters */}
           <div className="mb-8 flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input type="text" placeholder="Search templates by name or keyword..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-12 text-lg" />
+              <Input 
+                type="text" 
+                placeholder="Search templates by name or keyword..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                className="pl-10 h-12 text-lg" 
+              />
             </div>
-            <Select value={filters.fileType} onValueChange={(value) => setFilters(f => ({...f, fileType: value}))}>
+            <Select 
+              value={filters.fileType} 
+              onValueChange={(value) => setFilters(f => ({...f, fileType: value}))}
+            >
               <SelectTrigger className="h-12 w-full md:w-[180px]">
                 <SelectValue placeholder="File Type" />
               </SelectTrigger>
@@ -173,7 +333,10 @@ const TemplateLibraryPage = () => {
                 <SelectItem value="pdf">PDF (.pdf)</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.access} onValueChange={(value) => setFilters(f => ({...f, access: value}))}>
+            <Select 
+              value={filters.access} 
+              onValueChange={(value) => setFilters(f => ({...f, access: value}))}
+            >
               <SelectTrigger className="h-12 w-full md:w-[180px]">
                 <SelectValue placeholder="Access Level" />
               </SelectTrigger>
@@ -186,75 +349,26 @@ const TemplateLibraryPage = () => {
             </Select>
           </div>
 
+          {/* Main Content Grid */}
           <div className="grid lg:grid-cols-4 gap-8">
+            {/* Sidebar - Single container with all category buttons */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
                 <h2 className="text-xl font-bold mb-4 text-gray-900">Categories</h2>
                 <div className="space-y-2">
-                  {Object.entries(categories).map(([key, category]) => (
-                    <button key={key} onClick={() => { setSelectedCategory(key); setSelectedSubCategory(category.subcategories[0]); }} className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${selectedCategory === key ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'hover:bg-gray-100 text-gray-700'}`}>
-                      <span className="mr-2">{category.icon}</span>{category.name}
-                    </button>
-                  ))}
+                  {/* All 5 sidebar components render just their buttons */}
+                  <AccountsSidebar {...sidebarProps} />
+                  <HRSidebar {...sidebarProps} />
+                  <LegalSidebar {...sidebarProps} />
+                  <BusinessSidebar {...sidebarProps} />
+                  <MarketingSidebar {...sidebarProps} />
                 </div>
               </div>
             </div>
 
+            {/* Templates Content */}
             <div className="lg:col-span-3">
-              <Tabs value={selectedSubCategory} onValueChange={setSelectedSubCategory} className="w-full">
-                <TabsList className="mb-6 flex-wrap h-auto bg-white p-2 rounded-lg shadow">
-                  {categories[selectedCategory].subcategories.map((sub) => (
-                    <TabsTrigger key={sub} value={sub} className="px-4 py-2">{sub}</TabsTrigger>
-                  ))}
-                </TabsList>
-
-                <TabsContent value={selectedSubCategory}>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {filteredTemplates.length > 0 ? filteredTemplates.map((template, index) => (
-                      <motion.div key={template.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-blue-100 group">
-                        <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center relative">
-                          <FileIcon format={template.format} />
-                          <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-semibold text-white ${template.access === 'Free' ? 'bg-green-500' : template.access === 'Pro' ? 'bg-blue-500' : 'bg-purple-500'}`}>{template.access}</span>
-                        </div>
-                        <div className="p-6">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <h3 className="text-xl font-semibold text-gray-900 truncate">{template.title || template.name}</h3>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Last Updated: {template.lastUpdated}</p>
-                                <p>File Size: {template.size}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <p className="text-gray-600 my-2 h-10">{template.description}</p>
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs font-medium">.{template.format.toLowerCase()}</span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">{template.category}</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button onClick={() => handleAction('preview', template)} variant="outline" className="flex-1">Preview</Button>
-                            <Button onClick={() => handleAction('edit', template)} className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600">Edit Online</Button>
-                            <Button onClick={() => handleAction('download', template)} variant="outline">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button onClick={() => handleFavorite(template.id)} variant="outline">
-                              <Star className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )) : (
-                      <div className="col-span-2 text-center py-12">
-                        <FileX className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600 text-lg mb-2">No templates found</p>
-                        <p className="text-gray-500">Try adjusting your search or filters.</p>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
+              {renderTabs()}
             </div>
           </div>
         </div>
@@ -262,44 +376,18 @@ const TemplateLibraryPage = () => {
         <Footer />
       </div>
 
-      <Dialog open={previewTemplate !== null} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">{previewTemplate?.title || previewTemplate?.name}</DialogTitle>
-            <DialogDescription>{previewTemplate?.description}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">File preview would be shown here.</p>
-            </div>
-            <div className="mt-4 space-y-2">
-              <p><strong>Category:</strong> {previewTemplate?.category}</p>
-              <p><strong>Subcategory:</strong> {previewTemplate?.subcategory}</p>
-              <p><strong>Format:</strong> {previewTemplate?.format}</p>
-              <p><strong>Access:</strong> {previewTemplate?.access}</p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Dialogs */}
+      <PreviewDialog 
+        template={previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+      />
 
-      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Upgrade Required</DialogTitle>
-            <DialogDescription>
-              {user ? "Your current plan doesn't include access to this template." : "Please log in or sign up to access templates."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <p className="mb-6">
-              {user ? "Upgrade your plan to unlock this template and many more powerful features." : "Join StartupDocs Builder to start creating and downloading documents."}
-            </p>
-            <Button onClick={() => navigate(user ? '/pricing' : '/login')} className="bg-gradient-to-r from-blue-600 to-indigo-600">
-              {user ? 'Upgrade to Pro' : 'Login or Sign Up'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <UpgradeDialog 
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        user={user}
+        navigate={navigate}
+      />
     </>
   );
 };
