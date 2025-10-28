@@ -56,7 +56,7 @@ const AdminLoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/login', {
+      const response = await fetch('http://localhost:5001/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const AdminLoginPage = () => {
         }));
         
         console.log('Login successful, redirecting to admin dashboard...');
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
       }
