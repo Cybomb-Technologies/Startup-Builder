@@ -5,107 +5,82 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/database');
-
+const fileUpload = require('express-fileupload');
 // Import Routes
-const adminRoutes = require('./routes/adminRoutes');
+const adminRoutes = require('./routes/adminroutes');
 const userRoutes = require('./routes/users');
 const newsletterRoutes = require("./routes/newsletterRoutes");
 
 // Initialize Express
 const app = express();
 
-// -------------------- Security Middleware --------------------
+// Security Middleware
 app.use(helmet());
 
-// -------------------- Rate Limiting --------------------
+// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
 app.use(limiter);
 
-// ✅ Correct route definition
-// ✅ REPLACE with this debug version
-app.post('/api/admin', async (req, res) => {
-  try {
-    console.log('Login request received:', req.body);
-    
-    const { email, password } = req.body;
-    
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required'
-      });
-    }
-    
-    console.log('Looking for admin with email:', email);
-    
-    // Your authentication logic here
-    // TEMPORARY: Simple authentication for testing
-    if (email === 'admin@example.com' && password === 'password') {
-      return res.json({
-        success: true,
-        message: 'Login successful',
-        token: 'temp-jwt-token-for-testing'
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server Error',
-      error: error.message
-    });
-  }
-});
-
-// -------------------- CORS Configuration --------------------
-// ✅ REMOVED the duplicate app.use(cors()) that was causing the issue
+// CORS Configuration - UPDATED for file uploads
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000', // ⚠️ Changed from 3001 to 3000
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+// Use express-fileupload instead of multer
+app.use(fileUpload({
+  createParentPath: true,
+  limits: { 
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  abortOnLimit: true,
+  parseNested: true
+}));
 
-// -------------------- Parsers --------------------
+// Parsers - IMPORTANT: Increased limits for file uploads
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// -------------------- Connect Database --------------------
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Connect Database
 connectDB();
 
-// -------------------- Base Route --------------------
+// Base Route
 app.get('/', (req, res) => {
-  res.json({ message: 'API is running...' });
+  res.json({ 
+    success: true,
+    message: 'Template Management System API is running...',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// -------------------- API Routes --------------------
+// Health Check Route
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// API Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/newsletter', newsletterRoutes); // ⚠️ ADDED THIS MISSING LINE
-
-
+app.use('/api/newsletter', newsletterRoutes);
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
-console.log("✅ Newsletter routes mounted at /api/newsletter"); // ⚠️ ADDED THIS
+console.log("✅ Newsletter routes mounted at /api/newsletter");
 
-
-// -------------------- Error Handling --------------------
+// Error Handling
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
+  console.error('❌ Server Error:', err.stack);
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
@@ -113,11 +88,19 @@ app.use((err, req, res, next) => {
   });
 });
 
-// -------------------- 404 Handler --------------------
+// 404 Handler
 app.use('*', (req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found',
+    path: req.originalUrl
+  });
 });
 
-// -------------------- Start Server --------------------
-const PORT = process.env.PORT || 5001; // ⚠️ Changed from 5000 to 5001
-app.listen(PORT, '0.0.0.0', () => console.log(`✅ Server running on port ${PORT}`)); // ⚠️ Added '0.0.0.0'
+// Start Server
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
+});

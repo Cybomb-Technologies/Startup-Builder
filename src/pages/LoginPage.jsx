@@ -21,8 +21,8 @@ const LoginPage = () => {
 
     try {
       const url = isSignup
-        ? 'http://localhost:5000/api/users/register'
-        : 'http://localhost:5000/api/users/login';
+        ? 'http://localhost:5001/api/users/register'
+        : 'http://localhost:5001/api/users/login';
 
       // Prepare body based on signup or login
       const body = isSignup

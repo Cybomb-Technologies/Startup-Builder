@@ -33,8 +33,7 @@ const TemporaryCard = ({ children }) => (
 const AdminLoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    companyCode: ''
+    password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +55,8 @@ const AdminLoginPage = () => {
     setError('');
 
     try {
+      console.log('🔐 Attempting admin login...');
+      
       const response = await fetch('http://localhost:5001/api/admin/login', {
         method: 'POST',
         headers: {
@@ -68,28 +69,40 @@ const AdminLoginPage = () => {
       });
 
       const data = await response.json();
+      console.log('📡 Login response:', data);
 
-      if (response.ok) {
-        // Save admin session
+      if (response.ok && data.success) {
+        // 🎯 CRITICAL FIX: Store token in adminUser object (like your reference code)
         localStorage.setItem('adminUser', JSON.stringify({
           email: data.user.email,
           name: data.user.name,
           isLoggedIn: true,
           loginTime: new Date().toISOString(),
-          token: data.token
+          token: data.token  // ✅ Store token here like your reference code
         }));
         
-        console.log('Login successful, redirecting to admin dashboard...');
+        console.log('✅ Login successful, session saved');
+        console.log('🔄 Redirecting to admin dashboard...');
+        
+        // 🎯 Use the same redirect method as your reference code
         navigate('/admin/dashboard');
+        
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
+        console.error('❌ Login failed:', data.message);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Network error during login:', error);
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Test redirect function
+  const testRedirect = () => {
+    console.log('🧪 Testing redirect manually...');
+    navigate('/admin/dashboard');
   };
 
   return (
@@ -151,6 +164,40 @@ const AdminLoginPage = () => {
             )}
           </button>
         </form>
+
+        {/* Debug section */}
+        {/* <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+          <p className="text-sm text-blue-800 text-center mb-2">
+            <strong>Testing:</strong> If redirect doesn't work, try these:
+          </p>
+          <div className="flex gap-2">
+            <button 
+              onClick={testRedirect}
+              className="flex-1 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+            >
+              Test Redirect
+            </button>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('adminUser');
+                console.log('🧹 Storage cleared');
+              }}
+              className="flex-1 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
+            >
+              Clear Storage
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 mb-2">Don't have an admin account?</p>
+          <button 
+            onClick={() => navigate('/admin/register')}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+          >
+            Register Admin Account
+          </button>
+        </div> */}
 
         <div className="mt-4 text-center">
           <button 
