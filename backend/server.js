@@ -5,119 +5,185 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/database');
+const fileUpload = require('express-fileupload');
 
 // Import Routes
 const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/users');
 const newsletterRoutes = require("./routes/newsletterRoutes");
+const publicRoutes = require('./routes/publicRoutes');
 
 // Initialize Express
 const app = express();
 
-// -------------------- Security Middleware --------------------
-app.use(helmet());
-
-// -------------------- Rate Limiting --------------------
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-app.use(limiter);
-
-// ✅ Correct route definition
-// ✅ REPLACE with this debug version
-app.post('/api/admin', async (req, res) => {
-  try {
-    console.log('Login request received:', req.body);
-    
-    const { email, password } = req.body;
-    
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required'
-      });
-    }
-    
-    console.log('Looking for admin with email:', email);
-    
-    // Your authentication logic here
-    // TEMPORARY: Simple authentication for testing
-    if (email === 'admin@example.com' && password === 'password') {
-      return res.json({
-        success: true,
-        message: 'Login successful',
-        token: 'temp-jwt-token-for-testing'
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server Error',
-      error: error.message
-    });
-  }
-});
-
-// -------------------- CORS Configuration --------------------
-// ✅ REMOVED the duplicate app.use(cors()) that was causing the issue
-const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000', // ⚠️ Changed from 3001 to 3000
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
-
-// -------------------- Parsers --------------------
-app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// -------------------- Connect Database --------------------
+// Connect Database
 connectDB();
 
-// -------------------- Base Route --------------------
-app.get('/', (req, res) => {
-  res.json({ message: 'API is running...' });
+// Enhanced CORS Configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
+      process.env.CLIENT_URL
+    ].filter(Boolean);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers',
+    'X-API-Key'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  maxAge: 86400, // 24 hours
+  preflightContinue: false
+};
+
+// Apply CORS before other middleware
+app.use(cors(corsOptions));
+
+// Handle preflight requests globally
+app.options('*', cors(corsOptions));
+
+// Security Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // increase limit for development
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  }
+});
+app.use('/api/', limiter);
+
+// File upload middleware
+app.use(fileUpload({
+  createParentPath: true,
+  limits: { 
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  abortOnLimit: true,
+  parseNested: true,
+  useTempFiles: false
+}));
+
+// Body parsers with increased limits
+app.use(express.json({ 
+  limit: '50mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '50mb',
+  parameterLimit: 100000
+}));
+app.use(cookieParser());
+
+// Logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
 });
 
-// -------------------- API Routes --------------------
-app.use('/api/admin', adminRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/newsletter', newsletterRoutes); // ⚠️ ADDED THIS MISSING LINE
-
-
-
-console.log("✅ Admin routes mounted at /api/admin");
-console.log("✅ User routes mounted at /api/users");
-console.log("✅ Newsletter routes mounted at /api/newsletter"); // ⚠️ ADDED THIS
-
-
-// -------------------- Error Handling --------------------
-app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {},
+// Base Route
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true,
+    message: 'Template Management System API is running...',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// -------------------- 404 Handler --------------------
-app.use('*', (req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+// Health Check Route
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    cors: {
+      origin: req.headers.origin,
+      allowed: true
+    }
+  });
 });
 
-// -------------------- Start Server --------------------
-const PORT = process.env.PORT || 5001; // ⚠️ Changed from 5000 to 5001
-app.listen(PORT, '0.0.0.0', () => console.log(`✅ Server running on port ${PORT}`)); // ⚠️ Added '0.0.0.0'
+// API Routes
+app.use('/api/users', userRoutes);
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api', publicRoutes);
+app.use('/api/admin', adminRoutes);
+
+console.log("✅ Admin routes mounted at /api/admin");
+console.log("✅ User routes mounted at /api/users");
+console.log("✅ Newsletter routes mounted at /api/newsletter");
+console.log("✅ Public routes mounted at /api");
+
+// Enhanced Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error('❌ Server Error:', err.stack);
+  
+  // CORS errors
+  if (err.message.includes('CORS')) {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS policy violation',
+      origin: req.headers.origin,
+      error: process.env.NODE_ENV === 'development' ? err.message : {}
+    });
+  }
+  
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
+});
+
+// 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    message: 'Route not found',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
+// Start Server
+const PORT = process.env.PORT || 5001;
+const HOST = process.env.HOST || '0.0.0.0';
+
+app.listen(PORT, HOST, () => {
+  console.log(`\n🚀 Server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
+  console.log(`🔗 Health check: http://${HOST}:${PORT}/api/health`);
+  console.log(`📚 API Base: http://${HOST}:${PORT}/api`);
+});

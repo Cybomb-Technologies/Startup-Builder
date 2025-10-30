@@ -1,11 +1,11 @@
 const Admin = require("../models/Admin");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");   // ✅ make sure this model exists too
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 require("dotenv").config();
 
-// ✅ Generate JWT Token
+// Generate JWT Token
 const generateToken = (id) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in .env file");
@@ -13,7 +13,7 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
-// ✅ Register Admin
+// Register Admin
 exports.registerAdmin = async (req, res) => {
   try {
     const { name, email, password, companyCode } = req.body;
@@ -69,7 +69,6 @@ exports.registerAdmin = async (req, res) => {
   } catch (error) {
     console.error("Register Error:", error);
     
-    // MongoDB duplicate key error
     if (error.code === 11000) {
       return res.status(400).json({ 
         success: false, 
@@ -77,7 +76,6 @@ exports.registerAdmin = async (req, res) => {
       });
     }
     
-    // MongoDB validation error
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ 
@@ -94,7 +92,7 @@ exports.registerAdmin = async (req, res) => {
   }
 };
 
-// ✅ Login Admin
+// Login Admin
 exports.loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -149,19 +147,10 @@ exports.loginAdmin = async (req, res) => {
     });
   }
 };
-const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Error fetching users", error });
-  }
-};
-// ✅ Get Admin Profile
+
+// Get Admin Profile
 exports.getAdminProfile = async (req, res) => {
   try {
-    // req.admin is set by the adminProtect middleware
     const admin = req.admin;
     
     if (!admin) {
@@ -187,9 +176,10 @@ exports.getAdminProfile = async (req, res) => {
   }
 };
 
+// Get All Users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find(); // Fetch all users from MongoDB
+    const users = await User.find().select('-password');
     res.status(200).json({
       success: true,
       count: users.length,
@@ -205,7 +195,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// ✅ Update Admin Profile
+// Update Admin Profile
 exports.updateAdminProfile = async (req, res) => {
   try {
     const admin = req.admin;

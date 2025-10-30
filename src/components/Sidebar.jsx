@@ -62,5 +62,5 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   );
 };
 
-// ✅ Make sure this line is exactly like this:
+
 export default Sidebar;
