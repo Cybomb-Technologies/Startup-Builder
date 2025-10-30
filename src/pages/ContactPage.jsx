@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
@@ -17,15 +16,43 @@ const ContactPage = () => {
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 24 hours."
-    });
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:5001/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Message Sent!",
+          description: "We'll get back to you within 24 hours."
+        });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,6 +81,7 @@ const ContactPage = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid md:grid-cols-2 gap-12">
+            {/* Contact Information Section */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -96,6 +124,7 @@ const ContactPage = () => {
               </div>
             </motion.div>
 
+            {/* Contact Form Section */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -110,6 +139,7 @@ const ContactPage = () => {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Your name"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -121,6 +151,7 @@ const ContactPage = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="your@email.com"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -132,6 +163,7 @@ const ContactPage = () => {
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       placeholder="How can we help?"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -143,12 +175,17 @@ const ContactPage = () => {
                       placeholder="Tell us more..."
                       rows={5}
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6">
-                    <Send className="w-5 h-5 mr-2" />
-                    Send Message
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6"
+                    disabled={isSubmitting}
+                  >
+                    <Send className={`w-5 h-5 mr-2 ${isSubmitting ? 'animate-pulse' : ''}`} />
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </Button>
                 </div>
               </form>
@@ -163,4 +200,3 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
-  

@@ -1,20 +1,18 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+// ✅ Your existing imports stay the same
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Users, FileText, Mail, UserCheck, RefreshCw, LogOut } from 'lucide-react';
-import  Sidebar  from '@/components/Sidebar';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Users, FileText, Mail, LogOut, RefreshCw, MessageSquare } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Templates from './Templates';
 import UsersPage from './Users';
 import Newsletter from './Newsletter';
 import Analytics from './Analytics';
+import ContactSubmissions from './ContactSubmissions';
 
 const AdminPage = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,16 +20,12 @@ const AdminPage = () => {
   const [templates, setTemplates] = useState([]);
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [newsletterSubscribers, setNewsletterSubscribers] = useState([]);
-  const [activeTab, setActiveTab] = useState('templates');
+  const [contactSubmissions, setContactSubmissions] = useState([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [performanceMetrics, setPerformanceMetrics] = useState({
-    domContentLoaded: 0,
-    loadEvent: 0,
-    totalLoadTime: 0,
-  });
 
-  // ✅ Check admin session on component mount
+  // ✅ Check admin session
   useEffect(() => {
     const adminUser = localStorage.getItem('adminUser');
     if (!adminUser) {
@@ -43,216 +37,144 @@ const AdminPage = () => {
       navigate('/admin/login');
       return;
     }
-  }, [navigate, toast]);
+  }, [toast, navigate]);
 
-  // ✅ Sync activeTab with current URL
+  // ✅ Keep all your existing tab syncing logic
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/admin/users')) setActiveTab('users');
+    if (path.includes('/admin/templates')) setActiveTab('templates');
+    else if (path.includes('/admin/users')) setActiveTab('users');
     else if (path.includes('/admin/newsletter')) setActiveTab('newsletter');
     else if (path.includes('/admin/analytics')) setActiveTab('analytics');
-    else setActiveTab('templates');
+    else if (path.includes('/admin/contact-messages')) setActiveTab('contact-messages');
+    else if (path.includes('/admin/upload')) setActiveTab('upload');
+    else setActiveTab('dashboard');
   }, [location.pathname]);
 
-  // ✅ Handle tab change
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    navigate(`/admin/${tab}`);
-  };
-
-  // ✅ Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem('adminUser');
-    toast({
-      title: 'Logged out',
-      description: 'You have been logged out from admin panel',
-    });
-    navigate('/admin/login');
-  };
-
-  // ✅ Delete handlers
-  const handleDelete = async (id) => {
-    try {
-      await fetch(`/api/templates/${id}`, { method: 'DELETE' });
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
-      toast({ title: 'Deleted', description: 'Template deleted successfully' });
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete template',
-        variant: 'destructive',
-      });
+    switch (tab) {
+      case 'dashboard':
+        navigate('/admin/dashboard');
+        break;
+      case 'templates':
+        navigate('/admin/templates');
+        break;
+      case 'users':
+        navigate('/admin/users');
+        break;
+      case 'newsletter':
+        navigate('/admin/newsletter');
+        break;
+      case 'analytics':
+        navigate('/admin/analytics');
+        break;
+      case 'contact-messages':
+        navigate('/admin/contact-messages');
+        break;
+      case 'upload':
+        navigate('/admin/upload');
+        break;
+      default:
+        navigate('/admin/dashboard');
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    try {
-      await fetch(`/api/users/${id}`, { method: 'DELETE' });
-      setRegisteredUsers((prev) => prev.filter((u) => u.id !== id));
-      toast({ title: 'Deleted', description: 'User removed successfully' });
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete user',
-        variant: 'destructive',
-      });
+  const handleStatClick = (label) => {
+    switch (label) {
+      case 'Total Templates':
+        handleTabChange('templates');
+        break;
+      case 'Registered Users':
+        handleTabChange('users');
+        break;
+      case 'Newsletter Subscribers':
+        handleTabChange('newsletter');
+        break;
+      case 'Contact Messages':
+        handleTabChange('contact-messages');
+        break;
+      default:
+        break;
     }
   };
 
-  const handleUnsubscribe = async (email) => {
-    try {
-      await fetch(`/api/newsletter/unsubscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      setNewsletterSubscribers((prev) =>
-        prev.filter((sub) => sub.email !== email)
-      );
-      toast({ title: 'Unsubscribed', description: `${email} removed` });
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to unsubscribe user',
-        variant: 'destructive',
-      });
-    }
+  // ✅ Load REAL contact submissions (unchanged)
+  const loadContactSubmissions = async () => {
+    const response = await fetch('http://localhost:5001/api/contact/submissions');
+    const result = await response.json();
+    if (result.success && Array.isArray(result.submissions)) setContactSubmissions(result.submissions);
   };
 
-  // ✅ Performance metrics
-  useEffect(() => {
-    const measurePerformance = () => {
-      if (performance.timing) {
-        const domContentLoaded =
-          performance.timing.domContentLoadedEventEnd -
-          performance.timing.navigationStart;
-        const loadEvent =
-          performance.timing.loadEventEnd - performance.timing.navigationStart;
-        setPerformanceMetrics({
-          domContentLoaded,
-          loadEvent,
-          totalLoadTime: loadEvent,
-        });
-      }
-    };
-
-    if (document.readyState === 'complete') measurePerformance();
-    else window.addEventListener('load', measurePerformance);
-
-    return () => window.removeEventListener('load', measurePerformance);
-  }, []);
-
-  // ✅ Load data with proper error handling for missing routes
-  const loadData = async (isRefresh = false) => {
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
+  // ✅ ✅ UPDATED — Fetch Registered Users with Admin Token
+  const loadRegisteredUsers = async () => {
     try {
-      // Load users (if endpoint exists)
-      try {
-        const usersRes = await fetch('http://localhost:5001/api/admin/users');
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          if (usersData.success) {
-            setRegisteredUsers(usersData.users);
-          }
-        } else {
-          console.warn('Users endpoint not available:', usersRes.status);
-          // Set mock users data for demo
-          setRegisteredUsers([
-            { id: 1, name: 'John Doe', email: 'john@example.com', isActive: true },
-            { id: 2, name: 'Jane Smith', email: 'jane@example.com', isActive: true }
-          ]);
-        }
-      } catch (userError) {
-        console.warn('Failed to load users, using demo data');
-        setRegisteredUsers([
-          { id: 1, name: 'John Doe', email: 'john@example.com', isActive: true },
-          { id: 2, name: 'Jane Smith', email: 'jane@example.com', isActive: true }
-        ]);
+      const adminUser = JSON.parse(localStorage.getItem('adminUser'));
+      const token = adminUser?.token;
+
+      if (!token) {
+        console.warn('No admin token found. Please log in again.');
+        return;
       }
 
-      // ✅ Load newsletter subscribers with fallback
-      try {
-        const newsletterRes = await fetch('http://localhost:5001/api/newsletter/subscribers');
-        if (newsletterRes.ok) {
-          const newsletterData = await newsletterRes.json();
-          console.log('Newsletter API Response:', newsletterData);
-          
-          if (Array.isArray(newsletterData)) {
-            setNewsletterSubscribers(newsletterData);
-          } else if (newsletterData.subscribers && Array.isArray(newsletterData.subscribers)) {
-            setNewsletterSubscribers(newsletterData.subscribers);
-          } else if (newsletterData.data && Array.isArray(newsletterData.data)) {
-            setNewsletterSubscribers(newsletterData.data);
-          } else {
-            // Use the subscriber you mentioned
-            setNewsletterSubscribers([
-              { id: 1, email: 'shree@gmail.com', subscribedAt: new Date().toISOString() }
-              
-            ]);
-          }
-        } else {
-          console.warn('Newsletter endpoint not available, using demo data');
-          // Use the subscriber you know exists
-          setNewsletterSubscribers([
-            { id: 1, email: 'shree@gmail.com', subscribedAt: new Date().toISOString() }
-          ]);
-        }
-      } catch (newsletterError) {
-        console.warn('Failed to load newsletter, using demo data');
-        setNewsletterSubscribers([
-          { id: 1, email: 'shree@gmail.com', subscribedAt: new Date().toISOString() }
-        ]);
-      }
+      const response = await fetch('http://localhost:5001/api/admin/users', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // ✅ include token
+        },
+      });
 
-      // Load templates with fallback
-      try {
-        const templatesRes = await fetch('http://localhost:5001/api/templates');
-        if (templatesRes.ok) {
-          const templatesData = await templatesRes.json();
-          if (Array.isArray(templatesData)) {
-            setTemplates(templatesData);
-          } else if (templatesData.templates) {
-            setTemplates(templatesData.templates);
-          }
-        } else {
-          console.warn('Templates endpoint not available, using demo data');
-          setTemplates([
-            { id: 1, name: 'Business Plan Template', category: 'Business' },
-            { id: 2, name: 'Privacy Policy Template', category: 'Legal' }
-          ]);
-        }
-      } catch (templateError) {
-        console.warn('Failed to load templates, using demo data');
-        setTemplates([
-          { id: 1, name: 'Business Plan Template', category: 'Business' },
-          { id: 2, name: 'Privacy Policy Template', category: 'Legal' }
-        ]);
-      }
+      const result = await response.json();
 
+      if (response.ok && result.success && Array.isArray(result.users)) {
+        setRegisteredUsers(result.users);
+        console.log(`✅ Loaded ${result.users.length} registered users`);
+      } else {
+        console.error('Failed to load users:', result.message);
+      }
     } catch (error) {
-      console.error('Error loading data:', error);
-      if (!isRefresh) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load admin data',
-          variant: 'destructive',
-        });
-      }
+      console.error('Error loading users:', error);
+    }
+  };
+
+  // ✅ Load REAL newsletter subscribers (unchanged)
+  const loadNewsletterSubscribers = async () => {
+    const response = await fetch('http://localhost:5001/api/admin/newsletter-subscribers');
+    const result = await response.json();
+    if (result.success && Array.isArray(result.subscribers)) setNewsletterSubscribers(result.subscribers);
+  };
+
+  // ✅ Load REAL templates (unchanged)
+  const loadTemplates = async () => {
+    const response = await fetch('http://localhost:5001/api/admin/templates');
+    const result = await response.json();
+    if (result.success && Array.isArray(result.templates)) setTemplates(result.templates);
+  };
+
+  // ✅ Load all REAL data (unchanged)
+  const loadData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      await Promise.all([
+        loadContactSubmissions(),
+        loadRegisteredUsers(),
+        loadNewsletterSubscribers(),
+        loadTemplates(),
+      ]);
+    } catch (error) {
+      console.error('Error loading admin data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load admin data',
+        variant: 'destructive',
+      });
     } finally {
       if (isRefresh) {
         setRefreshing(false);
-        toast({
-          title: 'Refreshed',
-          description: 'Data updated successfully',
-        });
-      } else {
-        setLoading(false);
-      }
+        toast({ title: 'Refreshed', description: 'Data updated successfully' });
+      } else setLoading(false);
     }
   };
 
@@ -260,18 +182,7 @@ const AdminPage = () => {
     loadData(false);
   }, []);
 
-  const calculateActiveUsers = () => {
-    return registeredUsers?.length > 0
-      ? Math.floor(registeredUsers.length / 2)
-      : 0;
-  };
-
-  // ✅ Refresh function
-  const refreshData = () => {
-    loadData(true);
-  };
-
-  // ✅ Compute Stats from Real Data
+  // ✅ Compute Stats (this will now show real registered user count)
   const stats = [
     {
       label: "Total Templates",
@@ -292,12 +203,32 @@ const AdminPage = () => {
       description: "Active newsletter subscribers",
     },
     {
-      label: "Active This Week",
-      value: calculateActiveUsers() || 0,
-      icon: UserCheck,
-      description: "Users active in last 7 days",
+      label: "Contact Messages",
+      value: contactSubmissions?.length || 0,
+      icon: MessageSquare,
+      description: "Contact form submissions",
     },
   ];
+
+  const renderCurrentTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+      case 'templates':
+        return <Templates templates={templates} onRefresh={loadData} />;
+      case 'users':
+        return <UsersPage registeredUsers={registeredUsers} onRefresh={loadData} />;
+      case 'newsletter':
+        return <Newsletter newsletterSubscribers={newsletterSubscribers} onRefresh={loadData} />;
+      case 'analytics':
+        return <Analytics />;
+      case 'contact-messages':
+        return <ContactSubmissions contactSubmissions={contactSubmissions} onRefresh={loadData} />;
+      case 'upload':
+        return <div className="p-6">Upload Templates Page</div>;
+      default:
+        return <Templates templates={templates} onRefresh={loadData} />;
+    }
+  };
 
   return (
     <>
@@ -309,30 +240,28 @@ const AdminPage = () => {
         <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
         <div className="flex-1 p-8 overflow-y-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Admin Dashboard
                 </h1>
-                <p className="text-gray-600 text-lg">
-                  Manage templates, users, and performance
-                </p>
+                <p className="text-gray-600 text-lg">Manage templates, users, and performance</p>
               </div>
+
               <div className="flex items-center gap-4">
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    localStorage.removeItem('adminUser');
+                    navigate('/admin/login');
+                  }}
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Logout
+                  <LogOut className="w-4 h-4" /> Logout
                 </button>
+
                 <button
-                  onClick={refreshData}
+                  onClick={() => loadData(true)}
                   disabled={refreshing || loading}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
                 >
@@ -343,30 +272,7 @@ const AdminPage = () => {
             </div>
           </motion.div>
 
-          {/* ✅ Performance metrics */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">
-                  Performance Metrics
-                </h3>
-                <p className="text-xs text-gray-500">Page load statistics</p>
-              </div>
-              <div className="flex gap-4 text-xs flex-wrap">
-                <span className="text-green-600">
-                  DOM: {performanceMetrics.domContentLoaded}ms
-                </span>
-                <span className="text-blue-600">
-                  Load: {performanceMetrics.loadEvent}ms
-                </span>
-                <span className="text-purple-600">
-                  Total: {performanceMetrics.totalLoadTime}ms
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ✅ Stats cards */}
+          {/* ✅ Stats cards - show real user count now */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {stats.map((stat, index) => (
               <motion.div
@@ -374,7 +280,8 @@ const AdminPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-shadow duration-300"
+                onClick={() => handleStatClick(stat.label)}
+                className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-600 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -390,28 +297,10 @@ const AdminPage = () => {
             ))}
           </div>
 
-          {/* ✅ Nested Routes */}
-          <Routes>
-            <Route path="templates" element={
-              <Templates templates={templates} handleDelete={handleDelete} />
-            } />
-            <Route path="users" element={
-              <UsersPage
-                registeredUsers={registeredUsers}
-                handleDeleteUser={handleDeleteUser}
-              />
-            } />
-            <Route path="newsletter" element={
-              <Newsletter
-                newsletterSubscribers={newsletterSubscribers}
-                handleUnsubscribe={handleUnsubscribe}
-                onRefresh={refreshData}
-              />
-            } />
-            <Route path="analytics" element={
-              <Analytics performanceMetrics={performanceMetrics} />
-            } />
-          </Routes>
+          {/* ✅ Main Content */}
+          <div className="bg-white rounded-lg shadow border border-gray-200">
+            {renderCurrentTabContent()}
+          </div>
         </div>
       </div>
     </>

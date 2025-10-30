@@ -1,10 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
+const cors = require('cors'); // ✅ Only declare once
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/database');
+const mongoose = require('mongoose');
+const contactRoutes = require('./routes/contactRoutes');
+
 
 // Import Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -24,59 +27,22 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ✅ Correct route definition
-// ✅ REPLACE with this debug version
-app.post('/api/admin', async (req, res) => {
-  try {
-    console.log('Login request received:', req.body);
-    
-    const { email, password } = req.body;
-    
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required'
-      });
-    }
-    
-    console.log('Looking for admin with email:', email);
-    
-    // Your authentication logic here
-    // TEMPORARY: Simple authentication for testing
-    if (email === 'admin@example.com' && password === 'password') {
-      return res.json({
-        success: true,
-        message: 'Login successful',
-        token: 'temp-jwt-token-for-testing'
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-    
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server Error',
-      error: error.message
-    });
+// Specific rate limiting for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: 'Too many attempts, please try again later.'
   }
 });
 
 // -------------------- CORS Configuration --------------------
-// ✅ REMOVED the duplicate app.use(cors()) that was causing the issue
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000', // ⚠️ Changed from 3001 to 3000
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
+  origin: 'http://localhost:3000', // or your frontend URL
+  credentials: true
 };
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); // ✅ Use the corsOptions variable
 
 // -------------------- Parsers --------------------
 app.use(cookieParser());
@@ -88,19 +54,33 @@ connectDB();
 
 // -------------------- Base Route --------------------
 app.get('/', (req, res) => {
-  res.json({ message: 'API is running...' });
+  res.json({ 
+    success: true,
+    message: 'StartupDocs Builder API is running...',
+    version: '1.0.0'
+  });
+});
+
+// -------------------- Health Check Route --------------------
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // -------------------- API Routes --------------------
 app.use('/api/admin', adminRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/newsletter', newsletterRoutes); // ⚠️ ADDED THIS MISSING LINE
-
+app.use('/api/users', userRoutes); // ✅ Only mount once
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/contact', contactRoutes);
 
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
-console.log("✅ Newsletter routes mounted at /api/newsletter"); // ⚠️ ADDED THIS
+console.log("✅ Newsletter routes mounted at /api/newsletter");
+console.log("✅ Contact routes mounted at /api/contact");
 
 
 // -------------------- Error Handling --------------------
@@ -115,9 +95,32 @@ app.use((err, req, res, next) => {
 
 // -------------------- 404 Handler --------------------
 app.use('*', (req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({ 
+    success: false, 
+    message: 'API route not found',
+    availableEndpoints: {
+      admin: '/api/admin',
+      users: '/api/users',
+      newsletter: '/api/newsletter',
+      // ✅ Now include the specific user endpoints
+      userLogin: '/api/users/login',
+      userForgotPassword: '/api/users/forgot-password',
+      userResetPassword: '/api/users/reset-password'
+    }
+  });
 });
+// mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/startup', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
+// .then(() => console.log('✅ Connected to MongoDB: startup database'))
+// .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // -------------------- Start Server --------------------
-const PORT = process.env.PORT || 5001; // ⚠️ Changed from 5000 to 5001
-app.listen(PORT, '0.0.0.0', () => console.log(`✅ Server running on port ${PORT}`)); // ⚠️ Added '0.0.0.0'
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
+  console.log(`✅ Available user routes: login, forgot-password, reset-password`);
+});

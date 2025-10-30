@@ -1,27 +1,25 @@
-const mongoose = require("mongoose");
-const bcrypt = require('bcryptjs');
+// models/User.js
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
 
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  isAdmin: { type: Boolean, default: false },
+  name: { type: String }, // Add name field if needed
+  // Remove passwordResetToken fields for OTP approach
 }, {
   timestamps: true
 });
 
-// Add this password hashing middleware
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(next){
   if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
+  next();
 });
 
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+userSchema.methods.comparePassword = function(plain){
+  return bcrypt.compare(plain, this.password);
+}
+
+module.exports = mongoose.model('User', userSchema);
