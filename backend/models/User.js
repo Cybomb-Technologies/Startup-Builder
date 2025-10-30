@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+  plan: {
+    type: String,
+    enum: ['Free', 'Pro', 'Business'],
+    default: 'Free'
+  },
   accessLevel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserAccess'

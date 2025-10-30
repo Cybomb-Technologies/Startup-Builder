@@ -6,23 +6,60 @@ const {
   updateTemplate,
   deleteTemplate,
   downloadTemplateFile,
-  deleteTemplateFile
+  deleteTemplateFile,
+  getTemplateFileInfo,
+  // IMAGE MANAGEMENT CONTROLLERS
+  uploadTemplateImages,
+  getTemplateImage,
+  deleteTemplateImage,
+  setPrimaryImage,
+  reorderImages
 } = require('../controllers/templateController');
 const { adminProtect } = require('../middleware/adminauth');
 
-// Remove multer middleware since we're using express-fileupload
-router.route('/templates')
-  .get(adminProtect, getTemplates)
-  .post(adminProtect, createTemplate); 
+// Add route logging middleware for debugging
+router.use((req, res, next) => {
+  console.log('📡 Template Route Hit:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    params: req.params
+  });
+  next();
+});
 
-router.route('/templates/:id/download')
+// Template CRUD routes
+router.route('/')
+  .get(adminProtect, getTemplates)
+  .post(adminProtect, createTemplate);
+
+// Image management routes - MUST COME BEFORE PARAM ROUTES
+router.route('/:id/images')
+  .post(adminProtect, uploadTemplateImages);
+
+router.route('/:id/images/reorder')
+  .put(adminProtect, reorderImages);
+
+router.route('/:id/images/:imageId/primary')
+  .put(adminProtect, setPrimaryImage);
+
+router.route('/:id/images/:imageId')
+  .get(getTemplateImage)  // Public access for viewing images
+  .delete(adminProtect, deleteTemplateImage);
+
+// File management routes
+router.route('/:id/download')
   .get(adminProtect, downloadTemplateFile);
 
-router.route('/templates/:id/file')
+router.route('/:id/file-info')
+  .get(adminProtect, getTemplateFileInfo);
+
+router.route('/:id/file')
   .delete(adminProtect, deleteTemplateFile);
 
-router.route('/templates/:id')
-  .put(adminProtect, updateTemplate) 
+// Template CRUD routes
+router.route('/:id')
+  .put(adminProtect, updateTemplate)
   .delete(adminProtect, deleteTemplate);
 
 module.exports = router;

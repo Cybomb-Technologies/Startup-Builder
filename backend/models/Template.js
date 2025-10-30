@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid'); // Install: npm install uuid
+const { v4: uuidv4 } = require('uuid');
 
 const templateSchema = new mongoose.Schema({
   documentId: {
@@ -38,14 +38,14 @@ const templateSchema = new mongoose.Schema({
   // File storage in MongoDB using GridFS
   file: {
     fileId: {
-      type: mongoose.Schema.Types.ObjectId // GridFS file ID
+      type: mongoose.Schema.Types.ObjectId
     },
     fileName: {
       type: String,
       trim: true
     },
     fileSize: {
-      type: Number // Size in bytes
+      type: Number
     },
     fileType: {
       type: String,
@@ -56,6 +56,39 @@ const templateSchema = new mongoose.Schema({
       default: Date.now
     }
   },
+  // NEW: Images array for preview pictures
+  images: [{
+    fileId: {
+      type: mongoose.Schema.Types.ObjectId
+    },
+    fileName: {
+      type: String,
+      trim: true
+    },
+    fileSize: {
+      type: Number
+    },
+    fileType: {
+      type: String,
+      trim: true
+    },
+    uploadDate: {
+      type: Date,
+      default: Date.now
+    },
+    isPrimary: {
+      type: Boolean,
+      default: false
+    },
+    order: {
+      type: Number,
+      default: 0
+    },
+    altText: {
+      type: String,
+      default: ''
+    }
+  }],
   downloadCount: {
     type: Number,
     default: 0
@@ -104,11 +137,28 @@ templateSchema.virtual('fileExtension').get(function() {
   return this.file.fileName.split('.').pop().toLowerCase();
 });
 
+// Virtual for primary image
+templateSchema.virtual('primaryImage').get(function() {
+  if (!this.images || this.images.length === 0) return null;
+  const primary = this.images.find(img => img.isPrimary);
+  return primary || this.images[0];
+});
+
+// Virtual for image URLs (you can modify this based on your storage)
+templateSchema.virtual('imageUrls').get(function() {
+  if (!this.images || this.images.length === 0) return [];
+  return this.images.map(img => ({
+    url: `/api/templates/${this._id}/images/${img.fileId}`,
+    thumbnail: `/api/templates/${this._id}/images/${img.fileId}?size=thumbnail`,
+    ...img.toObject()
+  }));
+});
+
 // Index for better performance
 templateSchema.index({ category: 1, isActive: 1 });
 templateSchema.index({ accessLevel: 1 });
 templateSchema.index({ createdAt: -1 });
-templateSchema.index({ documentId: 1 }); // Index for documentId
+templateSchema.index({ documentId: 1 });
 
 // Ensure virtual fields are serialized
 templateSchema.set('toJSON', { virtuals: true });

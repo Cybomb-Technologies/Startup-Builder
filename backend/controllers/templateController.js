@@ -4,7 +4,7 @@ const SubCategory = require('../models/SubCategory');
 const UserAccess = require('../models/UserAccess');
 const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
-const { v4: uuidv4 } = require('uuid'); // Import UUID
+const { v4: uuidv4 } = require('uuid');
 
 // Initialize GridFS bucket
 let gridFSBucket;
@@ -31,10 +31,25 @@ exports.getTemplates = async (req, res) => {
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
 
+    // Enhance templates with image URLs
+    const enhancedTemplates = templates.map(template => {
+      const templateObj = template.toObject();
+      if (template.images && template.images.length > 0) {
+        templateObj.imageUrls = template.images.map(img => ({
+          url: `/api/templates/${template._id}/images/${img.fileId}`,
+          thumbnail: `/api/templates/${template._id}/images/${img.fileId}?size=thumbnail`,
+          ...img.toObject ? img.toObject() : img
+        }));
+      } else {
+        templateObj.imageUrls = [];
+      }
+      return templateObj;
+    });
+
     res.status(200).json({
       success: true,
-      count: templates.length,
-      templates
+      count: enhancedTemplates.length,
+      templates: enhancedTemplates
     });
   } catch (error) {
     console.error('Get templates error:', error);
@@ -53,9 +68,7 @@ exports.createTemplate = async (req, res) => {
     console.log('📥 CREATE TEMPLATE REQUEST RECEIVED');
     console.log('📥 Request body:', req.body);
     console.log('📥 Request files:', req.files);
-    console.log('📥 Request headers content-type:', req.headers['content-type']);
     
-    // Parse the form data fields
     const { 
       name, 
       description, 
@@ -65,19 +78,8 @@ exports.createTemplate = async (req, res) => {
       content 
     } = req.body;
 
-    console.log('📥 Parsed template data:', {
-      name: name || 'UNDEFINED',
-      description: description || 'UNDEFINED', 
-      category: category || 'UNDEFINED',
-      subCategory: subCategory || 'UNDEFINED', 
-      accessLevel: accessLevel || 'UNDEFINED', 
-      content: content || 'UNDEFINED',
-      hasFile: !!(req.files && req.files.file)
-    });
-
-    // Enhanced validation with better logging
+    // Enhanced validation
     if (!name || !name.trim()) {
-      console.log('❌ Validation failed: Name is required');
       return res.status(400).json({
         success: false,
         message: 'Template name is required'
@@ -85,7 +87,6 @@ exports.createTemplate = async (req, res) => {
     }
 
     if (!category) {
-      console.log('❌ Validation failed: Category is required');
       return res.status(400).json({
         success: false,
         message: 'Category is required'
@@ -93,7 +94,6 @@ exports.createTemplate = async (req, res) => {
     }
 
     if (!accessLevel) {
-      console.log('❌ Validation failed: Access level is required');
       return res.status(400).json({
         success: false,
         message: 'Access level is required'
@@ -101,7 +101,6 @@ exports.createTemplate = async (req, res) => {
     }
 
     if (!content || !content.trim()) {
-      console.log('❌ Validation failed: Content is required');
       return res.status(400).json({
         success: false,
         message: 'Template content is required'
@@ -111,7 +110,6 @@ exports.createTemplate = async (req, res) => {
     // Check if category exists
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
-      console.log('❌ Category not found:', category);
       return res.status(400).json({
         success: false,
         message: 'Category not found'
@@ -121,7 +119,6 @@ exports.createTemplate = async (req, res) => {
     // Check if access level exists
     const accessLevelExists = await UserAccess.findById(accessLevel);
     if (!accessLevelExists) {
-      console.log('❌ Access level not found:', accessLevel);
       return res.status(400).json({
         success: false,
         message: 'Access level not found'
@@ -135,7 +132,6 @@ exports.createTemplate = async (req, res) => {
         category: category
       });
       if (!subCategoryExists) {
-        console.log('❌ Subcategory not found or does not belong to category:', subCategory);
         return res.status(400).json({
           success: false,
           message: 'Subcategory not found or does not belong to selected category'
@@ -145,19 +141,12 @@ exports.createTemplate = async (req, res) => {
 
     let fileData = {};
     
-    // Handle file upload to MongoDB GridFS with express-fileupload
+    // Handle file upload to MongoDB GridFS
     if (req.files && req.files.file) {
       const file = req.files.file;
       
-      console.log('📁 Processing file upload:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.mimetype
-      });
-
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        console.log('❌ File too large:', file.size);
         return res.status(400).json({
           success: false,
           message: 'File size exceeds 10MB limit'
@@ -175,7 +164,6 @@ exports.createTemplate = async (req, res) => {
       ];
       
       if (!allowedTypes.includes(file.mimetype)) {
-        console.log('❌ Invalid file type:', file.mimetype);
         return res.status(400).json({
           success: false,
           message: 'Invalid file type. Only PDF, Word, Excel, and text files are allowed.'
@@ -188,7 +176,7 @@ exports.createTemplate = async (req, res) => {
             templateName: name,
             uploadedBy: req.admin._id,
             uploadDate: new Date(),
-            documentId: uuidv4() // Add UUID to file metadata
+            documentId: uuidv4()
           }
         });
 
@@ -207,7 +195,6 @@ exports.createTemplate = async (req, res) => {
             console.log('✅ File uploaded to GridFS:', fileData);
 
             // Create template with file reference
-            // documentId will be auto-generated by the model
             const template = await Template.create({
               name: name.trim(),
               description: description ? description.trim() : '',
@@ -227,9 +214,7 @@ exports.createTemplate = async (req, res) => {
             console.log('✅ Template created successfully with file:', {
               id: template._id,
               documentId: template.documentId,
-              name: template.name,
-              category: template.category.name,
-              hasFile: !!template.file
+              name: template.name
             });
 
             res.status(201).json({
@@ -241,9 +226,7 @@ exports.createTemplate = async (req, res) => {
           } catch (error) {
             console.error('❌ Create template error after file upload:', error);
             
-            // Handle duplicate key error specifically
             if (error.code === 11000) {
-              console.log('❌ Duplicate key error:', error.keyValue);
               return res.status(400).json({
                 success: false,
                 message: 'Duplicate document detected. Please try again.'
@@ -290,8 +273,7 @@ exports.createTemplate = async (req, res) => {
         console.log('✅ Template created successfully (no file):', {
           id: template._id,
           documentId: template.documentId,
-          name: template.name,
-          category: template.category.name
+          name: template.name
         });
 
         res.status(201).json({
@@ -302,9 +284,7 @@ exports.createTemplate = async (req, res) => {
       } catch (error) {
         console.error('❌ Create template error:', error);
         
-        // Handle duplicate key error specifically
         if (error.code === 11000) {
-          console.log('❌ Duplicate key error:', error.keyValue);
           return res.status(400).json({
             success: false,
             message: 'Duplicate document detected. Please try again.'
@@ -320,9 +300,7 @@ exports.createTemplate = async (req, res) => {
   } catch (error) {
     console.error('❌ Create template error:', error);
     
-    // Handle duplicate key error specifically
     if (error.code === 11000) {
-      console.log('❌ Duplicate key error:', error.keyValue);
       return res.status(400).json({
         success: false,
         message: 'Duplicate document detected. Please try again.'
@@ -355,17 +333,6 @@ exports.updateTemplate = async (req, res) => {
       isActive 
     } = req.body;
 
-    console.log('📥 Update template data:', {
-      name,
-      description,
-      category,
-      subCategory,
-      accessLevel,
-      content,
-      isActive,
-      hasFile: !!(req.files && req.files.file)
-    });
-
     let template = await Template.findById(req.params.id);
     if (!template) {
       return res.status(404).json({
@@ -378,12 +345,6 @@ exports.updateTemplate = async (req, res) => {
     if (req.files && req.files.file) {
       const file = req.files.file;
       
-      console.log('📁 Processing file update:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.mimetype
-      });
-
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         return res.status(400).json({
@@ -426,7 +387,7 @@ exports.updateTemplate = async (req, res) => {
             templateName: name,
             uploadedBy: req.admin._id,
             uploadDate: new Date(),
-            documentId: template.documentId // Use existing documentId
+            documentId: template.documentId
           }
         });
 
@@ -478,7 +439,6 @@ exports.updateTemplate = async (req, res) => {
           } catch (error) {
             console.error('Update template error:', error);
             
-            // Handle duplicate key error
             if (error.code === 11000) {
               return res.status(400).json({
                 success: false,
@@ -537,7 +497,6 @@ exports.updateTemplate = async (req, res) => {
   } catch (error) {
     console.error('Update template error:', error);
     
-    // Handle duplicate key error
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -562,22 +521,13 @@ exports.downloadTemplateFile = async (req, res) => {
     const template = await Template.findById(req.params.id);
     
     if (!template) {
-      console.log('❌ Template not found:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Template not found'
       });
     }
 
-    console.log('📥 Template found:', {
-      id: template._id,
-      documentId: template.documentId,
-      name: template.name,
-      hasFile: !!(template.file && template.file.fileId)
-    });
-
     if (!template.file || !template.file.fileId) {
-      console.log('❌ No file attached to template:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'No file attached to this template'
@@ -587,7 +537,6 @@ exports.downloadTemplateFile = async (req, res) => {
     // Check if file exists in GridFS
     const files = await gridFSBucket.find({ _id: template.file.fileId }).toArray();
     if (files.length === 0) {
-      console.log('❌ File not found in GridFS:', template.file.fileId);
       return res.status(404).json({
         success: false,
         message: 'File not found in storage'
@@ -600,9 +549,7 @@ exports.downloadTemplateFile = async (req, res) => {
 
     console.log('✅ Streaming file download:', {
       fileName: template.file.fileName,
-      fileSize: template.file.fileSize,
-      fileType: template.file.fileType,
-      documentId: template.documentId
+      fileSize: template.file.fileSize
     });
 
     // Set headers
@@ -624,12 +571,6 @@ exports.downloadTemplateFile = async (req, res) => {
           message: 'Error downloading file stream'
         });
       }
-    });
-
-    // Handle client disconnect
-    req.on('close', () => {
-      console.log('⚠️ Client disconnected during download');
-      downloadStream.destroy();
     });
 
   } catch (error) {
@@ -668,6 +609,18 @@ exports.deleteTemplate = async (req, res) => {
         console.log('✅ File deleted from GridFS');
       } catch (error) {
         console.log('⚠️ Could not delete file from GridFS:', error.message);
+      }
+    }
+
+    // Delete all images from GridFS
+    if (template.images && template.images.length > 0) {
+      for (const image of template.images) {
+        try {
+          await gridFSBucket.delete(image.fileId);
+          console.log('✅ Image deleted from GridFS:', image.fileId);
+        } catch (error) {
+          console.log('⚠️ Could not delete image from GridFS:', error.message);
+        }
       }
     }
 
@@ -711,7 +664,6 @@ exports.deleteTemplateFile = async (req, res) => {
 
     console.log('🗑️ Deleting file from template:', {
       templateId: template._id,
-      documentId: template.documentId,
       fileId: template.file.fileId
     });
 
@@ -782,3 +734,362 @@ exports.getTemplateFileInfo = async (req, res) => {
   }
 };
 
+// ==================== NEW IMAGE MANAGEMENT METHODS ====================
+
+// @desc    Upload images for template
+// @route   POST /api/admin/templates/:id/images
+// @access  Private/Admin
+exports.uploadTemplateImages = async (req, res) => {
+  try {
+    console.log('📸 UPLOAD TEMPLATE IMAGES REQUEST RECEIVED');
+    console.log('📸 Request files:', req.files);
+    
+    const template = await Template.findById(req.params.id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    if (!req.files || !req.files.images) {
+      return res.status(400).json({
+        success: false,
+        message: 'No images provided'
+      });
+    }
+
+    const images = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
+    const uploadedImages = [];
+
+    // Process each image
+    for (const image of images) {
+      console.log('📸 Processing image:', {
+        fileName: image.name,
+        fileSize: image.size,
+        fileType: image.mimetype
+      });
+
+      // Validate image type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(image.mimetype)) {
+        console.log('❌ Invalid image type:', image.mimetype);
+        continue; // Skip invalid images but continue with others
+      }
+
+      // Validate image size (5MB limit)
+      if (image.size > 5 * 1024 * 1024) {
+        console.log('❌ Image too large:', image.size);
+        continue;
+      }
+
+      // Upload to GridFS
+      const uploadPromise = new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(image.name, {
+          metadata: {
+            templateId: template._id,
+            templateName: template.name,
+            uploadedBy: req.admin._id,
+            uploadDate: new Date(),
+            isImage: true,
+            documentId: uuidv4()
+          }
+        });
+
+        uploadStream.end(image.data);
+
+        uploadStream.on('finish', (uploadedFile) => {
+          const imageData = {
+            fileId: uploadedFile._id,
+            fileName: uploadedFile.filename,
+            fileSize: uploadedFile.length,
+            fileType: image.mimetype,
+            uploadDate: new Date(),
+            order: template.images.length,
+            altText: `Preview image for ${template.name}`
+          };
+
+          // Set first image as primary if no primary exists
+          if (template.images.length === 0) {
+            imageData.isPrimary = true;
+          }
+
+          uploadedImages.push(imageData);
+          resolve(imageData);
+        });
+
+        uploadStream.on('error', (error) => {
+          console.error('❌ Image upload error:', error);
+          reject(error);
+        });
+      });
+
+      await uploadPromise;
+    }
+
+    // Add images to template
+    template.images.push(...uploadedImages);
+    await template.save();
+
+    console.log('✅ Images uploaded successfully:', uploadedImages.length);
+
+    // Populate the updated template
+    const updatedTemplate = await Template.findById(template._id)
+      .populate('category', 'name')
+      .populate('subCategory', 'name')
+      .populate('accessLevel', 'name')
+      .populate('createdBy', 'name email');
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully uploaded ${uploadedImages.length} images`,
+      images: uploadedImages,
+      template: updatedTemplate
+    });
+
+  } catch (error) {
+    console.error('❌ Upload template images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading images: ' + error.message
+    });
+  }
+};
+
+// @desc    Get template image
+// @route   GET /api/templates/:id/images/:imageId
+// @access  Public
+exports.getTemplateImage = async (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+    const { size } = req.query;
+
+    console.log('📸 Getting template image:', { id, imageId, size });
+
+    const template = await Template.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    const image = template.images.find(img => img.fileId.toString() === imageId);
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    // Check if file exists in GridFS
+    const files = await gridFSBucket.find({ _id: image.fileId }).toArray();
+    if (files.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image file not found in storage'
+      });
+    }
+
+    const gridFSFile = files[0];
+
+    // Set appropriate content type
+    res.setHeader('Content-Type', image.fileType || 'image/jpeg');
+    res.setHeader('Content-Length', gridFSFile.length);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+
+    // Stream image from GridFS
+    const downloadStream = gridFSBucket.openDownloadStream(image.fileId);
+    downloadStream.pipe(res);
+
+    downloadStream.on('error', (error) => {
+      console.error('❌ Image download error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Error streaming image'
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get template image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving image: ' + error.message
+    });
+  }
+};
+
+// @desc    Delete template image
+// @route   DELETE /api/admin/templates/:id/images/:imageId
+// @access  Private/Admin
+exports.deleteTemplateImage = async (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+
+    console.log('🗑️ Deleting template image:', { id, imageId });
+
+    const template = await Template.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    const imageIndex = template.images.findIndex(img => img.fileId.toString() === imageId);
+    if (imageIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    const image = template.images[imageIndex];
+    const wasPrimary = image.isPrimary;
+
+    // Delete from GridFS
+    try {
+      await gridFSBucket.delete(image.fileId);
+      console.log('✅ Image deleted from GridFS');
+    } catch (error) {
+      console.log('⚠️ Could not delete image from GridFS:', error.message);
+    }
+
+    // Remove from template images array
+    template.images.splice(imageIndex, 1);
+
+    // If deleted image was primary, set a new primary
+    if (wasPrimary && template.images.length > 0) {
+      template.images[0].isPrimary = true;
+    }
+
+    await template.save();
+
+    console.log('✅ Image deleted from template');
+
+    // Populate the updated template
+    const updatedTemplate = await Template.findById(template._id)
+      .populate('category', 'name')
+      .populate('subCategory', 'name')
+      .populate('accessLevel', 'name')
+      .populate('createdBy', 'name email');
+
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully',
+      template: updatedTemplate
+    });
+
+  } catch (error) {
+    console.error('❌ Delete template image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting image: ' + error.message
+    });
+  }
+};
+
+// @desc    Set primary image
+// @route   PUT /api/admin/templates/:id/images/:imageId/primary
+// @access  Private/Admin
+exports.setPrimaryImage = async (req, res) => {
+  try {
+    const { id, imageId } = req.params;
+
+    console.log('⭐ Setting primary image:', { id, imageId });
+
+    const template = await Template.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Reset all images to not primary
+    template.images.forEach(img => {
+      img.isPrimary = img.fileId.toString() === imageId;
+    });
+
+    await template.save();
+
+    console.log('✅ Primary image set');
+
+    // Populate the updated template
+    const updatedTemplate = await Template.findById(template._id)
+      .populate('category', 'name')
+      .populate('subCategory', 'name')
+      .populate('accessLevel', 'name')
+      .populate('createdBy', 'name email');
+
+    res.status(200).json({
+      success: true,
+      message: 'Primary image set successfully',
+      template: updatedTemplate
+    });
+
+  } catch (error) {
+    console.error('❌ Set primary image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error setting primary image: ' + error.message
+    });
+  }
+};
+
+// @desc    Reorder images
+// @route   PUT /api/admin/templates/:id/images/reorder
+// @access  Private/Admin
+exports.reorderImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imageOrder } = req.body;
+
+    console.log('🔄 Reordering images:', { id, imageOrder });
+
+    const template = await Template.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Update order for each image
+    imageOrder.forEach(({ imageId, order }) => {
+      const image = template.images.find(img => img.fileId.toString() === imageId);
+      if (image) {
+        image.order = order;
+      }
+    });
+
+    // Sort images by order
+    template.images.sort((a, b) => a.order - b.order);
+
+    await template.save();
+
+    console.log('✅ Images reordered');
+
+    // Populate the updated template
+    const updatedTemplate = await Template.findById(template._id)
+      .populate('category', 'name')
+      .populate('subCategory', 'name')
+      .populate('accessLevel', 'name')
+      .populate('createdBy', 'name email');
+
+    res.status(200).json({
+      success: true,
+      message: 'Images reordered successfully',
+      template: updatedTemplate
+    });
+
+  } catch (error) {
+    console.error('❌ Reorder images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reordering images: ' + error.message
+    });
+  }
+};
