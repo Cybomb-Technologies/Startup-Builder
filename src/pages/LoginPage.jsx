@@ -1,56 +1,54 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Mail, Lock, FileText } from 'lucide-react';
+import { Mail, Lock, FileText, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isSignup, setIsSignup] = useState(false);
-  const [username, setUsername] = useState(''); // changed from name to username
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ Updated handleSubmit function
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const url = isSignup
-        ? 'http://localhost:5001/api/users/register'
-        : 'http://localhost:5001/api/users/login';
+      const endpoint = isSignup ? 'register' : 'login';
+      const url = `${API_BASE_URL}/api/users/${endpoint}`;
 
-      // Prepare body based on signup or login
-      const body = isSignup
-        ? { username, email, password }
-        : { email, password };
+      const body = isSignup ? { username, email, password } : { email, password };
 
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        credentials: 'include', // important if backend sets cookies
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        throw new Error(data.message || 'Something went wrong.');
       }
 
-      // Save user & token in localStorage
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      // ✅ Save token + user
+      if (data.token) localStorage.setItem('token', data.token);
+      if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
 
       toast({
-        title: isSignup ? 'Account Created!' : 'Welcome Back!',
-        description: data.message || 'You have successfully logged in.',
+        title: isSignup ? 'Account Created 🎉' : 'Welcome Back 👋',
+        description: data.message || 'Login successful!',
       });
 
       navigate('/');
@@ -60,6 +58,8 @@ const LoginPage = () => {
         description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,7 +69,7 @@ const LoginPage = () => {
         <title>{isSignup ? 'Sign Up' : 'Login'} - StartupDocs Builder</title>
         <meta
           name="description"
-          content="Access your StartupDocs Builder account to manage your business documents."
+          content="Access your StartupDocs Builder account to manage your documents."
         />
       </Helmet>
 
@@ -80,27 +80,22 @@ const LoginPage = () => {
           className="w-full max-w-md"
         >
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            {/* Header Section */}
+            {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white text-center">
               <div className="w-16 h-16 bg-white/20 backdrop-blur-lg rounded-xl flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8" />
               </div>
               <h1 className="text-3xl font-bold mb-2">StartupDocs Builder</h1>
-              <p className="text-blue-100">Simplify Compliance. Amplify Growth.</p>
+              <p className="text-blue-100">
+                {isSignup ? 'Join us today!' : 'Simplify Compliance. Amplify Growth.'}
+              </p>
             </div>
 
-            {/* Form Section */}
+            {/* Form */}
             <div className="p-8">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {isSignup ? 'Create Account' : 'Welcome Back'}
-                </h2>
-                <p className="text-gray-600">
-                  {isSignup
-                    ? 'Start your free trial today'
-                    : 'Login to access your documents'}
-                </p>
-              </div>
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+                {isSignup ? 'Create Account' : 'Welcome Back'}
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {isSignup && (
@@ -108,13 +103,17 @@ const LoginPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Username
                     </label>
-                    <Input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Your username"
-                      required
-                    />
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Your username"
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -128,7 +127,7 @@ const LoginPage = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
+                      placeholder="you@example.com"
                       className="pl-10"
                       required
                     />
@@ -155,8 +154,15 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6"
+                  disabled={isLoading}
                 >
-                  {isSignup ? 'Create Account' : 'Login'}
+                  {isLoading
+                    ? isSignup
+                      ? 'Creating Account...'
+                      : 'Logging in...'
+                    : isSignup
+                    ? 'Sign Up'
+                    : 'Login'}
                 </Button>
               </form>
 
@@ -167,15 +173,24 @@ const LoginPage = () => {
                 >
                   {isSignup
                     ? 'Already have an account? Login'
-                    : "Don't have an account? Sign up"}
+                    : "Don’t have an account? Sign up"}
                 </button>
               </div>
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800 text-center">
-                  <strong>Note:</strong> Authentication is now connected to your
-                  Node.js + MongoDB backend at <code>http://localhost:5000</code>.
-                </p>
+              {!isSignup && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center text-sm text-blue-800">
+                <strong>Note:</strong> Connected to your API at{' '}
+                <code>{API_BASE_URL}</code>
               </div>
             </div>
           </div>

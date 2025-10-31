@@ -12,12 +12,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/users');
 const newsletterRoutes = require("./routes/newsletterRoutes");
 const publicRoutes = require('./routes/publicRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 // Initialize Express
 const app = express();
-
-// Connect Database
-connectDB();
 
 // Enhanced CORS Configuration
 const corsOptions = {
@@ -79,6 +77,16 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Specific rate limiting for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    success: false,
+    message: 'Too many attempts, please try again later.'
+  }
+});
+
 // File upload middleware
 app.use(fileUpload({
   createParentPath: true,
@@ -104,23 +112,35 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 
+// Connect Database
+connectDB();
+
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Base Route
+// -------------------- Base Route --------------------
 app.get('/', (req, res) => {
   res.json({ 
     success: true,
-    message: 'Template Management System API is running...',
+    message: 'StartupDocs Builder API is running...',
+    version: '1.0.0',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Health Check Route
+// -------------------- Health Check Route --------------------
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -134,18 +154,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/users', userRoutes);
-app.use('/api/newsletter', newsletterRoutes);
-app.use('/api', publicRoutes);
+// -------------------- API Routes --------------------
 app.use('/api/admin', adminRoutes);
+app.use('/api/users', userRoutes); // Apply auth limiter to specific user routes if needed
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api', publicRoutes);
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
 console.log("✅ Newsletter routes mounted at /api/newsletter");
+console.log("✅ Contact routes mounted at /api/contact");
 console.log("✅ Public routes mounted at /api");
 
-// Enhanced Error Handling Middleware
+// -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
   console.error('❌ Server Error:', err.stack);
   
@@ -166,18 +188,29 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 Handler
+// -------------------- 404 Handler --------------------
 app.use('*', (req, res) => {
   res.status(404).json({ 
     success: false, 
-    message: 'Route not found',
+    message: 'API route not found',
     path: req.originalUrl,
-    method: req.method
+    method: req.method,
+    availableEndpoints: {
+      admin: '/api/admin',
+      users: '/api/users',
+      newsletter: '/api/newsletter',
+      contact: '/api/contact',
+      public: '/api',
+      // Specific user endpoints
+      userLogin: '/api/users/login',
+      userForgotPassword: '/api/users/forgot-password',
+      userResetPassword: '/api/users/reset-password'
+    }
   });
 });
 
-// Start Server
-const PORT = process.env.PORT || 5001;
+// -------------------- Start Server --------------------
+const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 app.listen(PORT, HOST, () => {
@@ -186,4 +219,5 @@ app.listen(PORT, HOST, () => {
   console.log(`🌐 CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
   console.log(`🔗 Health check: http://${HOST}:${PORT}/api/health`);
   console.log(`📚 API Base: http://${HOST}:${PORT}/api`);
+  console.log(`✅ Available user routes: login, forgot-password, reset-password`);
 });
