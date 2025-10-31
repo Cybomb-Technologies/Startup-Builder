@@ -1,4 +1,3 @@
-// routes/users.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
@@ -25,7 +24,7 @@ mongoose.connection.on('connected', () => {
   initializeGridFS();
 });
 
-// ✅ REGISTER USER (Enhanced from code 2)
+// ✅ REGISTER USER
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -77,7 +76,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ✅ LOGIN USER (Combined best of both versions)
+// ✅ LOGIN USER
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -97,7 +96,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Use the method from code 1 (bcrypt.compare) or code 2 (user.comparePassword)
     let isPasswordValid;
     if (typeof user.comparePassword === 'function') {
       isPasswordValid = await user.comparePassword(password);
@@ -143,7 +141,31 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ✅ OTP Forgot Password Route (From code 1)
+// ✅ TOKEN VALIDATION ROUTE
+router.get('/validate-token', auth, async (req, res) => {
+  try {
+    console.log('✅ TOKEN VALIDATION: Token is valid for user:', req.user.email);
+    
+    res.json({
+      success: true,
+      message: 'Token is valid',
+      user: {
+        id: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        plan: req.user.plan || 'Free'
+      }
+    });
+  } catch (error) {
+    console.error('❌ TOKEN VALIDATION ERROR:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Token is not valid'
+    });
+  }
+});
+
+// ✅ OTP Forgot Password Route
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -155,34 +177,26 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      // For security, don't reveal if email exists
       return res.json({ 
         success: true,
         message: 'If the email exists, OTP has been sent to your email' 
       });
     }
 
-    // Generate OTP
     const otp = generateNumericOTP(6);
     console.log('📧 Generated OTP for', email, ':', otp);
 
-    // Hash OTP
     const otpHash = await hashOtp(otp);
-
-    // Set expiry (10 minutes)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Save OTP to database
     await Otp.create({
       email,
       otpHash,
       expiresAt,
     });
 
-    // Send OTP via email
     const message = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4F46E5; text-align: center;">Password Reset OTP</h2>
@@ -211,7 +225,6 @@ router.post('/forgot-password', async (req, res) => {
     res.json({
       success: true,
       message: 'OTP has been sent to your email',
-      // Include OTP in development for testing
       ...(process.env.NODE_ENV !== 'production' && { debugOtp: otp })
     });
 
@@ -224,7 +237,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// ✅ OTP Verification Route (From code 1)
+// ✅ OTP Verification Route
 router.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -236,7 +249,6 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Find the latest OTP for this email
     const otpRecord = await Otp.findOne({ 
       email, 
       used: false,
@@ -250,7 +262,6 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Check attempts
     if (otpRecord.attempts >= 5) {
       return res.status(400).json({ 
         success: false,
@@ -258,11 +269,9 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Verify OTP
     const isValid = await compareOtp(otp, otpRecord.otpHash);
 
     if (!isValid) {
-      // Increment attempts
       otpRecord.attempts += 1;
       await otpRecord.save();
       
@@ -272,11 +281,9 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Mark OTP as used
     otpRecord.used = true;
     await otpRecord.save();
 
-    // Generate temporary token for password reset (valid for 15 minutes)
     const resetToken = jwt.sign(
       { 
         email, 
@@ -302,7 +309,7 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// ✅ Reset Password with Token (From code 1)
+// ✅ Reset Password with Token
 router.post('/reset-password', async (req, res) => {
   try {
     const { resetToken, newPassword } = req.body;
@@ -321,7 +328,6 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Verify the reset token
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET || 'your-fallback-secret');
@@ -332,7 +338,6 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Check if token is for password reset
     if (decoded.purpose !== 'password_reset' || !decoded.otpVerified) {
       return res.status(400).json({ 
         success: false,
@@ -340,7 +345,6 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Find user by email
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
       return res.status(400).json({ 
@@ -349,7 +353,6 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
@@ -369,7 +372,7 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// ✅ Template Routes (From code 2)
+// ✅ TEMPLATE DOWNLOAD - ACCESS CHECKS DISABLED
 router.get('/templates/:id/download', auth, async (req, res) => {
   try {
     const template = await Template.findById(req.params.id)
@@ -389,18 +392,8 @@ router.get('/templates/:id/download', auth, async (req, res) => {
       });
     }
 
-    // Check user access level
-    const userPlan = req.user.plan || 'Free';
-    const requiredPlan = template.accessLevel?.name || 'Free';
-    
-    const planHierarchy = { 'Free': 0, 'Pro': 1, 'Business': 2 };
-    
-    if (planHierarchy[userPlan] < planHierarchy[requiredPlan]) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your plan does not have access to this template'
-      });
-    }
+    // ✅ ALL ACCESS CHECKS DISABLED - ALL USERS CAN DOWNLOAD ALL TEMPLATES
+    console.log('🔓 ACCESS: Allowing download for all users - access checks disabled');
 
     // Check if file exists in GridFS
     if (!template.file || !template.file.fileId) {
@@ -460,7 +453,7 @@ router.get('/templates/:id/download', auth, async (req, res) => {
   }
 });
 
-// GET TEMPLATE PREVIEW DATA (From code 2)
+// GET TEMPLATE PREVIEW - ACCESS CHECKS DISABLED
 router.get('/templates/:id/preview', auth, async (req, res) => {
   try {
     const template = await Template.findById(req.params.id)
@@ -475,34 +468,22 @@ router.get('/templates/:id/preview', auth, async (req, res) => {
       });
     }
 
-    // Check user access level
-    const userPlan = req.user.plan || 'Free';
-    const requiredPlan = template.accessLevel?.name || 'Free';
-    
-    const planHierarchy = { 'Free': 0, 'Pro': 1, 'Business': 2 };
-    
-    if (planHierarchy[userPlan] < planHierarchy[requiredPlan]) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your plan does not have access to this template'
-      });
-    }
+    // ✅ ALL ACCESS CHECKS DISABLED - ALL USERS CAN PREVIEW ALL TEMPLATES
+    console.log('🔓 ACCESS: Allowing preview for all users - access checks disabled');
 
     // Get actual file info from GridFS with enhanced detection
     let actualFileInfo = null;
-    let detectedFileExtension = 'docx'; // Default fallback
+    let detectedFileExtension = 'docx';
 
     if (template.file && template.file.fileId) {
       const files = await gridFSBucket.find({ _id: template.file.fileId }).toArray();
       if (files.length > 0) {
         const gridFSFile = files[0];
         
-        // Extract file extension from filename
         const fileName = gridFSFile.filename;
         const extensionMatch = fileName.match(/\.([a-zA-Z0-9]+)$/);
         const fileExtension = extensionMatch ? extensionMatch[1].toLowerCase() : 'docx';
         
-        // Validate extension
         const validExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pdf', 'pptx', 'ppt', 'txt', 'csv', 'rtf'];
         detectedFileExtension = validExtensions.includes(fileExtension) ? fileExtension : 'docx';
         
@@ -515,10 +496,8 @@ router.get('/templates/:id/preview', auth, async (req, res) => {
       }
     }
 
-    // Enhanced file type detection from multiple sources
     let finalFileExtension = detectedFileExtension;
     
-    // Check template's fileType field
     if (template.fileType && finalFileExtension === 'docx') {
       const templateFileType = template.fileType.replace('.', '').toLowerCase();
       const validExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pdf', 'pptx', 'ppt', 'txt', 'csv', 'rtf'];
@@ -527,7 +506,6 @@ router.get('/templates/:id/preview', auth, async (req, res) => {
       }
     }
 
-    // Check file object fileType
     if (template.file?.fileType && finalFileExtension === 'docx') {
       const fileObjectType = template.file.fileType.replace('.', '').toLowerCase();
       const validExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pdf', 'pptx', 'ppt', 'txt', 'csv', 'rtf'];
@@ -545,8 +523,8 @@ router.get('/templates/:id/preview', auth, async (req, res) => {
         category: template.category,
         subCategory: template.subCategory,
         accessLevel: template.accessLevel,
-        fileType: finalFileExtension, // Use detected file extension
-        fileExtension: finalFileExtension, // Add explicit fileExtension field
+        fileType: finalFileExtension,
+        fileExtension: finalFileExtension,
         fileSize: actualFileInfo?.fileSize || template.file?.fileSize,
         downloadCount: template.downloadCount,
         createdAt: template.createdAt,
@@ -565,7 +543,7 @@ router.get('/templates/:id/preview', auth, async (req, res) => {
   }
 });
 
-// GET ALL TEMPLATES (From code 2)
+// GET ALL TEMPLATES
 router.get('/templates', async (req, res) => {
   try {
     const templates = await Template.find({ isActive: true })
@@ -574,12 +552,10 @@ router.get('/templates', async (req, res) => {
       .populate('accessLevel', 'name')
       .sort({ createdAt: -1 });
 
-    // Enhance templates with file extension detection
     const enhancedTemplates = await Promise.all(
       templates.map(async (template) => {
-        let fileExtension = 'docx'; // Default fallback
+        let fileExtension = 'docx';
         
-        // Try to get actual file info from GridFS first
         if (template.file && template.file.fileId) {
           try {
             const files = await gridFSBucket.find({ _id: template.file.fileId }).toArray();
@@ -600,7 +576,6 @@ router.get('/templates', async (req, res) => {
           }
         }
 
-        // Fallback to template fileType if GridFS fails
         if (fileExtension === 'docx' && template.fileType) {
           const templateFileType = template.fileType.replace('.', '').toLowerCase();
           const validExtensions = ['docx', 'doc', 'xlsx', 'xls', 'pdf', 'pptx', 'ppt', 'txt', 'csv', 'rtf'];
@@ -609,7 +584,6 @@ router.get('/templates', async (req, res) => {
           }
         }
 
-        // Convert to plain object and add fileExtension
         const templateObj = template.toObject();
         templateObj.fileExtension = fileExtension;
         
@@ -630,7 +604,7 @@ router.get('/templates', async (req, res) => {
   }
 });
 
-// GET USER PROFILE (From code 2)
+// GET USER PROFILE
 router.get('/profile', auth, async (req, res) => {
   try {
     res.json({
@@ -648,7 +622,7 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
-// ✅ Test OTP Generation Route (Remove in production) - From code 1
+// ✅ Test OTP Generation Route
 router.post('/test-otp', async (req, res) => {
   try {
     const { email } = req.body;
@@ -671,7 +645,7 @@ router.post('/test-otp', async (req, res) => {
   }
 });
 
-// Helper function to get content type based on file extension (From code 2)
+// Helper function to get content type
 function getContentType(fileExtension) {
   const contentTypes = {
     'pdf': 'application/pdf',

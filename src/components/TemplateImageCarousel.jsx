@@ -22,18 +22,15 @@ const TemplateImageCarousel = ({
     if (e.key === 'Escape') onClose();
   };
 
-  // Keyboard event listener
+  // Reset when modal opens
   useEffect(() => {
     if (isOpen) {
+      setCurrentIndex(0);
+      setImageLoadErrors({});
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen]);
-
-  // Reset errors when images change
-  useEffect(() => {
-    setImageLoadErrors({});
-  }, [images]);
 
   const nextImage = () => {
     setCurrentIndex((prevIndex) => 
@@ -79,10 +76,25 @@ const TemplateImageCarousel = ({
     setImageLoadErrors(prev => ({ ...prev, [index]: false }));
   };
 
+  // Ensure URLs are absolute
+  const getImageUrl = (image) => {
+    if (!image || !image.url) return null;
+    
+    if (image.url.startsWith('http')) {
+      return image.url;
+    } else {
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? window.location.origin 
+        : 'http://localhost:5001';
+      return `${baseURL}${image.url}`;
+    }
+  };
+
   // Early return AFTER all hooks
   if (!isOpen || !images || images.length === 0) return null;
 
   const currentImage = images[currentIndex];
+  const currentImageUrl = getImageUrl(currentImage);
   const hasLoadError = imageLoadErrors[currentIndex];
 
   return (
@@ -127,18 +139,21 @@ const TemplateImageCarousel = ({
               exit={{ opacity: 0, scale: 1.1 }}
               transition={{ duration: 0.3 }}
             >
-              {hasLoadError ? (
+              {hasLoadError || !currentImageUrl ? (
                 <div className="text-center text-white">
                   <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                   <p className="text-lg">Failed to load image</p>
                   <p className="text-sm text-gray-300 mt-2">
                     URL: {currentImage?.url}
                   </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    The image may not exist or there might be a server issue.
+                  </p>
                 </div>
               ) : (
                 <img
-                  src={currentImage?.url}
-                  alt={currentImage?.altText || `Preview image ${currentIndex + 1} for ${templateName}`}
+                  src={currentImageUrl}
+                  alt={currentImage?.alt || `Preview image ${currentIndex + 1} for ${templateName}`}
                   className="max-w-full max-h-full object-contain"
                   onError={() => handleImageError(currentIndex)}
                   onLoad={() => handleImageLoad(currentIndex)}
@@ -170,32 +185,37 @@ const TemplateImageCarousel = ({
         {images.length > 1 && (
           <div className="p-4 bg-black bg-opacity-50">
             <div className="flex justify-center gap-2 overflow-x-auto py-2">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToImage(index)}
-                  className={`flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition-all ${
-                    index === currentIndex 
-                      ? 'border-blue-500 scale-110' 
-                      : imageLoadErrors[index] 
-                        ? 'border-red-500' 
-                        : 'border-transparent hover:border-white'
-                  }`}
-                >
-                  {imageLoadErrors[index] ? (
-                    <div className="w-full h-full bg-red-900 flex items-center justify-center">
-                      <ImageIcon className="w-6 h-6 text-red-300" />
-                    </div>
-                  ) : (
-                    <img
-                      src={image.thumbnail || image.url}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={() => handleImageError(index)}
-                    />
-                  )}
-                </button>
-              ))}
+              {images.map((image, index) => {
+                const thumbnailUrl = getImageUrl(image);
+                const hasThumbnailError = imageLoadErrors[index];
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => goToImage(index)}
+                    className={`flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition-all ${
+                      index === currentIndex 
+                        ? 'border-blue-500 scale-110' 
+                        : hasThumbnailError 
+                          ? 'border-red-500' 
+                          : 'border-transparent hover:border-white'
+                    }`}
+                  >
+                    {hasThumbnailError || !thumbnailUrl ? (
+                      <div className="w-full h-full bg-red-900 flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-red-300" />
+                      </div>
+                    ) : (
+                      <img
+                        src={thumbnailUrl}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={() => handleImageError(index)}
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

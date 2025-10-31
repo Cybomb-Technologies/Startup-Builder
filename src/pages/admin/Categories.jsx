@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast'; 
 
 // Auth functions directly in the component
 const getAdminToken = () => {
@@ -86,7 +86,7 @@ const Categories = () => {
 
       console.log('📡 Loading categories from API...');
       
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch('http://localhost:5001/api/admin/categories', {
         headers
       });
       
@@ -136,7 +136,7 @@ const Categories = () => {
 
       console.log('📤 Creating category:', newCategory);
       
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch('http://localhost:5001/api/admin/categories', {
         method: 'POST',
         headers,
         body: JSON.stringify({ 

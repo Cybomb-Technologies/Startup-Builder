@@ -28,28 +28,47 @@ import TemplateThumbnail from '@/components/TemplateThumbnail';
 const apiService = {
   baseURL: process.env.NODE_ENV === 'production' 
     ? '/api' 
-    : 'http://localhost:5000/api',
+    : 'http://localhost:5001/api',
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const token = localStorage.getItem('token');
     
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      };
+
+      // Add authorization header only for authenticated endpoints
+      if (token && !endpoint.includes('/templates/images') && !endpoint.includes('/health')) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const config = {
         method: options.method || 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
         credentials: 'include',
         mode: 'cors',
         ...options,
       };
 
+      // Remove Content-Type for FormData or file downloads
       if (options.body instanceof FormData || options.headers?.['Content-Type'] === null) {
         delete config.headers['Content-Type'];
       }
 
+      console.log(`🚀 Making request to: ${endpoint}`);
+      console.log(`🔐 Auth header: ${headers['Authorization'] ? 'Present' : 'Missing'}`);
+
       const response = await fetch(url, config);
+
+      if (response.status === 401) {
+        // Clear invalid token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        throw new Error('Authentication required. Please login again.');
+      }
 
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
@@ -71,7 +90,7 @@ const apiService = {
       return await response.json();
 
     } catch (error) {
-      console.error(`API Error (${endpoint}):`, error);
+      console.error(`❌ API Error (${endpoint}):`, error);
       throw error;
     }
   },
@@ -105,18 +124,44 @@ const apiService = {
     return data.accessLevels || data.data || data;
   },
 
-  async downloadTemplate(templateId) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Please login to download templates');
-    }
+ // In your apiService object, update the downloadTemplate function:
 
-    const response = await this.makeRequest(`/users/templates/${templateId}/download`, {
+async downloadTemplate(templateId) {
+  const token = localStorage.getItem('token');
+  console.log('🔐 DOWNLOAD: Token present:', !!token);
+  
+  if (!token) {
+    throw new Error('Please login to download templates');
+  }
+
+  try {
+    console.log('🚀 Making download request...');
+    
+    const response = await fetch(`${this.baseURL}/users/templates/${templateId}/download`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
     });
+
+    console.log('📥 Download response status:', response.status);
+
+    if (response.status === 401) {
+      let errorMessage = 'Session expired. Please login again.';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        console.log('❌ 401 Error (no JSON body)');
+      }
+      
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      console.log('🧹 Cleared invalid tokens');
+      
+      throw new Error(errorMessage);
+    }
 
     if (!response.ok) {
       let errorMessage = `Download failed: ${response.status}`;
@@ -139,6 +184,7 @@ const apiService = {
     }
 
     const blob = await response.blob();
+    console.log('📄 Download blob size:', blob.size);
     
     // Create download link
     const url = window.URL.createObjectURL(blob);
@@ -153,7 +199,11 @@ const apiService = {
     document.body.removeChild(a);
     
     return true;
-  },
+  } catch (error) {
+    console.error('❌ Download error:', error);
+    throw error;
+  }
+},
 
   async getTemplatePreview(templateId) {
     const token = localStorage.getItem('token');
@@ -285,7 +335,7 @@ const TemplateLibraryPage = () => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
 
   // Test server connection first
   useEffect(() => {
@@ -293,7 +343,9 @@ const TemplateLibraryPage = () => {
       try {
         await apiService.testConnection();
         setConnectionTested(true);
+        console.log('✅ Server connection successful');
       } catch (err) {
+        console.error('❌ Server connection failed:', err);
         setError(`Cannot connect to server: ${err.message}`);
         setLoading(false);
       }
@@ -311,10 +363,10 @@ const TemplateLibraryPage = () => {
 
   // Load user favorites if logged in
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated) {
       loadUserFavorites();
     }
-  }, [user]);
+  }, [isAuthenticated]);
 
   const loadAllData = async () => {
     try {
@@ -322,6 +374,7 @@ const TemplateLibraryPage = () => {
       setError(null);
 
       console.log('🔄 Loading templates from API...');
+      console.log('🔐 Current auth state:', { user: !!user, token: !!token, isAuthenticated });
       
       const [
         templatesData,
@@ -366,6 +419,7 @@ const TemplateLibraryPage = () => {
       });
       
       setTemplates(enhancedTemplates);
+      console.log(`✅ Loaded ${enhancedTemplates.length} templates`);
 
       // Set default category and subcategory
       if (categoriesData && categoriesData.length > 0) {
@@ -387,7 +441,7 @@ const TemplateLibraryPage = () => {
       }
 
     } catch (err) {
-      console.error('Error loading data:', err);
+      console.error('❌ Error loading data:', err);
       const errorMessage = err.message || 'Failed to load data from server';
       setError(errorMessage);
       toast({
@@ -402,11 +456,13 @@ const TemplateLibraryPage = () => {
 
   const loadUserFavorites = async () => {
     try {
+      console.log('🔄 Loading user favorites...');
       const favorites = await apiService.getUserFavorites();
       const favoriteIds = favorites.map(fav => fav.template?._id || fav.template);
       setUserFavorites(new Set(favoriteIds));
+      console.log(`✅ Loaded ${favoriteIds.length} favorites`);
     } catch (err) {
-      console.error('Error loading favorites:', err);
+      console.error('❌ Error loading favorites:', err);
     }
   };
 
@@ -429,75 +485,90 @@ const TemplateLibraryPage = () => {
   const handleDownloadImage = async (image) => {
     try {
       await apiService.downloadImage(image.url);
+      toast({
+        title: "Image Downloaded",
+        description: "Preview image saved to your downloads."
+      });
     } catch (error) {
-      throw new Error('Failed to download image');
+      toast({
+        title: "Download Failed",
+        description: "Failed to download image. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleAction = async (action, template) => {
-    // Check if user is logged in for protected actions
-    if (!user && (action === 'download' || action === 'edit' || action === 'favorite' || action === 'preview')) {
-      setUpgradeModalOpen(true);
-      return;
+ // In your TemplateLibraryPage.jsx, update the handleAction function:
+
+const handleAction = async (action, template) => {
+  // ✅ ONLY CHECK AUTHENTICATION, NOT PLAN ACCESS
+  if (!isAuthenticated && (action === 'download' || action === 'edit' || action === 'favorite' || action === 'preview')) {
+    setUpgradeModalOpen(true);
+    return;
+  }
+
+  // ✅ ALL PLAN ACCESS CHECKS REMOVED - ALL USERS CAN ACCESS ALL TEMPLATES
+
+  try {
+    switch (action) {
+      case 'edit':
+        navigate(`/editor/${template._id}`);
+        break;
+      case 'download':
+        setDownloading(template._id);
+        await apiService.downloadTemplate(template._id);
+        toast({ 
+          title: "Download Started", 
+          description: `${template.name} is being downloaded...` 
+        });
+        setDownloading(null);
+        break;
+      case 'preview':
+        setPreviewLoading(true);
+        try {
+          const enhancedTemplate = await apiService.getTemplatePreview(template._id);
+          setPreviewTemplate(enhancedTemplate);
+        } catch (previewError) {
+          console.error('Error fetching preview:', previewError);
+          setPreviewTemplate(template);
+        }
+        setPreviewLoading(false);
+        break;
+      default:
+        break;
     }
-   
-    // Check plan access for premium templates
-    const isFreeTemplate = !template.accessLevel?.name || template.accessLevel.name === 'Free';
+  } catch (err) {
+    console.error(`❌ Error during ${action}:`, err);
     
-    if (user && !isFreeTemplate) {
-      const userPlan = user.plan || 'Free';
-      const requiredPlan = template.accessLevel.name;
-
-      const planHierarchy = { 'Free': 0, 'Pro': 1, 'Business': 2 };
-
-      if (planHierarchy[userPlan] < planHierarchy[requiredPlan]) {
-        setUpgradeModalOpen(true);
-        return;
-      }
-    }
-
-    try {
-      switch (action) {
-        case 'edit':
-          navigate(`/editor/${template._id}`);
-          break;
-        case 'download':
-          setDownloading(template._id);
-          await apiService.downloadTemplate(template._id);
-          toast({ 
-            title: "Download Started", 
-            description: `${template.name} is being downloaded...` 
-          });
-          setDownloading(null);
-          break;
-        case 'preview':
-          setPreviewLoading(true);
-          try {
-            const enhancedTemplate = await apiService.getTemplatePreview(template._id);
-            setPreviewTemplate(enhancedTemplate);
-          } catch (previewError) {
-            console.error('Error fetching preview:', previewError);
-            setPreviewTemplate(template);
-          }
-          setPreviewLoading(false);
-          break;
-        default:
-          break;
-      }
-    } catch (err) {
-      console.error(`Error during ${action}:`, err);
+    // Handle authentication errors specifically
+    if (err.message.includes('Authentication') || err.message.includes('login') || err.message.includes('Token') || err.message.includes('Session')) {
+      // Clear any invalid tokens
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show login modal
+      setUpgradeModalOpen(true);
+      
+      toast({
+        title: "Session Expired",
+        description: "Please login again to continue.",
+        variant: "destructive"
+      });
+    } else {
       toast({
         title: "Error",
         description: `Failed to ${action} template. ${err.message}`,
         variant: "destructive"
       });
-      setDownloading(null);
-      setPreviewLoading(false);
     }
-  };
+    
+    setDownloading(null);
+    setPreviewLoading(false);
+  }
+};
 
   const handleFavorite = async (templateId) => {
-    if (!user) {
+    if (!isAuthenticated) {
       setUpgradeModalOpen(true);
       return;
     }
@@ -525,7 +596,7 @@ const TemplateLibraryPage = () => {
         });
       }
     } catch (err) {
-      console.error('Error updating favorites:', err);
+      console.error('❌ Error updating favorites:', err);
       toast({
         title: "Error",
         description: "Failed to update favorites. Please try again.",
@@ -662,16 +733,16 @@ const TemplateLibraryPage = () => {
           <Button 
             onClick={() => handleAction('edit', template)} 
             className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600"
-            disabled={!user}
+            disabled={!isAuthenticated}
           >
             <Edit className="w-4 h-4 mr-2" />
-            {user ? 'Edit Online' : 'Login to Edit'}
+            {isAuthenticated ? 'Edit Online' : 'Login to Edit'}
           </Button>
           
           <Button 
             onClick={() => handleAction('download', template)} 
             variant="outline"
-            disabled={downloading === template._id || !user}
+            disabled={downloading === template._id || !isAuthenticated}
           >
             {downloading === template._id ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -683,8 +754,8 @@ const TemplateLibraryPage = () => {
           <Button 
             onClick={() => handleFavorite(template._id)} 
             variant="outline"
-            disabled={!user}
-            className={userFavorites.has(template._id) ? 'text-yellow-500' : ''}
+            disabled={!isAuthenticated}
+            className={userFavorites.has(template._id) ? 'text-yellow-500 border-yellow-300' : ''}
           >
             <Star 
               className="w-4 h-4" 
@@ -727,6 +798,11 @@ const TemplateLibraryPage = () => {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
+              {!isAuthenticated && (
+                <Button onClick={() => navigate('/login')} variant="outline">
+                  Login to Access Templates
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -751,6 +827,20 @@ const TemplateLibraryPage = () => {
               📂 Explore Templates
             </h1>
             <p className="text-xl text-gray-600">Browse and customize professional business templates with preview images</p>
+            {!isAuthenticated && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800">
+                  <strong>Note:</strong> You need to{' '}
+                  <button 
+                    onClick={() => navigate('/login')} 
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    login
+                  </button>{' '}
+                  to download and edit templates.
+                </p>
+              </div>
+            )}
           </motion.div>
 
           <div className="mb-8 flex flex-col md:flex-row gap-4">
@@ -959,10 +1049,10 @@ const TemplateLibraryPage = () => {
                   onClick={() => handleAction('edit', previewTemplate)} 
                   variant="outline"
                   className="flex-1"
-                  disabled={!user}
+                  disabled={!isAuthenticated}
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  {user ? 'Edit Online' : 'Login to Edit'}
+                  {isAuthenticated ? 'Edit Online' : 'Login to Edit'}
                 </Button>
               </div>
             </div>
@@ -970,28 +1060,32 @@ const TemplateLibraryPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Upgrade Required Dialog */}
-      <Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Authentication Required</DialogTitle>
-            <DialogDescription>
-              {user ? "Your current plan doesn't include access to this template." : "Please log in or sign up to access this feature."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <p className="mb-6">
-              {user ? "Upgrade your plan to unlock this template and many more powerful features." : "Join StartupDocs Builder to start creating and downloading documents."}
-            </p>
-            <Button 
-              onClick={() => navigate(user ? '/pricing' : '/login')} 
-              className="bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              {user ? 'Upgrade to Pro' : 'Login or Sign Up'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+     {/* Updated Upgrade Required Dialog */}
+<Dialog open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle className="text-2xl">
+        {isAuthenticated ? "Template Access" : "Authentication Required"}
+      </DialogTitle>
+      <DialogDescription>
+        {isAuthenticated ? "You have access to all templates." : "Please log in to access templates."}
+      </DialogDescription>
+    </DialogHeader>
+    <div className="py-4 text-center">
+      <p className="mb-6">
+        {isAuthenticated 
+          ? "All templates are available for download in your account." 
+          : "Join StartupDocs Builder to start creating and downloading documents."}
+      </p>
+      <Button 
+        onClick={() => navigate(isAuthenticated ? '/templates' : '/login')} 
+        className="bg-gradient-to-r from-blue-600 to-indigo-600"
+      >
+        {isAuthenticated ? 'Continue Browsing' : 'Login or Sign Up'}
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
     </>
   );
 };
