@@ -6,8 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +19,7 @@ const LoginPage = () => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,30 +31,40 @@ const LoginPage = () => {
 
       const body = isSignup ? { username, email, password } : { email, password };
 
+      console.log('🔐 Making auth request to:', url);
+
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(body),
-        credentials: 'include',
       });
 
       const data = await response.json();
+      console.log('🔐 Auth response:', { success: response.ok, data });
 
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong.');
       }
 
-      // ✅ Save token + user
-      if (data.token) localStorage.setItem('token', data.token);
-      if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+      // ✅ Use auth context to login (this will set both user and token)
+      if (data.token && data.user) {
+        login(data.user, data.token);
+        console.log('✅ Login successful, user and token stored');
+      } else {
+        throw new Error('Invalid response from server - missing token or user data');
+      }
 
       toast({
         title: isSignup ? 'Account Created 🎉' : 'Welcome Back 👋',
         description: data.message || 'Login successful!',
       });
 
-      navigate('/');
+      // Redirect to home or intended page
+      navigate('/templates');
     } catch (error) {
+      console.error('❌ Auth error:', error);
       toast({
         title: 'Error',
         description: error.message,
@@ -112,6 +124,7 @@ const LoginPage = () => {
                         placeholder="Your username"
                         className="pl-10"
                         required
+                        minLength={3}
                       />
                     </div>
                   </div>
@@ -147,33 +160,37 @@ const LoginPage = () => {
                       placeholder="••••••••"
                       className="pl-10"
                       required
+                      minLength={6}
                     />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6 hover:from-blue-700 hover:to-indigo-700"
                   disabled={isLoading}
                 >
-                  {isLoading
-                    ? isSignup
-                      ? 'Creating Account...'
-                      : 'Logging in...'
-                    : isSignup
-                    ? 'Sign Up'
-                    : 'Login'}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {isSignup ? 'Creating Account...' : 'Logging in...'}
+                    </div>
+                  ) : isSignup ? (
+                    'Sign Up'
+                  ) : (
+                    'Login'
+                  )}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <button
                   onClick={() => setIsSignup(!isSignup)}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
                   {isSignup
                     ? 'Already have an account? Login'
-                    : "Don’t have an account? Sign up"}
+                    : "Don't have an account? Sign up"}
                 </button>
               </div>
 
@@ -181,7 +198,7 @@ const LoginPage = () => {
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => navigate('/forgot-password')}
-                    className="text-sm text-blue-500 hover:underline"
+                    className="text-sm text-blue-500 hover:underline transition-colors"
                   >
                     Forgot Password?
                   </button>
@@ -189,8 +206,8 @@ const LoginPage = () => {
               )}
 
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center text-sm text-blue-800">
-                <strong>Note:</strong> Connected to your API at{' '}
-                <code>{API_BASE_URL}</code>
+                <strong>Note:</strong> Connected to API at{' '}
+                <code className="bg-blue-100 px-1 rounded">{API_BASE_URL}</code>
               </div>
             </div>
           </div>

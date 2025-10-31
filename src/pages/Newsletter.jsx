@@ -16,7 +16,7 @@ const Newsletter = () => {
   const loadSubscribers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/newsletter/subscribers');
+      const response = await fetch('http://localhost:5001/api/newsletter/subscribers');
       if (response.ok) {
         const data = await response.json();
         // Handle different response formats
@@ -42,7 +42,7 @@ const Newsletter = () => {
 
   const handleUnsubscribe = async (email) => {
     try {
-      const response = await fetch('http://localhost:5000/api/newsletter/unsubscribe', {
+      const response = await fetch('http://localhost:5001/api/newsletter/unsubscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -55,9 +55,8 @@ async function detectFileExtension(template) {
 router.get('/templates/:id/images/:imageId', async (req, res) => {
   try {
     const { id, imageId } = req.params;
-    const { size } = req.query;
 
-    console.log('📸 Getting template image (Public Route):', { id, imageId, size });
+    console.log('📸 Getting template image (Public Route):', { id, imageId });
 
     const template = await Template.findById(id);
     if (!template) {
@@ -67,8 +66,22 @@ router.get('/templates/:id/images/:imageId', async (req, res) => {
       });
     }
 
-    const image = template.images.find(img => img.fileId.toString() === imageId);
+    // Check if template has images
+    if (!template.images || template.images.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No images found for this template'
+      });
+    }
+
+    // Find image by fileId or _id
+    const image = template.images.find(img => 
+      img.fileId && img.fileId.toString() === imageId || 
+      img._id && img._id.toString() === imageId
+    );
+
     if (!image) {
+      console.log('❌ Image not found in template. Available images:', template.images);
       return res.status(404).json({
         success: false,
         message: 'Image not found'
@@ -78,6 +91,7 @@ router.get('/templates/:id/images/:imageId', async (req, res) => {
     // Check if file exists in GridFS
     const files = await gridFSBucket.find({ _id: image.fileId }).toArray();
     if (files.length === 0) {
+      console.log('❌ Image file not found in GridFS:', image.fileId);
       return res.status(404).json({
         success: false,
         message: 'Image file not found in storage'
@@ -90,6 +104,7 @@ router.get('/templates/:id/images/:imageId', async (req, res) => {
     res.setHeader('Content-Type', image.fileType || 'image/jpeg');
     res.setHeader('Content-Length', gridFSFile.length);
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
     // Stream image from GridFS
     const downloadStream = gridFSBucket.openDownloadStream(image.fileId);
@@ -131,7 +146,18 @@ router.get('/templates/:id/images/:imageId/thumbnail', async (req, res) => {
       });
     }
 
-    const image = template.images.find(img => img.fileId.toString() === imageId);
+    if (!template.images || template.images.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No images found for this template'
+      });
+    }
+
+    const image = template.images.find(img => 
+      img.fileId && img.fileId.toString() === imageId || 
+      img._id && img._id.toString() === imageId
+    );
+
     if (!image) {
       return res.status(404).json({
         success: false,
@@ -154,8 +180,9 @@ router.get('/templates/:id/images/:imageId/thumbnail', async (req, res) => {
     res.setHeader('Content-Type', image.fileType || 'image/jpeg');
     res.setHeader('Content-Length', gridFSFile.length);
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
-    // For now, return the original image (you can add thumbnail generation logic later)
+    // For now, return the original image
     const downloadStream = gridFSBucket.openDownloadStream(image.fileId);
     downloadStream.pipe(res);
 
@@ -180,7 +207,7 @@ router.get('/templates/:id/images/:imageId/thumbnail', async (req, res) => {
 
 // ==================== EXISTING PUBLIC ROUTES ====================
 
-// @desc    Get all active templates (public) - ENHANCED WITH FILE EXTENSION DETECTION
+// @desc    Get all active templates (public) - ENHANCED WITH IMAGE URLS
 // @route   GET /api/templates
 // @access  Public
 router.get('/templates', async (req, res) => {
@@ -191,12 +218,12 @@ router.get('/templates', async (req, res) => {
       .populate('category', 'name icon')
       .populate('subCategory', 'name')
       .populate('accessLevel', 'name')
-      .select('-content -createdBy -__v') // REMOVED -file from select to include file data
+      .select('-content -createdBy -__v')
       .sort({ createdAt: -1 });
 
     console.log(`✅ Found ${templates.length} templates`);
 
-    // Enhance templates with file extension detection
+    // Enhance templates with file extension detection and image URLs
     const enhancedTemplates = await Promise.all(
       templates.map(async (template) => {
         const templateObj = template.toObject();
@@ -207,6 +234,25 @@ router.get('/templates', async (req, res) => {
         // Add file extension and file info to template
         templateObj.fileExtension = fileExtension;
         templateObj.hasFile = !!(template.file && template.file.fileId);
+        
+        // ✅ FIX: Generate proper image URLs
+        if (template.images && template.images.length > 0) {
+          templateObj.imageUrls = template.images.map((image, index) => {
+            const imageId = image.fileId || image._id;
+            return {
+              id: imageId.toString(),
+              url: `/api/templates/${template._id}/images/${imageId}`,
+              thumbnailUrl: `/api/templates/${template._id}/images/${imageId}/thumbnail`,
+              alt: `${template.name} - Preview ${index + 1}`,
+              fileType: image.fileType || 'image/jpeg',
+              index: index
+            };
+          });
+        } else {
+          templateObj.imageUrls = [];
+        }
+
+        console.log(`📸 Template ${template.name} has ${templateObj.imageUrls.length} images`);
         
         return templateObj;
       })
@@ -331,6 +377,48 @@ router.get('/access-levels', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching access levels'
+    });
+  }
+});
+
+// ✅ ADD DEBUG ROUTE TO CHECK TEMPLATE IMAGES
+router.get('/debug-template/:id', async (req, res) => {
+  try {
+    const template = await Template.findById(req.params.id);
+    
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Generate image URLs for debugging
+    const imageUrls = template.images ? template.images.map((image, index) => {
+      const imageId = image.fileId || image._id;
+      return {
+        imageData: image,
+        generatedUrl: `/api/templates/${template._id}/images/${imageId}`,
+        imageId: imageId.toString(),
+        index: index
+      };
+    }) : [];
+
+    res.json({
+      success: true,
+      template: {
+        id: template._id,
+        name: template.name,
+        images: template.images || [],
+        imagesCount: template.images ? template.images.length : 0,
+        imageUrls: imageUrls
+      }
+    });
+  } catch (error) {
+    console.error('Debug template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching template'
     });
   }
 });

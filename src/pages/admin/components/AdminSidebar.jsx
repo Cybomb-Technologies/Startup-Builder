@@ -9,7 +9,8 @@ import {
   UserCheck,
   FileType,
   Settings,
-  LogOut
+  LogOut,
+  Contact
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -66,10 +67,10 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       description: 'Manage access levels'
     },
     {
-      name: 'File Types',
-      path: 'file-types',
-      icon: FileType,
-      description: 'Manage file types'
+      name: 'Contact Submissions',
+      path: 'Contact-submissions',
+      icon: Contact,
+      description: 'Getting User Contacts Submission'
     },
     {
       type: 'divider',

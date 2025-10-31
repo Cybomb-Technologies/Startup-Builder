@@ -26,7 +26,7 @@ const UsersPage = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/admin/users", {
+      const response = await fetch("http://localhost:5001/api/admin/users", {
         headers: getAuthHeaders(),
       });
 
@@ -64,7 +64,7 @@ const UsersPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/users/${id}`,
+        `http://localhost:5001/api/admin/users/${id}`,
         {
           method: "DELETE",
           headers: getAuthHeaders(),

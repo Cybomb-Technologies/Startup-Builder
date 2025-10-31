@@ -10,7 +10,7 @@ const Footer = () => {
   const handleSubscribe = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/newsletter/subscribe", { email });
+      const res = await axios.post("http://localhost:5001/api/newsletter/subscribe", { email });
       setMessage("✅ Thank you for subscribing!");
       setEmail("");
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Image, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 
 const TemplateThumbnail = ({ 
   template, 
@@ -7,8 +7,10 @@ const TemplateThumbnail = ({
   onImageClick 
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState({});
+  
+  // Ensure imageUrls exists and handle potential issues
   const images = template.imageUrls || [];
-
   const hasImages = images.length > 0;
   const currentImage = hasImages ? images[currentImageIndex] : null;
 
@@ -32,6 +34,31 @@ const TemplateThumbnail = ({
     }
   };
 
+  const handleImageError = (index) => {
+    console.error(`❌ Failed to load image ${index} for template ${template.name}`);
+    setImageErrors(prev => ({ ...prev, [index]: true }));
+  };
+
+  const handleImageLoad = (index) => {
+    console.log(`✅ Successfully loaded image ${index} for template ${template.name}`);
+    setImageErrors(prev => ({ ...prev, [index]: false }));
+  };
+
+  const getImageUrl = (image) => {
+    if (!image || !image.url) return null;
+    
+    // Ensure URL is absolute
+    if (image.url.startsWith('http')) {
+      return image.url;
+    } else {
+      // Prepend base URL for relative URLs
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? window.location.origin 
+        : 'http://localhost:5001';
+      return `${baseURL}${image.url}`;
+    }
+  };
+
   const getBackgroundColor = (ext) => {
     const colorMap = {
       'docx': 'from-blue-50 to-blue-100',
@@ -48,18 +75,23 @@ const TemplateThumbnail = ({
     return colorMap[ext] || 'from-gray-50 to-gray-100';
   };
 
+  const currentImageUrl = currentImage ? getImageUrl(currentImage) : null;
+  const hasCurrentImageError = imageErrors[currentImageIndex];
+
   return (
     <div 
       className={`${className} bg-gradient-to-br ${getBackgroundColor(template.fileExtension)} relative overflow-hidden group cursor-pointer`}
       onClick={handleImageClick}
     >
-      {hasImages ? (
+      {hasImages && currentImageUrl && !hasCurrentImageError ? (
         <>
           {/* Main Image */}
           <img
-            src={currentImage.url}
-            alt={currentImage.altText || `Preview for ${template.name}`}
+            src={currentImageUrl}
+            alt={currentImage.alt || `Preview for ${template.name}`}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={() => handleImageError(currentImageIndex)}
+            onLoad={() => handleImageLoad(currentImageIndex)}
           />
           
           {/* Navigation Arrows for multiple images */}
@@ -96,11 +128,16 @@ const TemplateThumbnail = ({
           </div>
         </>
       ) : (
-        /* Fallback when no images */
+        /* Fallback when no images or image failed to load */
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-center">
-            <Image className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <span className="text-gray-500 text-sm">No Preview</span>
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <span className="text-gray-500 text-sm">
+              {hasCurrentImageError ? 'Failed to load image' : 'No Preview'}
+            </span>
+            {hasCurrentImageError && (
+              <p className="text-xs text-gray-400 mt-1">Click to try in carousel</p>
+            )}
           </div>
         </div>
       )}

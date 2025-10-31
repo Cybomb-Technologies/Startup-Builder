@@ -91,7 +91,7 @@ const Templates = () => {
       }
 
       // Load templates
-      const templatesResponse = await fetch('http://localhost:5000/api/admin/templates', {
+      const templatesResponse = await fetch('http://localhost:5001/api/admin/templates', {
         headers
       });
       if (templatesResponse.ok) {
@@ -103,7 +103,7 @@ const Templates = () => {
       }
 
       // Load categories
-      const categoriesResponse = await fetch('http://localhost:5000/api/admin/categories', {
+      const categoriesResponse = await fetch('http://localhost:5001/api/admin/categories', {
         headers
       });
       if (categoriesResponse.ok) {
@@ -115,7 +115,7 @@ const Templates = () => {
       }
 
       // Load access levels
-      const accessLevelsResponse = await fetch('http://localhost:5000/api/admin/access-levels', {
+      const accessLevelsResponse = await fetch('http://localhost:5001/api/admin/access-levels', {
         headers
       });
       if (accessLevelsResponse.ok) {
@@ -127,7 +127,7 @@ const Templates = () => {
       }
 
       // Load all subcategories initially
-      const subCategoriesResponse = await fetch('http://localhost:5000/api/admin/subcategories', {
+      const subCategoriesResponse = await fetch('http://localhost:5001/api/admin/subcategories', {
         headers
       });
       if (subCategoriesResponse.ok) {
@@ -352,7 +352,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
       
-      const response = await fetch('http://localhost:5000/api/admin/templates', {
+      const response = await fetch('http://localhost:5001/api/admin/templates', {
         method: 'POST',
         headers: headers,
         body: formData,
@@ -485,7 +485,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
       
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${selectedTemplate._id}`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${selectedTemplate._id}`, {
         method: 'PUT',
         headers: headers,
         body: formData,
@@ -543,7 +543,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${id}`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${id}`, {
         method: 'DELETE',
         headers,
       });
@@ -579,7 +579,7 @@ const Templates = () => {
         formData.append('images', image);
       });
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${templateId}/images`, {
         method: 'POST',
         headers: headers,
         body: formData,
@@ -604,7 +604,7 @@ const Templates = () => {
   const handleDeleteImage = async (templateId, imageId) => {
     try {
       const headers = getAuthHeaders();
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images/${imageId}`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${templateId}/images/${imageId}`, {
         method: 'DELETE',
         headers: headers,
       });
@@ -630,7 +630,7 @@ const Templates = () => {
   const handleSetPrimaryImage = async (templateId, imageId) => {
     try {
       const headers = getAuthHeaders();
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images/${imageId}/primary`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${templateId}/images/${imageId}/primary`, {
         method: 'PUT',
         headers: headers,
       });
@@ -696,7 +696,7 @@ const Templates = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${template._id}/download`, {
+      const response = await fetch(`http://localhost:5001/api/admin/templates/${template._id}/download`, {
         headers,
         method: 'GET',
       });
