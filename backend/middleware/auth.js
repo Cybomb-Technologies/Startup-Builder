@@ -1,17 +1,20 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const auth = async (req, res, next) => {
+module.exports = async function auth(req, res, next) {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+    const bearer = req.header('Authorization');
+    const token = bearer?.startsWith('Bearer ') ? bearer.slice(7) : (req.query?.token || null);
+
     if (!token) {
       return res.status(401).json({ success: false, message: 'No token, authorization denied' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
-    
+    const userId = decoded.userId || decoded.id; // support both keys
+    if (!userId) throw new Error('Invalid token payload');
+
+    const user = await User.findById(userId).select('-password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Token is not valid' });
     }
@@ -23,5 +26,3 @@ const auth = async (req, res, next) => {
     res.status(401).json({ success: false, message: 'Token is not valid' });
   }
 };
-
-module.exports = auth;

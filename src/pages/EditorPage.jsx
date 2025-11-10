@@ -1,102 +1,58 @@
-
-import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Save, Download, ArrowLeft, FileText } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 const EditorPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [content, setContent] = useState('');
+    const { id } = useParams();
+    const [searchParams] = useSearchParams();
+    const userId = searchParams.get("user");
+    const [config, setConfig] = useState(null);
 
-  const handleSave = () => {
-    const savedDocs = JSON.parse(localStorage.getItem('savedDocuments') || '[]');
-    savedDocs.push({
-      id: Date.now(),
-      templateId: id,
-      content,
-      savedAt: new Date().toISOString()
-    });
-    localStorage.setItem('savedDocuments', JSON.stringify(savedDocs));
-    
-    toast({
-      title: "Document Saved",
-      description: "Your document has been saved to your library."
-    });
-  };
+    useEffect(() => {
+        if (!id) return;
 
-  const handleDownload = () => {
-    toast({
-      title: "Download Started",
-      description: "Your document is being prepared for download..."
-    });
-  };
+        const token = localStorage.getItem("token");
+        console.log("Token Sent to Backend:", token ? token.substring(0, 10) + '...' : 'MISSING');
+        axios
+            .get(`http://localhost:5001/api/editor/${id}/config`, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((res) => {
+                console.log("✅ CONFIG LOADED:", res.data);
+                setConfig(res.data);
+            })
+            .catch((err) => console.error("❌ CONFIG LOAD ERROR:", err));
+    }, [id]);
 
-  return (
-    <>
-      <Helmet>
-        <title>Document Editor - StartupDocs Builder</title>
-        <meta name="description" content="Edit your business documents online with our powerful editor." />
-      </Helmet>
+    useEffect(() => {
+        if (!config) return;
 
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        const script = document.createElement("script");
+        // ⚠️ MODIFIED: Point directly to the NGINX proxy port (8081)
+        script.src = "http://localhost:8081/web-apps/apps/api/documents/api.js";
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-6 flex items-center justify-between">
-            <Button variant="outline" onClick={() => navigate('/templates')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Templates
-            </Button>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button onClick={handleDownload} className="bg-gradient-to-r from-blue-600 to-indigo-600">
-                <Download className="w-4 h-4 mr-2" />
-                Download
-              </Button>
-            </div>
-          </div>
+        script.onload = () => {
+            console.log("✅ ONLYOFFICE API Loaded");
+            new window.DocsAPI.DocEditor("editor", {
+                height: "100%",
+                width: "100%",
+                type: "desktop",
+                documentType: "word",
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex items-center">
-              <FileText className="w-6 h-6 mr-3" />
-              <h1 className="text-xl font-semibold">Document Editor</h1>
-            </div>
+                document: config.document,
+                editorConfig: config.editorConfig,
+                token: config.token,
+            });
+        };
 
-            <div className="p-8">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-8 border-2 border-dashed border-blue-300 min-h-[600px]">
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start editing your document here... (Online editor integration coming soon)"
-                  className="w-full h-full min-h-[500px] bg-transparent border-none outline-none resize-none text-gray-800 text-lg"
-                />
-              </div>
+        document.body.appendChild(script);
+    }, [config]);
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800">
-                  <strong>💡 Pro Tip:</strong> This is a demo editor. In production, this would integrate with OnlyOffice or CKEditor for full document editing capabilities including formatting, tables, images, and more!
-                </p>
-              </div>
-            </div>
-          </motion.div>
+    return (
+        <div style={{ width: "100vw", height: "100vh" }}>
+            <div id="editor" style={{ width: "100%", height: "100%" }}></div>
         </div>
-      </div>
-    </>
-  );
+    );
 };
 
 export default EditorPage;
-  

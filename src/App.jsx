@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from "./components/ScrollToTop";
+import { useAuth } from "@/hooks/useAuth";
 
 // ===== User Pages =====
 import HomePage from "./pages/HomePage";
@@ -48,10 +49,25 @@ const ProtectedAdminRoute = ({ children }) => {
 };
 
 const ProtectedUserRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  // Wait until useAuth finishes checking token
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center text-gray-600 text-lg">
+        Checking authentication...
+      </div>
+    );
+  }
+
+  // If NOT logged in AFTER validation → redirect
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 };
+
 
 // =======================
 // 🚀 Main App Component
@@ -65,6 +81,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/templates" element={<TemplateLibraryPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
+
+
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />

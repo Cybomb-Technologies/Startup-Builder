@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # 1. ONLYOFFICE DOCUMENT SERVER (Internal Service)
+  onlyoffice_docs:
+    image: onlyoffice/documentserver
+    container_name: onlyoffice_docs
+    expose:
+      - "80" 
+    environment:
+      - JWT_ENABLED=true
+      - JWT_SECRET=6vqQMal0U8vERpdEH3TFHC5WrczmXHqu
+    
+    # ⚠️ CRITICAL ADDITION: This allows the Document Server to call 
+    # back to your Node.js API at 'host.docker.internal:5001'
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 
+
+  # 2. NGINX REVERSE PROXY (Public Endpoint)
+  nginx_proxy:
+    image: nginx:latest
+    container_name: onlyoffice_nginx_proxy
+    ports:
+      - "8081:80" # This is the public access point
+    volumes:
+      # Mounts the config file relative to the docker-compose file's location (the backend folder)
+      - ./nginx_proxy/onlyoffice.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - onlyoffice_docs
+      
+    # This block is needed here as well for proper network stability
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
