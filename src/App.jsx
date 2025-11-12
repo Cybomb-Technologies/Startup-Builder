@@ -4,14 +4,14 @@ import ScrollToTop from "./components/ScrollToTop";
 import { useAuth } from "@/hooks/useAuth";
 
 // ===== User Pages =====
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Home/HomePage";
 import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
 import EditorPage from "@/pages/EditorPage";
 import PricingPage from "@/pages/PricingPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
-import BlogPage from "@/pages/BlogPage";
+//import BlogPage from "@/pages/BlogPage";
 import LoginPage from "@/pages/LoginPage";
 import Settings from "@/pages/Settings";
 
@@ -30,13 +30,6 @@ import ContactSubmissions from "@/pages/ContactSubmissions";
 import PrivacyPolicy from "@/components/PrivacyPolicy";
 import TermsOfService from "@/components/TermsPage";
 import CookiesPolicy from "@/components/CookiesPolicy";
-
-// ===== Categories =====
-import AccountsPage from "@/pages/Categories/AccountsPage";
-import HRPage from "@/pages/Categories/HrPage";
-import LegalPage from "@/pages/Categories/Legal";
-import BusinessPage from "@/pages/Categories/Business";
-import MarketingPage from "@/pages/Categories/Marketing";
 
 // =======================
 // 🔒 Protected Routes
@@ -86,7 +79,7 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
+        {/* <Route path="/blog" element={<BlogPage />} /> */}
 
         {/* ---------- User Auth Routes ---------- */}
         <Route path="/login" element={<LoginPage />} />
@@ -111,13 +104,6 @@ function App() {
             </ProtectedUserRoute>
           }
         />
-
-        {/* ---------- Category Routes ---------- */}
-        <Route path="/categories/accounts" element={<AccountsPage />} />
-        <Route path="/categories/hr" element={<HRPage />} />
-        <Route path="/categories/legal" element={<LegalPage />} />
-        <Route path="/categories/business" element={<BusinessPage />} />
-        <Route path="/categories/marketing" element={<MarketingPage />} />
 
         {/* ---------- Admin Auth Routes ---------- */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

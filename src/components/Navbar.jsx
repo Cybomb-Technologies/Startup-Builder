@@ -75,15 +75,15 @@ const Navbar = () => {
             <Link to="/pricing" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Pricing
             </Link>
-            <Link to="/blog" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Blog
-            </Link>
+            {/* <Link to="/blog" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+              Blog */}
+            {/* </Link> */}
             <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               About
             </Link>
-            <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            {/* <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Contact
-            </Link>
+            </Link> */}
             
             {user ? (
               <div className="flex items-center space-x-4">
@@ -188,13 +188,13 @@ const Navbar = () => {
             >
               Pricing
             </Link>
-            <Link 
+            {/* <Link 
               to="/blog" 
               className="block text-gray-700 hover:text-blue-600 py-2"
               onClick={() => setIsOpen(false)}
             >
               Blog
-            </Link>
+            </Link> */}
             <Link 
               to="/about" 
               className="block text-gray-700 hover:text-blue-600 py-2"

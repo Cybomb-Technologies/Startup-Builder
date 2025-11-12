@@ -57,7 +57,7 @@ const AdminLoginPage = () => {
     try {
       console.log('🔐 Attempting admin login...');
       
-      const response = await fetch('http://localhost:5001/api/admin/login', {
+      const response = await fetch('http://localhost:5000/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,6 +72,7 @@ const AdminLoginPage = () => {
       console.log('📡 Login response:', data);
 
       if (response.ok && data.success) {
+        localStorage.setItem('adminToken', data.token);
         // 🎯 CRITICAL FIX: Store token in adminUser object (like your reference code)
         localStorage.setItem('adminUser', JSON.stringify({
           email: data.user.email,

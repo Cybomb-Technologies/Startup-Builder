@@ -22,13 +22,13 @@ const adminLogout = () => {
 
 const validateAdminSession = () => {
   const token = getAdminToken();
-  const adminUser = localStorage.getItem('adminUser');
-  if (!token || !adminUser) {
+  if (!token) {
     adminLogout();
     return false;
   }
   return true;
 };
+
 
 const Categories = () => {
   const { toast } = useToast();
@@ -86,7 +86,7 @@ const Categories = () => {
 
       console.log('📡 Loading categories from API...');
       
-      const response = await fetch('http://localhost:5001/api/admin/categories', {
+      const response = await fetch('http://localhost:5000/api/admin/categories', {
         headers
       });
       
@@ -136,7 +136,7 @@ const Categories = () => {
 
       console.log('📤 Creating category:', newCategory);
       
-      const response = await fetch('http://localhost:5001/api/admin/categories', {
+      const response = await fetch('http://localhost:5000/api/admin/categories', {
         method: 'POST',
         headers,
         body: JSON.stringify({ 

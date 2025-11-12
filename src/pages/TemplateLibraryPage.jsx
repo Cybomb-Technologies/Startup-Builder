@@ -28,7 +28,7 @@ import TemplateThumbnail from '@/components/TemplateThumbnail';
 const apiService = {
   baseURL: process.env.NODE_ENV === 'production' 
     ? '/api' 
-    : 'http://localhost:5001/api',
+    : 'http://localhost:5000/api',
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;

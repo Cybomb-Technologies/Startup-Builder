@@ -30,7 +30,7 @@ const UserAccess = () => {
   const loadAccessLevels = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5001/api/admin/access-levels', {
+      const response = await fetch('http://localhost:5000/api/admin/access-levels', {
         headers: getAuthHeaders()
       });
       
@@ -58,7 +58,7 @@ const UserAccess = () => {
     if (!newAccessLevel.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:5001/api/admin/access-levels', {
+      const response = await fetch('http://localhost:5000/api/admin/access-levels', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ name: newAccessLevel.trim() }),
@@ -92,7 +92,7 @@ const UserAccess = () => {
     if (!editValue.trim()) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/access-levels/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/access-levels/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ name: editValue.trim() }),
@@ -128,7 +128,7 @@ const UserAccess = () => {
     if (!confirm('Are you sure you want to delete this access level?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/access-levels/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/admin/access-levels/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
