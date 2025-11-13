@@ -9,7 +9,7 @@ const HowItWorksSection = () => {
       step: 1,
       title: "Discover & Browse Templates",
       description: "Explore our extensive collection of 1000+ professional business templates across all categories. Use advanced search and filters to find the perfect template for your specific needs.",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=400&fit=crop",
+      image: "https://img.freepik.com/free-vector/idea-concept-creative-innovation-business-solution-generation-inspiration-imagination-brainstorm-light-bulb-as-metaphor-isolated-flat-vector-illustration_613284-1857.jpg?t=st=1763006873~exp=1763010473~hmac=afea511d91d07a7f0fee30e6b75f8c9c1e9251ce7bc3fae44d9e5c992f627e9b&w=740",
       icon: Search,
       features: [
         "1000+ Professional Templates",
@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
       step: 2,
       title: "Customize & Edit Online",
       description: "Use our powerful online editor to customize templates in real-time. No software installation required. Collaborate with team members and make changes instantly.",
-      image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
+      image: "https://res.cloudinary.com/dcfjt8shw/image/upload/v1763016727/l98v1qvwldtbtuasq0ns.jpg",
       icon: FileEdit,
       features: [
         "Real-time Online Editor",
@@ -39,7 +39,7 @@ const HowItWorksSection = () => {
       step: 3,
       title: "Download & Use Instantly",
       description: "Download your customized documents in multiple formats. Ready to use immediately for contracts, proposals, reports, and all your business documentation needs.",
-      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=500&h=400&fit=crop",
+      image: "https://res.cloudinary.com/dcfjt8shw/image/upload/v1763016874/i5fiy4b6junxbwjyer0a.png",
       icon: Download,
       features: [
         "Multiple Format Support",
@@ -129,11 +129,14 @@ const HowItWorksSection = () => {
                   ))}
                 </div>
 
-                {/* CTA Button */}
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 group/btn">
-                  {step.cta}
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                </Button>
+                {/* CTA Button - Minimal */}
+<Button 
+  variant="ghost" 
+  className="w-full text-blue-600 hover:bg-blue-50 hover:text-blue-700 py-3 rounded-xl font-semibold transition-all duration-300 group/btn"
+>
+  {step.cta}
+  <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+</Button>
               </div>
             </motion.div>
           ))}

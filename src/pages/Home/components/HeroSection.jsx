@@ -76,24 +76,24 @@ const HeroSection = () => {
         } else {
           // Fallback categories if API fails
           setCategories([
-            { _id: '1', name: 'Business', icon: '📊' },
-            { _id: '2', name: 'Legal', icon: '⚖️' },
-            { _id: '3', name: 'Finance', icon: '💰' },
-            { _id: '4', name: 'HR', icon: '👥' },
-            { _id: '5', name: 'Marketing', icon: '📢' },
-            { _id: '6', name: 'Operations', icon: '⚙️' }
+            { _id: '1', name: 'Business' },
+            { _id: '2', name: 'Legal' },
+            { _id: '3', name: 'Finance' },
+            { _id: '4', name: 'HR' },
+            { _id: '5', name: 'Marketing' },
+            { _id: '6', name: 'Operations' }
           ]);
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
         // Fallback categories
         setCategories([
-          { _id: '1', name: 'Business', icon: '📊' },
-          { _id: '2', name: 'Legal', icon: '⚖️' },
-          { _id: '3', name: 'Finance', icon: '💰' },
-          { _id: '4', name: 'HR', icon: '👥' },
-          { _id: '5', name: 'Marketing', icon: '📢' },
-          { _id: '6', name: 'Operations', icon: '⚙️' }
+          { _id: '1', name: 'Business' },
+          { _id: '2', name: 'Legal' },
+          { _id: '3', name: 'Finance' },
+          { _id: '4', name: 'HR' },
+          { _id: '5', name: 'Marketing' },
+          { _id: '6', name: 'Operations' }
         ]);
       } finally {
         setLoading(false);
@@ -183,7 +183,6 @@ const HeroSection = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                 // placeholder="Search for templates..."
                   className="w-full pl-12 pr-16 py-4 rounded-2xl border border-gray-200 text-gray-900 text-lg shadow-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white/80 backdrop-blur-sm transition-all duration-300"
                 />
                 <div className="absolute left-12 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -198,14 +197,6 @@ const HeroSection = () => {
                 </Button>
               </div>
             </form>
-            {/* <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="text-blue-600 mt-3 text-sm font-medium"
-            >
-              Try searching for templates like "{searchSuggestions[currentSuggestionIndex]}"
-            </motion.p> */}
           </motion.div>
 
           {/* Categories Section */}
@@ -239,9 +230,8 @@ const HeroSection = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     onClick={() => handleCategoryClick(category.name)}
-                    className="px-4 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 hover:bg-white hover:border-blue-300 hover:shadow-md transition-all duration-300 text-gray-700 font-medium hover:text-blue-600"
+                    className="px-6 py-3 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200 hover:bg-white hover:border-blue-300 hover:shadow-md transition-all duration-300 text-gray-700 font-medium hover:text-blue-600"
                   >
-                    <span className="mr-2">{category.icon || '📄'}</span>
                     {category.name}
                   </motion.button>
                 ))}

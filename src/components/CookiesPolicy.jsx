@@ -3,8 +3,6 @@ import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Cookie, Settings, Shield, Eye, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 
 const CookiesPolicy = () => {
@@ -64,7 +62,7 @@ const CookiesPolicy = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        
 
         <section className="pt-32 pb-20 bg-gradient-to-br from-amber-600 to-orange-700 text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -381,7 +379,7 @@ const CookiesPolicy = () => {
           </div>
         </section>
 
-        <Footer />
+        
       </div>
     </>
   );

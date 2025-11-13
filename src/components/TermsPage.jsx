@@ -3,8 +3,6 @@ import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Scale, FileText, Shield, AlertCircle, CheckCircle, BookOpen } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 const TermsOfService = () => {
   return (
@@ -15,7 +13,7 @@ const TermsOfService = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        
 
         <section className="pt-32 pb-20 bg-gradient-to-br from-green-600 to-emerald-700 text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -295,7 +293,7 @@ const TermsOfService = () => {
           </div>
         </section>
 
-        <Footer />
+       
       </div>
     </>
   );

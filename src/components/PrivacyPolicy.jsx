@@ -3,8 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Eye, FileText, Mail } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 
 const PrivacyPolicy = () => {
   return (
@@ -15,7 +14,7 @@ const PrivacyPolicy = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        
 
         <section className="pt-32 pb-20 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -250,7 +249,7 @@ const PrivacyPolicy = () => {
           </div>
         </section>
 
-        <Footer />
+        
       </div>
     </>
   );

@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from "./components/ScrollToTop";
 import { useAuth } from "@/hooks/useAuth";
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 // ===== User Pages =====
 import HomePage from "./pages/Home/HomePage";
@@ -14,6 +16,7 @@ import ContactPage from "@/pages/ContactPage";
 //import BlogPage from "@/pages/BlogPage";
 import LoginPage from "@/pages/LoginPage";
 import Settings from "@/pages/Settings";
+import PricingPolicy from './pages/PricingPolicy';
 
 // ===== Auth Pages =====
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -69,6 +72,7 @@ const ProtectedUserRoute = ({ children }) => {
 function App() {
   return (
     <ScrollToTop>
+       <Navbar />
       <Routes>
         {/* ---------- Public Routes ---------- */}
         <Route path="/" element={<HomePage />} />
@@ -77,6 +81,7 @@ function App() {
 
 
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing-policy" element={<PricingPolicy />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         {/* <Route path="/blog" element={<BlogPage />} /> */}
@@ -128,6 +133,7 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiesPolicy />} />
+        <Route path="/pricing-policy" element={<PricingPolicy />} />
 
         {/* ---------- Extra ---------- */}
         <Route path="/contact-submissions" element={<ContactSubmissions />} />
@@ -138,6 +144,7 @@ function App() {
         {/* ---------- 404 Fallback ---------- */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
     </ScrollToTop>
   );
 }

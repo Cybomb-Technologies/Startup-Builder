@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Search, FileText, Download, Edit, FileType, FileUp, FileDown, FileX, Star, Loader2, RefreshCw, Image, File, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -804,7 +802,7 @@ const handleAction = async (action, template) => {
   if (loading) {
     return (
       <>
-        <Navbar />
+       
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -813,7 +811,7 @@ const handleAction = async (action, template) => {
             </p>
           </div>
         </div>
-        <Footer />
+       
       </>
     );
   }
@@ -821,7 +819,7 @@ const handleAction = async (action, template) => {
   if (error) {
     return (
       <>
-        <Navbar />
+        
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
             <FileX className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -840,7 +838,7 @@ const handleAction = async (action, template) => {
             </div>
           </div>
         </div>
-        <Footer />
+        
       </>
     );
   }
@@ -853,7 +851,7 @@ const handleAction = async (action, template) => {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-        <Navbar />
+      
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -972,7 +970,7 @@ const handleAction = async (action, template) => {
           </div>
         </div>
 
-        <Footer />
+       
       </div>
 
       {/* Image Carousel Modal */}

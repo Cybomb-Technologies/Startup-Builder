@@ -2,8 +2,6 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { CheckCircle, Zap } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -81,7 +79,7 @@ const PricingPage = () => {
       </Helmet>
 
       <div className="min-h-screen">
-        <Navbar />
+       
 
         <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -190,7 +188,7 @@ const PricingPage = () => {
           </motion.div>
         </div>
 
-        <Footer />
+       
       </div>
     </>
   );
