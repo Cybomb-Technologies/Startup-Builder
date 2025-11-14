@@ -10,12 +10,12 @@ import HomePage from "./pages/Home/HomePage";
 import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
 import EditorPage from "@/pages/EditorPage";
 import PricingPage from "@/pages/PricingPage";
-import CheckoutPage from "@/pages/CheckoutPage"; // ADD THIS IMPORT
+import CheckoutPage from "@/pages/CheckoutPage"; 
 import DashboardPage from "@/pages/DashboardPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import LoginPage from "@/pages/LoginPage";
-import Settings from "@/pages/Settings";
+import Settings from "./pages/Settings";
 import PricingPolicy from './pages/PricingPolicy';
 
 // ===== Auth Pages =====
@@ -27,7 +27,7 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AdminPage from "@/pages/AdminPage";
 import AdminLoginPage from "@/pages/AdminLogin";
 import AdminUploadPage from "@/pages/AdminUploadPage";
-import ContactSubmissions from "@/pages/ContactSubmissions";
+import ContactSubmissions from "./pages/admin/ContactSubmissions";
 
 // ===== Legal Pages =====
 import PrivacyPolicy from "@/components/PrivacyPolicy";

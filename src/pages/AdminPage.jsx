@@ -6,10 +6,10 @@ import AdminSidebar from './admin/components/AdminSidebar';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
-import Templates from './Templates';
-import UsersPage from './Users';
-import Newsletter from './Newsletter';
-import Analytics from './Analytics';
+import Templates from './admin/Templates';
+import UsersPage from './admin/Users';
+import Newsletter from './admin/Newsletter';
+import Analytics from './admin/Analytics';
 import Categories from './admin/Categories';
 import SubCategories from './admin/SubCategories';
 import UserAccess from './admin/UserAccess';
@@ -198,9 +198,9 @@ const AdminPage = () => {
                   <h1 className="text-3xl font-bold text-slate-900 mb-1">
                     Administration Panel
                   </h1>
-                  <p className="text-slate-600 text-base">
+                  <div className="text-slate-600 text-base"> {/* ✅ Changed from <p> to <div> */}
                     Comprehensive platform management and oversight
-                  </p>
+                  </div>
                 </div>
               </div>
               
@@ -237,27 +237,27 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Active Users</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">
+                  <div className="text-sm font-medium text-slate-600">Active Users</div> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
                     {loading ? (
                       <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                     ) : (
                       dashboardData.totalUsers.toLocaleString()
                     )}
-                  </p>
+                  </div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-500">
+                <div className="text-xs text-slate-500"> {/* ✅ Changed from <p> to <div> */}
                   {loading ? (
                     <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
                     formatGrowth(dashboardData.userGrowth)
                   )}
-                </p>
+                </div>
               </div>
             </motion.div>
 
@@ -270,27 +270,27 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Templates</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">
+                  <div className="text-sm font-medium text-slate-600">Templates</div> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
                     {loading ? (
                       <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                     ) : (
                       dashboardData.totalTemplates.toLocaleString()
                     )}
-                  </p>
+                  </div>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <FileText className="w-6 h-6 text-green-600" />
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-500">
+                <div className="text-xs text-slate-500"> {/* ✅ Changed from <p> to <div> */}
                   {loading ? (
                     <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
                     formatGrowth(dashboardData.templateGrowth)
                   )}
-                </p>
+                </div>
               </div>
             </motion.div>
 
@@ -303,17 +303,17 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">System Health</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">
+                  <div className="text-sm font-medium text-slate-600">System Health</div> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
                     {dashboardData.systemHealth}
-                  </p>
+                  </div>
                 </div>
                 <div className="p-3 bg-emerald-50 rounded-lg">
                   <Shield className="w-6 h-6 text-emerald-600" />
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <p className="text-xs text-slate-500">All systems operational</p>
+                <div className="text-xs text-slate-500">All systems operational</div> {/* ✅ Changed from <p> to <div> */}
               </div>
             </motion.div>
           </div>
@@ -336,8 +336,8 @@ const AdminPage = () => {
                     <h2 className="text-2xl font-semibold text-slate-900">System Configuration</h2>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-                    <p className="text-slate-600">System configuration panel is currently under development.</p>
-                    <p className="text-sm text-slate-500 mt-2">Advanced settings and preferences will be available in the next update.</p>
+                    <div className="text-slate-600">System configuration panel is currently under development.</div> {/* ✅ Changed from <p> to <div> */}
+                    <div className="text-sm text-slate-500 mt-2">Advanced settings and preferences will be available in the next update.</div> {/* ✅ Changed from <p> to <div> */}
                   </div>
                 </div>
               } />
