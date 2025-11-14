@@ -1,7 +1,5 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import HeroSection from './components/HeroSection';
 import FeaturesSection from './components/FeaturesSection';
 import TemplatesSection from './components/TemplatesSection';
@@ -19,7 +17,7 @@ const HomePage = () => {
       </Helmet>
 
       <div className="min-h-screen">
-        <Navbar />
+        
         <HeroSection />
          <TemplatesSection />
           <HowItWorksSection />
@@ -27,7 +25,7 @@ const HomePage = () => {
         <PricingSection />
         <TestimonialsSection />
         <CTASection />
-        <Footer />
+        
       </div>
     </>
   );

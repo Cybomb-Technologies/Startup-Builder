@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTop from "./components/ScrollToTop";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from '@/components/Navbar';
@@ -10,10 +10,10 @@ import HomePage from "./pages/Home/HomePage";
 import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
 import EditorPage from "@/pages/EditorPage";
 import PricingPage from "@/pages/PricingPage";
+import CheckoutPage from "@/pages/CheckoutPage"; // ADD THIS IMPORT
 import DashboardPage from "@/pages/DashboardPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
-//import BlogPage from "@/pages/BlogPage";
 import LoginPage from "@/pages/LoginPage";
 import Settings from "@/pages/Settings";
 import PricingPolicy from './pages/PricingPolicy';
@@ -64,27 +64,46 @@ const ProtectedUserRoute = ({ children }) => {
   return children;
 };
 
-
 // =======================
 // 🚀 Main App Component
 // =======================
 
 function App() {
+  const location = useLocation();
+  
+  // Check if current route should hide navbar and footer
+  const isEditorPage = location.pathname.startsWith('/editor/');
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const isCheckoutPage = location.pathname.startsWith('/checkout'); // ADD THIS
+  
   return (
     <ScrollToTop>
-       <Navbar />
+      {/* Conditionally render Navbar - hide on editor pages, admin pages, and checkout pages */}
+      {!isEditorPage && !isAdminPage && !isCheckoutPage && <Navbar />}
+      
       <Routes>
         {/* ---------- Public Routes ---------- */}
         <Route path="/" element={<HomePage />} />
         <Route path="/templates" element={<TemplateLibraryPage />} />
+        
+        {/* Editor routes - no header/footer */}
+        <Route path="/editor/userdoc/:id" element={<EditorPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
-
 
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing-policy" element={<PricingPolicy />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        {/* <Route path="/blog" element={<BlogPage />} /> */}
+
+        {/* ---------- Checkout Route ---------- */}
+        <Route 
+          path="/checkout/:planId" 
+          element={
+            <ProtectedUserRoute>
+              <CheckoutPage />
+            </ProtectedUserRoute>
+          } 
+        />
 
         {/* ---------- User Auth Routes ---------- */}
         <Route path="/login" element={<LoginPage />} />
@@ -123,11 +142,10 @@ function App() {
           }
         />
 
-         {/* Admin Routes */}
+        {/* Admin Routes */}
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/dashboard" element={<AdminPage />} />
-
 
         {/* ---------- Legal Routes ---------- */}
         <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -144,7 +162,9 @@ function App() {
         {/* ---------- 404 Fallback ---------- */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <Footer />
+      
+      {/* Conditionally render Footer - hide on editor pages, admin pages, and checkout pages */}
+      {!isEditorPage && !isAdminPage && !isCheckoutPage && <Footer />}
     </ScrollToTop>
   );
 }

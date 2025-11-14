@@ -498,6 +498,8 @@ const TemplateLibraryPage = () => {
 
  // In your TemplateLibraryPage.jsx, update the handleAction function:
 
+// In your TemplateLibraryPage.jsx, update the handleAction function:
+
 const handleAction = async (action, template) => {
   const docId = template._id || template.id || template.documentId;
 
@@ -519,41 +521,42 @@ const handleAction = async (action, template) => {
 
   try {
     switch (action) {
-
       case 'edit': {
-  const documentId = template._id || template.id || template.documentId;
+        const documentId = template._id || template.id || template.documentId;
 
-  if (!documentId) {
-    toast({
-      title: "Template Error",
-      description: "This template cannot be opened.",
-      variant: "destructive"
-    });
-    return;
-  }
+        if (!documentId) {
+          toast({
+            title: "Template Error",
+            description: "This template cannot be opened.",
+            variant: "destructive"
+          });
+          return;
+        }
 
-  const userId = user?._id || user?.id;
-  if (!userId) {
-    navigate('/login');
-    return;
-  }
+        console.log("✅ EDIT ONLINE:", { templateId: documentId });
 
-  console.log("✅ EDIT ONLINE:", { templateId: documentId, userId });
+        // ✅ Navigate to editor - this will create a user document automatically
+        navigate(`/editor/${documentId}`);
 
-  // ✅ Correct routing format
-  navigate(`/editor/${documentId}?user=${userId}`);
-
-  break;
-}
+        // Trigger dashboard refresh
+        setTimeout(() => {
+          window.dispatchEvent(new Event('templateEdited'));
+        }, 1000);
+        break;
+      }
 
       case 'download':
         setDownloading(docId);
+        // Use the new download endpoint that creates user documents
         await apiService.downloadTemplate(docId);
         toast({
           title: "Download Started",
           description: `${template.name} is being downloaded...`
         });
         setDownloading(null);
+        
+        // Trigger dashboard refresh
+        window.dispatchEvent(new Event('templateDownloaded'));
         break;
 
       case 'preview':
@@ -595,7 +598,6 @@ const handleAction = async (action, template) => {
     setPreviewLoading(false);
   }
 };
-
 
 
   const handleFavorite = async (templateId) => {
