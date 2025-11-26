@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Search, FileText, Download, Edit, FileType, FileUp, FileDown, FileX, Star, Loader2, RefreshCw, Image, File, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,7 +26,7 @@ import TemplateThumbnail from '@/components/TemplateThumbnail';
 const apiService = {
   baseURL: process.env.NODE_ENV === 'production' 
     ? '/api' 
-    : 'http://localhost:5001/api',
+    : 'http://localhost:5000/api',
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
@@ -500,58 +498,92 @@ const TemplateLibraryPage = () => {
 
  // In your TemplateLibraryPage.jsx, update the handleAction function:
 
+// In your TemplateLibraryPage.jsx, update the handleAction function:
+
 const handleAction = async (action, template) => {
-  // ✅ ONLY CHECK AUTHENTICATION, NOT PLAN ACCESS
-  if (!isAuthenticated && (action === 'download' || action === 'edit' || action === 'favorite' || action === 'preview')) {
+  const docId = template._id || template.id || template.documentId;
+
+  if (!docId) {
+    console.error("❌ No template ID:", template);
+    toast({
+      title: "Template Error",
+      description: "This template cannot be opened.",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  // ✅ If user is not logged in, show login modal (not redirect)
+  if (!isAuthenticated) {
     setUpgradeModalOpen(true);
     return;
   }
 
-  // ✅ ALL PLAN ACCESS CHECKS REMOVED - ALL USERS CAN ACCESS ALL TEMPLATES
-
   try {
     switch (action) {
-      case 'edit':
-        navigate(`/editor/${template._id}`);
+      case 'edit': {
+        const documentId = template._id || template.id || template.documentId;
+
+        if (!documentId) {
+          toast({
+            title: "Template Error",
+            description: "This template cannot be opened.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log("✅ EDIT ONLINE:", { templateId: documentId });
+
+        // ✅ Navigate to editor - this will create a user document automatically
+        navigate(`/editor/${documentId}`);
+
+        // Trigger dashboard refresh
+        setTimeout(() => {
+          window.dispatchEvent(new Event('templateEdited'));
+        }, 1000);
         break;
+      }
+
       case 'download':
-        setDownloading(template._id);
-        await apiService.downloadTemplate(template._id);
-        toast({ 
-          title: "Download Started", 
-          description: `${template.name} is being downloaded...` 
+        setDownloading(docId);
+        // Use the new download endpoint that creates user documents
+        await apiService.downloadTemplate(docId);
+        toast({
+          title: "Download Started",
+          description: `${template.name} is being downloaded...`
         });
         setDownloading(null);
+        
+        // Trigger dashboard refresh
+        window.dispatchEvent(new Event('templateDownloaded'));
         break;
+
       case 'preview':
         setPreviewLoading(true);
         try {
-          const enhancedTemplate = await apiService.getTemplatePreview(template._id);
+          const enhancedTemplate = await apiService.getTemplatePreview(docId);
           setPreviewTemplate(enhancedTemplate);
-        } catch (previewError) {
-          console.error('Error fetching preview:', previewError);
+        } catch (err) {
+          console.warn("Preview fallback → using existing template");
           setPreviewTemplate(template);
         }
         setPreviewLoading(false);
         break;
+
       default:
         break;
     }
   } catch (err) {
-    console.error(`❌ Error during ${action}:`, err);
-    
-    // Handle authentication errors specifically
-    if (err.message.includes('Authentication') || err.message.includes('login') || err.message.includes('Token') || err.message.includes('Session')) {
-      // Clear any invalid tokens
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Show login modal
+    console.error(`❌ ${action} Error:`, err);
+
+    if (String(err.message).toLowerCase().includes("login")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       setUpgradeModalOpen(true);
-      
       toast({
         title: "Session Expired",
-        description: "Please login again to continue.",
+        description: "Please login again.",
         variant: "destructive"
       });
     } else {
@@ -561,11 +593,12 @@ const handleAction = async (action, template) => {
         variant: "destructive"
       });
     }
-    
+
     setDownloading(null);
     setPreviewLoading(false);
   }
 };
+
 
   const handleFavorite = async (templateId) => {
     if (!isAuthenticated) {
@@ -730,14 +763,15 @@ const handleAction = async (action, template) => {
             Preview{template.imageUrls?.length > 1 ? ` (${template.imageUrls.length})` : ''}
           </Button>
           
-          <Button 
-            onClick={() => handleAction('edit', template)} 
-            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600"
-            disabled={!isAuthenticated}
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            {isAuthenticated ? 'Edit Online' : 'Login to Edit'}
-          </Button>
+     <Button 
+  onClick={() => handleAction('edit', template)}
+  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600"
+>
+  <Edit className="w-4 h-4 mr-2" />
+  {isAuthenticated ? 'Edit Online' : 'Login to Edit'}
+</Button>
+
+
           
           <Button 
             onClick={() => handleAction('download', template)} 
@@ -770,7 +804,7 @@ const handleAction = async (action, template) => {
   if (loading) {
     return (
       <>
-        <Navbar />
+       
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" />
@@ -779,7 +813,7 @@ const handleAction = async (action, template) => {
             </p>
           </div>
         </div>
-        <Footer />
+       
       </>
     );
   }
@@ -787,7 +821,7 @@ const handleAction = async (action, template) => {
   if (error) {
     return (
       <>
-        <Navbar />
+        
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
             <FileX className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -806,7 +840,7 @@ const handleAction = async (action, template) => {
             </div>
           </div>
         </div>
-        <Footer />
+        
       </>
     );
   }
@@ -819,7 +853,7 @@ const handleAction = async (action, template) => {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-        <Navbar />
+      
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -938,7 +972,7 @@ const handleAction = async (action, template) => {
           </div>
         </div>
 
-        <Footer />
+       
       </div>
 
       {/* Image Carousel Modal */}

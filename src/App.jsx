@@ -1,18 +1,22 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ScrollToTop from "./components/ScrollToTop";
+import { useAuth } from "@/hooks/useAuth";
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 // ===== User Pages =====
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Home/HomePage";
 import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
 import EditorPage from "@/pages/EditorPage";
 import PricingPage from "@/pages/PricingPage";
+import CheckoutPage from "@/pages/CheckoutPage"; 
 import DashboardPage from "@/pages/DashboardPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
-import BlogPage from "@/pages/BlogPage";
 import LoginPage from "@/pages/LoginPage";
-import Settings from "@/pages/Settings";
+import Settings from "./pages/Settings";
+import PricingPolicy from './pages/PricingPolicy';
 
 // ===== Auth Pages =====
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -23,19 +27,12 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AdminPage from "@/pages/AdminPage";
 import AdminLoginPage from "@/pages/AdminLogin";
 import AdminUploadPage from "@/pages/AdminUploadPage";
-import ContactSubmissions from "@/pages/ContactSubmissions";
+import ContactSubmissions from "./pages/admin/ContactSubmissions";
 
 // ===== Legal Pages =====
 import PrivacyPolicy from "@/components/PrivacyPolicy";
 import TermsOfService from "@/components/TermsPage";
 import CookiesPolicy from "@/components/CookiesPolicy";
-
-// ===== Categories =====
-import AccountsPage from "@/pages/Categories/AccountsPage";
-import HRPage from "@/pages/Categories/HrPage";
-import LegalPage from "@/pages/Categories/Legal";
-import BusinessPage from "@/pages/Categories/Business";
-import MarketingPage from "@/pages/Categories/Marketing";
 
 // =======================
 // 🔒 Protected Routes
@@ -48,8 +45,22 @@ const ProtectedAdminRoute = ({ children }) => {
 };
 
 const ProtectedUserRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  // Wait until useAuth finishes checking token
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center text-gray-600 text-lg">
+        Checking authentication...
+      </div>
+    );
+  }
+
+  // If NOT logged in AFTER validation → redirect
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 };
 
@@ -58,17 +69,41 @@ const ProtectedUserRoute = ({ children }) => {
 // =======================
 
 function App() {
+  const location = useLocation();
+  
+  // Check if current route should hide navbar and footer
+  const isEditorPage = location.pathname.startsWith('/editor/');
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const isCheckoutPage = location.pathname.startsWith('/checkout'); // ADD THIS
+  
   return (
     <ScrollToTop>
+      {/* Conditionally render Navbar - hide on editor pages, admin pages, and checkout pages */}
+      {!isEditorPage && !isAdminPage && !isCheckoutPage && <Navbar />}
+      
       <Routes>
         {/* ---------- Public Routes ---------- */}
         <Route path="/" element={<HomePage />} />
         <Route path="/templates" element={<TemplateLibraryPage />} />
+        
+        {/* Editor routes - no header/footer */}
+        <Route path="/editor/userdoc/:id" element={<EditorPage />} />
         <Route path="/editor/:id" element={<EditorPage />} />
+
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing-policy" element={<PricingPolicy />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
+
+        {/* ---------- Checkout Route ---------- */}
+        <Route 
+          path="/checkout/:planId" 
+          element={
+            <ProtectedUserRoute>
+              <CheckoutPage />
+            </ProtectedUserRoute>
+          } 
+        />
 
         {/* ---------- User Auth Routes ---------- */}
         <Route path="/login" element={<LoginPage />} />
@@ -94,13 +129,6 @@ function App() {
           }
         />
 
-        {/* ---------- Category Routes ---------- */}
-        <Route path="/categories/accounts" element={<AccountsPage />} />
-        <Route path="/categories/hr" element={<HRPage />} />
-        <Route path="/categories/legal" element={<LegalPage />} />
-        <Route path="/categories/business" element={<BusinessPage />} />
-        <Route path="/categories/marketing" element={<MarketingPage />} />
-
         {/* ---------- Admin Auth Routes ---------- */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -114,16 +142,16 @@ function App() {
           }
         />
 
-         {/* Admin Routes */}
+        {/* Admin Routes */}
         <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/dashboard" element={<AdminPage />} />
-
 
         {/* ---------- Legal Routes ---------- */}
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiesPolicy />} />
+        <Route path="/pricing-policy" element={<PricingPolicy />} />
 
         {/* ---------- Extra ---------- */}
         <Route path="/contact-submissions" element={<ContactSubmissions />} />
@@ -134,6 +162,9 @@ function App() {
         {/* ---------- 404 Fallback ---------- */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      
+      {/* Conditionally render Footer - hide on editor pages, admin pages, and checkout pages */}
+      {!isEditorPage && !isAdminPage && !isCheckoutPage && <Footer />}
     </ScrollToTop>
   );
 }

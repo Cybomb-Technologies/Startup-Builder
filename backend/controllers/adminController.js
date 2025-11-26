@@ -4,7 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 require("dotenv").config();
-
+//git
 // Generate JWT Token
 const generateToken = (id) => {
   if (!process.env.JWT_SECRET) {

@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Template = require('../models/Template');
+const UserDocument = require('../models/UserDocument');
 const Otp = require('../models/Otp');
 const sendEmail = require('../utils/emailService');
 const auth = require('../middleware/auth');
@@ -161,6 +162,304 @@ router.get('/validate-token', auth, async (req, res) => {
     res.status(401).json({
       success: false,
       message: 'Token is not valid'
+    });
+  }
+});
+
+// ✅ GET USER DOCUMENTS (For Dashboard)
+router.get('/documents', auth, async (req, res) => {
+  try {
+    const documents = await UserDocument.find({ user: req.user.id })
+      .sort({ updatedAt: -1 })
+      .populate('originalTemplate', 'name category fileType')
+      .lean();
+
+    // Filter to show only template-based documents (hide empty documents)
+    const templateDocuments = documents.filter(doc => doc.originalTemplate);
+
+    res.json({
+      success: true,
+      documents: templateDocuments.map(doc => ({
+        _id: doc._id,
+        name: doc.name,
+        file: doc.file,
+        updatedAt: doc.updatedAt,
+        originalTemplate: doc.originalTemplate,
+        documentType: doc.documentType,
+        createdAt: doc.createdAt
+      })),
+      downloadCount: templateDocuments.length
+    });
+  } catch (error) {
+    console.error('Error fetching user documents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching documents'
+    });
+  }
+});
+
+// ✅ GET USER STATISTICS (For Dashboard Cards)
+router.get('/stats', auth, async (req, res) => {
+  try {
+    // Only count template-based documents
+    const documents = await UserDocument.find({ 
+      user: req.user.id,
+      originalTemplate: { $exists: true, $ne: null }
+    });
+    
+    const totalDocuments = documents.length;
+    
+    // Calculate unique projects (group by template)
+    const uniqueProjects = new Set(
+      documents.map(doc => doc.originalTemplate.toString())
+    ).size;
+
+    res.json({
+      success: true,
+      stats: {
+        totalDocuments,
+        projects: uniqueProjects || totalDocuments,
+        downloads: totalDocuments,
+        recentActivity: documents.slice(0, 5).map(doc => ({
+          id: doc._id,
+          name: doc.name,
+          type: 'template',
+          action: 'created',
+          timestamp: doc.updatedAt
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching statistics'
+    });
+  }
+});
+
+// ✅ CREATE USER DOCUMENT WHEN TEMPLATE IS DOWNLOADED/EDITED
+router.post('/templates/:id/download', auth, async (req, res) => {
+  try {
+    const template = await Template.findById(req.params.id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Check if user already has a document for this template
+    let userDoc = await UserDocument.findOne({
+      user: req.user.id,
+      originalTemplate: req.params.id
+    });
+
+    // If no user document exists, create one
+    if (!userDoc) {
+      console.log(`📄 Creating user document for template ${template.name} for user ${req.user.email}`);
+
+      const source = gridFSBucket.openDownloadStream(template.file.fileId);
+      const upload = gridFSBucket.openUploadStream(template.file.fileName);
+      source.pipe(upload);
+
+      const newFile = await new Promise((resolve, reject) => {
+        upload.on("finish", resolve);
+        upload.on("error", reject);
+      });
+
+      userDoc = await UserDocument.create({
+        user: req.user.id,
+        originalTemplate: req.params.id,
+        name: `${template.name} (My Copy)`,
+        file: {
+          fileId: newFile._id,
+          fileName: template.file.fileName
+        },
+        documentType: 'template'
+      });
+
+      console.log(`✅ User document created: ${userDoc._id}`);
+    }
+
+    // Return the file for download
+    const files = await gridFSBucket.find({ _id: template.file.fileId }).toArray();
+    if (files.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found in storage'
+      });
+    }
+
+    const gridFSFile = files[0];
+    const originalFileName = gridFSFile.filename;
+    const fileExtension = originalFileName.split('.').pop().toLowerCase();
+    const filename = `${template.name.replace(/\s+/g, '_')}.${fileExtension}`;
+    
+    const contentType = getContentType(fileExtension);
+    
+    // Update download count
+    template.downloadCount = (template.downloadCount || 0) + 1;
+    await template.save();
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', gridFSFile.length);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    const downloadStream = gridFSBucket.openDownloadStream(template.file.fileId);
+    downloadStream.pipe(res);
+    
+    downloadStream.on('error', (error) => {
+      console.error('File download error:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: 'Error downloading file'
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('Download template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error downloading template'
+    });
+  }
+});
+
+// ✅ GET SINGLE USER DOCUMENT
+router.get('/documents/:id', auth, async (req, res) => {
+  try {
+    const document = await UserDocument.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    }).populate('originalTemplate', 'name category fileType');
+
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      document
+    });
+  } catch (error) {
+    console.error('Error fetching user document:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching document'
+    });
+  }
+});
+
+// ✅ UPDATE USER DOCUMENT
+router.put('/documents/:id', auth, async (req, res) => {
+  try {
+    const { name } = req.body;
+    
+    const document = await UserDocument.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        user: req.user.id
+      },
+      {
+        name,
+        updatedAt: new Date()
+      },
+      { new: true }
+    ).populate('originalTemplate', 'name category fileType');
+
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Document updated successfully',
+      document
+    });
+  } catch (error) {
+    console.error('Error updating user document:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating document'
+    });
+  }
+});
+
+// ✅ DELETE USER DOCUMENT
+router.delete('/documents/:id', auth, async (req, res) => {
+  try {
+    const document = await UserDocument.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id
+    });
+
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: 'Document not found'
+      });
+    }
+
+    // Optional: Delete the associated file from GridFS
+    if (document.file && document.file.fileId) {
+      try {
+        await gridFSBucket.delete(document.file.fileId);
+      } catch (fileError) {
+        console.warn('Could not delete file from GridFS:', fileError.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Document deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting user document:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting document'
+    });
+  }
+});
+
+// ✅ GET USER PROFILE WITH EXTENDED INFO
+router.get('/profile/extended', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    // Only count template-based documents
+    const documentCount = await UserDocument.countDocuments({ 
+      user: req.user.id,
+      originalTemplate: { $exists: true, $ne: null }
+    });
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name || user.username,
+        plan: user.plan,
+        joinedDate: user.createdAt,
+        documentCount
+      }
+    });
+  } catch (error) {
+    console.error('Get extended profile error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
     });
   }
 });

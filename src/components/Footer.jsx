@@ -10,7 +10,7 @@ const Footer = () => {
   const handleSubscribe = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5001/api/newsletter/subscribe", { email });
+      const res = await axios.post("http://localhost:5000/api/newsletter/subscribe", { email });
       setMessage("✅ Thank you for subscribing!");
       setEmail("");
     } catch (error) {
@@ -58,7 +58,7 @@ const Footer = () => {
         {/* 🔹 Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1: Brand Info */}
-          <div>
+          <div className="md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
@@ -72,7 +72,7 @@ const Footer = () => {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div>
+          <div className="md:col-span-1">
             <span className="font-semibold text-lg mb-4 block">Quick Links</span>
             <div className="space-y-2">
               <Link to="/templates" className="block text-gray-300 hover:text-white transition-colors">
@@ -81,52 +81,59 @@ const Footer = () => {
               <Link to="/pricing" className="block text-gray-300 hover:text-white transition-colors">
                 Pricing
               </Link>
-              <Link to="/blog" className="block text-gray-300 hover:text-white transition-colors">
-                Blog
-              </Link>
               <Link to="/about" className="block text-gray-300 hover:text-white transition-colors">
                 About Us
               </Link>
+               
             </div>
           </div>
 
-          {/* Column 3: Categories */}
-          <div>
-            <span className="font-semibold text-lg mb-4 block">Categories</span>
-            <div className="space-y-2">
-              <Link to="/categories/accounts" className="text-gray-300 hover:text-white transition-colors">
-                Accounts
-              </Link><br />
-              <Link to="/categories/hr" className="text-gray-300 hover:text-white transition-colors">
-                Human Resource
-              </Link><br />
-              <Link to="/categories/legal" className="text-gray-300 hover:text-white transition-colors">
-                Legal
-              </Link><br />
-              <Link to="/categories/business" className="text-gray-300 hover:text-white transition-colors">
-                Business
-              </Link><br />
-              <Link to="/categories/marketing" className="text-gray-300 hover:text-white transition-colors">
-                Marketing
-              </Link>
+          {/* Column 3: Get in Touch */}
+          <div className="md:col-span-1">
+            <span className="font-semibold text-lg mb-4 block">Get in Touch</span>
+            <div className="space-y-4">
+              {/* Phone */}
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <Phone className="w-4 h-4 text-blue-400" />
+                  <span className="text-white font-medium">Phone</span>
+                </div>
+                <p className="text-gray-300 text-sm ml-6">+91 9715092104</p>
+              </div>
+
+              {/* Email */}
+              <div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span className="text-white font-medium">Email</span>
+                </div>
+                <p className="text-gray-300 text-sm ml-6">support@cybomb.com</p>
+              </div>
             </div>
           </div>
 
-          {/* Column 4: Contact */}
-          <div>
-            <span className="font-semibold text-lg mb-4 block">Contact</span>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Mail className="w-4 h-4" />
-                <span className="text-sm">support@startupdocs.com</span>
+          {/* Column 4: Address */}
+          <div className="md:col-span-1">
+            <div className="flex items-center space-x-2 mb-4">
+              <MapPin className="w-4 h-4 text-blue-400" />
+              <span className="font-semibold text-lg">Address</span>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-white text-sm font-medium mb-1">India</p>
+                <p className="text-gray-300 text-xs">
+                  Cybomb Technologies Pvt Ltd,<br />
+                  Prime Plaza No.54/1, 1st street, Sripuram colony,<br />
+                  St. Thomas Mount, Chennai, Tamil Nadu - 600 016, India
+                </p>
               </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Phone className="w-4 h-4" />
-                <span className="text-sm">+91 98765 43210</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">Mumbai, India</span>
+              <div>
+                <p className="text-white text-sm font-medium mb-1">USA</p>
+                <p className="text-gray-300 text-xs">
+                  Cybomb Technologies Inc,<br />
+                  30 N Gould St Ste R,<br />
+                  Sheridan, Wyoming 82801
+                </p>
               </div>
             </div>
           </div>
@@ -148,6 +155,9 @@ const Footer = () => {
           <Link to="/cookies" className="hover:text-white transition-colors">
             Cookies Policy
           </Link>
+          <Link to="/pricing-policy" className="block text-gray-300 hover:text-white transition-colors">
+                Pricing Policy
+              </Link>
         </div>
       </div>
     </footer>

@@ -86,7 +86,7 @@ export function useToast() {
 
       const timeout = setTimeout(() => {
         toast.dismiss()
-      }, toast.duration || 5001)
+      }, toast.duration || 5000)
 
       timeouts.push(timeout)
     })

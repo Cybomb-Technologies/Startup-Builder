@@ -1,144 +1,144 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import ScrollToTop from "./components/ScrollToTop";
+// import React from 'react';
+// import { Routes, Route, Navigate } from 'react-router-dom';
+// import ScrollToTop from "./components/ScrollToTop";
 
-// ===== User Pages =====
-import HomePage from "./pages/HomePage";
-import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
-import EditorPage from "@/pages/EditorPage";
-import PricingPage from "@/pages/PricingPage";
-import DashboardPage from "@/pages/DashboardPage";
-import AboutPage from "@/pages/AboutPage";
-import ContactPage from "@/pages/ContactPage";
-import BlogPage from "@/pages/BlogPage";
-import LoginPage from "@/pages/LoginPage";
-import Settings from "@/pages/Settings";
+// // ===== User Pages =====
+// import HomePage from "./pages/HomePage";
+// import TemplateLibraryPage from "@/pages/TemplateLibraryPage";
+// import EditorPage from "@/pages/EditorPage";
+// import PricingPage from "@/pages/PricingPage";
+// import DashboardPage from "@/pages/DashboardPage";
+// import AboutPage from "@/pages/AboutPage";
+// import ContactPage from "@/pages/ContactPage";
+// import BlogPage from "@/pages/BlogPage";
+// import LoginPage from "@/pages/LoginPage";
+// import Settings from "@/pages/Settings";
 
-// ===== Auth Pages =====
-import ForgotPassword from "@/pages/ForgotPassword";
-import VerifyOtp from "@/pages/VerifyOtp";
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
+// // ===== Auth Pages =====
+// import ForgotPassword from "@/pages/ForgotPassword";
+// import VerifyOtp from "@/pages/VerifyOtp";
+// import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
-// ===== Admin Pages =====
-import AdminPage from "@/pages/AdminPage";
-import AdminLoginPage from "@/pages/AdminLogin";
-import AdminUploadPage from "@/pages/AdminUploadPage";
-import ContactSubmissions from "@/pages/ContactSubmissions";
+// // ===== Admin Pages =====
+// import AdminPage from "@/pages/AdminPage";
+// import AdminLoginPage from "@/pages/AdminLogin";
+// import AdminUploadPage from "@/pages/AdminUploadPage";
+// import ContactSubmissions from "@/pages/ContactSubmissions";
 
-// ===== Legal Pages =====
-import PrivacyPolicy from "@/components/PrivacyPolicy";
-import TermsOfService from "@/components/TermsPage";
-import CookiesPolicy from "@/components/CookiesPolicy";
+// // ===== Legal Pages =====
+// import PrivacyPolicy from "@/components/PrivacyPolicy";
+// import TermsOfService from "@/components/TermsPage";
+// import CookiesPolicy from "@/components/CookiesPolicy";
 
-// ===== Categories =====
-import AccountsPage from "@/pages/Categories/AccountsPage";
-import HRPage from "@/pages/Categories/HrPage";
-import LegalPage from "@/pages/Categories/Legal";
-import BusinessPage from "@/pages/Categories/Business";
-import MarketingPage from "@/pages/Categories/Marketing";
+// // ===== Categories =====
+// import AccountsPage from "@/pages/Categories/AccountsPage";
+// import HRPage from "@/pages/Categories/HrPage";
+// import LegalPage from "@/pages/Categories/Legal";
+// import BusinessPage from "@/pages/Categories/Business";
+// import MarketingPage from "@/pages/Categories/Marketing";
 
-// =======================
-// 🔒 Protected Routes
-// =======================
+// // =======================
+// // 🔒 Protected Routes
+// // =======================
 
-const ProtectedAdminRoute = ({ children }) => {
-  const adminUser = localStorage.getItem("adminUser");
-  if (!adminUser) return <Navigate to="/admin/login" replace />;
-  return children;
-};
+// const ProtectedAdminRoute = ({ children }) => {
+//   const adminUser = localStorage.getItem("adminUser");
+//   if (!adminUser) return <Navigate to="/admin/login" replace />;
+//   return children;
+// };
 
-const ProtectedUserRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
-};
+// const ProtectedUserRoute = ({ children }) => {
+//   const token = localStorage.getItem("token");
+//   if (!token) return <Navigate to="/login" replace />;
+//   return children;
+// };
 
-// =======================
-// 🚀 Main App Component
-// =======================
+// // =======================
+// // 🚀 Main App Component
+// // =======================
 
-function App() {
-  return (
-    <ScrollToTop>
-      <Routes>
-        {/* ---------- Public Routes ---------- */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/templates" element={<TemplateLibraryPage />} />
-        <Route path="/editor/:id" element={<EditorPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
+// function App() {
+//   return (
+//     <ScrollToTop>
+//       <Routes>
+//         {/* ---------- Public Routes ---------- */}
+//         <Route path="/" element={<HomePage />} />
+//         <Route path="/templates" element={<TemplateLibraryPage />} />
+//         <Route path="/editor/:id" element={<EditorPage />} />
+//         <Route path="/pricing" element={<PricingPage />} />
+//         <Route path="/about" element={<AboutPage />} />
+//         <Route path="/contact" element={<ContactPage />} />
+//         <Route path="/blog" element={<BlogPage />} />
 
-        {/* ---------- User Auth Routes ---------- */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+//         {/* ---------- User Auth Routes ---------- */}
+//         <Route path="/login" element={<LoginPage />} />
+//         <Route path="/forgot-password" element={<ForgotPassword />} />
+//         <Route path="/verify-otp" element={<VerifyOtp />} />
+//         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* ---------- Protected User Routes ---------- */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedUserRoute>
-              <DashboardPage />
-            </ProtectedUserRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedUserRoute>
-              <Settings />
-            </ProtectedUserRoute>
-          }
-        />
+//         {/* ---------- Protected User Routes ---------- */}
+//         <Route
+//           path="/dashboard"
+//           element={
+//             <ProtectedUserRoute>
+//               <DashboardPage />
+//             </ProtectedUserRoute>
+//           }
+//         />
+//         <Route
+//           path="/settings"
+//           element={
+//             <ProtectedUserRoute>
+//               <Settings />
+//             </ProtectedUserRoute>
+//           }
+//         />
 
-        {/* ---------- Category Routes ---------- */}
-        <Route path="/categories/accounts" element={<AccountsPage />} />
-        <Route path="/categories/hr" element={<HRPage />} />
-        <Route path="/categories/legal" element={<LegalPage />} />
-        <Route path="/categories/business" element={<BusinessPage />} />
-        <Route path="/categories/marketing" element={<MarketingPage />} />
+//         {/* ---------- Category Routes ---------- */}
+//         <Route path="/categories/accounts" element={<AccountsPage />} />
+//         <Route path="/categories/hr" element={<HRPage />} />
+//         <Route path="/categories/legal" element={<LegalPage />} />
+//         <Route path="/categories/business" element={<BusinessPage />} />
+//         <Route path="/categories/marketing" element={<MarketingPage />} />
 
-        {/* ---------- Admin Auth Routes ---------- */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+//         {/* ---------- Admin Auth Routes ---------- */}
+//         <Route path="/admin/login" element={<AdminLoginPage />} />
 
-        {/* ---------- Protected Admin Routes ---------- */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedAdminRoute>
-              <AdminPage />
-            </ProtectedAdminRoute>
-          }
-        />
+//         {/* ---------- Protected Admin Routes ---------- */}
+//         <Route
+//           path="/admin/*"
+//           element={
+//             <ProtectedAdminRoute>
+//               <AdminPage />
+//             </ProtectedAdminRoute>
+//           }
+//         />
 
-        {/* Specific Admin Pages (all rendered via AdminPage layout) */}
-        <Route path="/admin/dashboard" element={<AdminPage />} />
-        <Route path="/admin/templates" element={<AdminPage />} />
-        <Route path="/admin/users" element={<AdminPage />} />
-        <Route path="/admin/newsletter" element={<AdminPage />} />
-        <Route path="/admin/analytics" element={<AdminPage />} />
-        <Route path="/admin/contact-messages" element={<AdminPage />} />
-        <Route path="/admin/upload" element={<AdminUploadPage />} />
+//         {/* Specific Admin Pages (all rendered via AdminPage layout) */}
+//         <Route path="/admin/dashboard" element={<AdminPage />} />
+//         <Route path="/admin/templates" element={<AdminPage />} />
+//         <Route path="/admin/users" element={<AdminPage />} />
+//         <Route path="/admin/newsletter" element={<AdminPage />} />
+//         <Route path="/admin/analytics" element={<AdminPage />} />
+//         <Route path="/admin/contact-messages" element={<AdminPage />} />
+//         <Route path="/admin/upload" element={<AdminUploadPage />} />
 
-        {/* ---------- Legal Routes ---------- */}
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/cookies" element={<CookiesPolicy />} />
+//         {/* ---------- Legal Routes ---------- */}
+//         <Route path="/privacy" element={<PrivacyPolicy />} />
+//         <Route path="/terms" element={<TermsOfService />} />
+//         <Route path="/cookies" element={<CookiesPolicy />} />
 
-        {/* ---------- Extra ---------- */}
-        <Route path="/contact-submissions" element={<ContactSubmissions />} />
+//         {/* ---------- Extra ---------- */}
+//         <Route path="/contact-submissions" element={<ContactSubmissions />} />
 
-        {/* ---------- Redirects ---------- */}
-        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+//         {/* ---------- Redirects ---------- */}
+//         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* ---------- 404 Fallback ---------- */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </ScrollToTop>
-  );
-}
+//         {/* ---------- 404 Fallback ---------- */}
+//         <Route path="*" element={<Navigate to="/" replace />} />
+//       </Routes>
+//     </ScrollToTop>
+//   );
+// }
 
-export default App;
+// export default App;

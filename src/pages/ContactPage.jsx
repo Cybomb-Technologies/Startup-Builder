@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +23,7 @@ const ContactPage = () => {
     setIsSubmitting(true);
  
     try {
-      const response = await fetch('http://localhost:5001/api/contact/submit', {
+      const response = await fetch('http://localhost:5000/api/contact/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +62,7 @@ const ContactPage = () => {
       </Helmet>
  
       <div className="min-h-screen">
-        <Navbar />
+        
  
         <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -193,7 +192,7 @@ const ContactPage = () => {
           </div>
         </div>
  
-        <Footer />
+       
       </div>
     </>
   );
