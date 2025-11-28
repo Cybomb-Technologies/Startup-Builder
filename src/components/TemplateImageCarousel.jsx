@@ -102,31 +102,30 @@ const TemplateImageCarousel = ({
       <div className="relative max-w-6xl max-h-full w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black bg-opacity-50 text-white">
-          <h3 className="text-xl font-semibold">
-            {templateName} - Image {currentIndex + 1} of {images.length}
-            {hasLoadError && " (Failed to load)"}
-          </h3>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="text-white border-white hover:bg-white hover:text-black"
-              disabled={hasLoadError}
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Download
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="text-white hover:bg-white hover:text-black"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
+  <div className="flex items-center gap-4">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClose}
+      className="text-white hover:bg-white/20"
+    >
+      <X className="w-5 h-5" />
+    </Button>
+  </div>
+  
+  <div className="flex items-center gap-2">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleDownload}
+      className="text-black border-white hover:bg-white hover:text-black"
+      disabled={hasLoadError}
+    >
+      <Download className="w-4 h-4 mr-1" />
+      Download
+    </Button>
+  </div>
+</div>
 
         {/* Main Image */}
         <div className="flex-1 relative flex items-center justify-center">

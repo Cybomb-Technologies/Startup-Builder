@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+// Replace the entire PricingPage.jsx with this dynamic version
+import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -10,12 +11,39 @@ const PricingPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(false);
-  const [currency, setCurrency] = useState('INR'); // 'INR' or 'USD'
+  const [currency, setCurrency] = useState('INR');
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Exchange rate (you might want to fetch this from an API in production)
-  const exchangeRate = 83; // 1 USD = 83 INR
+  const exchangeRate = 83;
+
+  // Fetch plans from backend
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/pricing');
+        if (response.ok) {
+          const data = await response.json();
+          setPlans(data.plans);
+        } else {
+          throw new Error('Failed to fetch plans');
+        }
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load pricing plans',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, [toast]);
 
   const formatPrice = (inrPrice, isCustom = false) => {
     if (isCustom) return 'Custom';
@@ -33,28 +61,20 @@ const PricingPage = () => {
     setIsNavigating(true);
     
     try {
-      console.log('=== DEBUG: handleSubscribe called ===');
-      console.log('planId:', planId);
-      
       // For free plan, show toast and redirect to dashboard
       if (planId === 'free') {
-        console.log('=== DEBUG: Free plan selected, showing toast ===');
         toast({
           title: "Welcome to StartupDocs! 🎉",
           description: "Your free plan has been activated. Start creating documents now!",
         });
         
-        // Redirect to dashboard after toast
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
         return;
       }
 
-      console.log('=== DEBUG: Paid plan selected, navigating to checkout ===');
-      console.log('Target URL:', `/checkout/${planId}`);
-      
-      // For paid plans, navigate to checkout with plan details
+      // For paid plans, navigate to checkout
       navigate(`/checkout/${planId}`, { 
         state: { 
           billingCycle: isYearly ? 'annual' : 'monthly',
@@ -75,109 +95,12 @@ const PricingPage = () => {
     }
   };
 
-  const plans = useMemo(() => {
-    const basePlans = [
-      {
-        id: 'free',
-        name: 'Free',
-        price: formatPrice(0),
-        originalPrice: null,
-        period: 'forever',
-        icon: Zap,
-        color: 'from-green-500 to-emerald-600',
-        description: 'Perfect for getting started with basic document needs',
-        features: [
-          '5 downloads/month',
-          'Basic templates',
-          'PDF export only',
-          'Community support',
-          '1 GB cloud storage',
-          'Standard processing',
-          'Watermarked outputs'
-        ],
-        popular: false,
-        limit: 5,
-        inrPrice: 0,
-        ctaText: 'Get Started Free'
-      },
-      {
-        id: 'pro',
-        name: 'Pro',
-        price: formatPrice(isYearly ? 499 * 12 * 0.85 : 499),
-        originalPrice: isYearly ? formatPrice(499 * 12) : null,
-        period: isYearly ? '/year' : '/month',
-        icon: FileText,
-        color: 'from-blue-500 to-cyan-600',
-        popular: true,
-        description: 'Ideal for freelancers and small businesses',
-        features: [
-          'Unlimited downloads',
-          'Unlimited templates',
-          'All formats (PDF, DOCX, XLSX)',
-          'Priority support',
-          'Cloud storage (10GB)',
-          'Advanced editor features',
-          'Custom branding',
-          'No watermarks',
-          'Batch processing'
-        ],
-        limit: 'Unlimited',
-        inrPrice: isYearly ? 499 * 12 * 0.85 : 499,
-        ctaText: isYearly ? 'Subscribe Yearly' : 'Subscribe Monthly'
-      },
-      {
-        id: 'business',
-        name: 'Business',
-        price: formatPrice(isYearly ? 999 * 12 * 0.85 : 999),
-        originalPrice: isYearly ? formatPrice(999 * 12) : null,
-        period: isYearly ? '/year' : '/month',
-        icon: Crown,
-        color: 'from-purple-500 to-pink-500',
-        description: 'Perfect for growing teams and agencies',
-        features: [
-          'Everything in Pro',
-          'Team accounts (up to 10)',
-          'Shared workspace',
-          'Cloud storage (50GB)',
-          'API access',
-          'Dedicated account manager',
-          'Custom templates',
-          'Advanced analytics',
-          'White-label options'
-        ],
-        limit: 'Unlimited',
-        inrPrice: isYearly ? 999 * 12 * 0.85 : 999,
-        ctaText: isYearly ? 'Subscribe Yearly' : 'Subscribe Monthly'
-      },
-      {
-        id: 'enterprise',
-        name: 'Enterprise',
-        price: formatPrice(0, true),
-        originalPrice: null,
-        period: 'Tailored to your needs',
-        icon: Building2,
-        color: 'from-indigo-600 to-purple-600',
-        description: 'For large organizations with advanced needs',
-        features: [
-          'Everything in Business',
-          'Unlimited team members',
-          'White labeling',
-          'Custom integrations',
-          'Unlimited storage',
-          'SLA guarantee',
-          'On-premise deployment',
-          '24/7 dedicated support',
-          'Custom workflows',
-          'SSO integration'
-        ],
-        limit: 'Unlimited',
-        inrPrice: 0,
-        ctaText: 'Contact Sales'
-      }
-    ];
-
-    return basePlans;
-  }, [isYearly, currency, exchangeRate]);
+  const icons = {
+    Zap: Zap,
+    FileText: FileText,
+    Crown: Crown,
+    Building2: Building2
+  };
 
   const faqs = [
     {
@@ -198,7 +121,7 @@ const PricingPage = () => {
     },
     {
       question: `Do you offer discounts for annual billing?`,
-      answer: `Yes, we offer a 15% discount when you choose annual billing instead of monthly payments across all paid plans. The free plan remains completely free forever.`
+      answer: `Yes, we offer discounts when you choose annual billing instead of monthly payments across all paid plans. The free plan remains completely free forever.`
     },
     {
       question: 'What happens if I exceed my monthly download limit?',
@@ -218,6 +141,36 @@ const PricingPage = () => {
     setExpandedFaq(expandedFaq === index ? null : index);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="animate-pulse">
+              <div className="h-12 bg-gray-300 rounded w-1/3 mx-auto mb-4"></div>
+              <div className="h-6 bg-gray-300 rounded w-1/2 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-lg p-8 animate-pulse">
+                <div className="h-8 bg-gray-300 rounded w-1/2 mx-auto mb-4"></div>
+                <div className="h-12 bg-gray-300 rounded w-3/4 mx-auto mb-6"></div>
+                <div className="space-y-3">
+                  {[...Array(6)].map((_, j) => (
+                    <div key={j} className="h-4 bg-gray-300 rounded"></div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Helmet>
@@ -226,7 +179,7 @@ const PricingPage = () => {
       </Helmet>
 
       <div className="min-h-screen bg-white">
-        {/* Header Section - Light Background */}
+        {/* Header Section */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
@@ -270,7 +223,7 @@ const PricingPage = () => {
                 <span className={`font-semibold flex items-center gap-2 ${isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
                   Annual
                   <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs">
-                    Save 15%
+                    Save up to {Math.max(...plans.filter(p => p.annualDiscount).map(p => p.annualDiscount))}%
                   </span>
                 </span>
               </div>
@@ -296,22 +249,24 @@ const PricingPage = () => {
               </div>
             </motion.div>
 
-            {/* Static Discount Section - ALWAYS VISIBLE */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200 max-w-md mx-auto"
-            >
-              <div className="flex items-center justify-center gap-3 text-gray-800">
-                <Star className="h-5 w-5 text-green-600" />
-                <span className="font-semibold">Annual plans save you 15%</span>
-                <Star className="h-5 w-5 text-green-600" />
-              </div>
-              <p className="text-gray-600 text-sm mt-2">
-                Switch to annual billing to save on all paid plans. Perfect for long-term users!
-              </p>
-            </motion.div>
+            {/* Discount Notice */}
+            {plans.some(plan => plan.annualDiscount > 0) && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200 max-w-md mx-auto"
+              >
+                <div className="flex items-center justify-center gap-3 text-gray-800">
+                  <Star className="h-5 w-5 text-green-600" />
+                  <span className="font-semibold">Annual plans save you up to {Math.max(...plans.filter(p => p.annualDiscount).map(p => p.annualDiscount))}%</span>
+                  <Star className="h-5 w-5 text-green-600" />
+                </div>
+                <p className="text-gray-600 text-sm mt-2">
+                  Switch to annual billing to save on all paid plans. Perfect for long-term users!
+                </p>
+              </motion.div>
+            )}
 
             {/* Exchange Rate Notice */}
             <motion.div
@@ -335,11 +290,13 @@ const PricingPage = () => {
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {plans.map((plan, index) => {
-              const Icon = plan.icon;
-              const isFreePlan = plan.id === 'free';
+              const Icon = icons[plan.icon] || Zap;
+              const isFreePlan = plan.planId === 'free';
+              const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+              const originalPrice = isYearly ? plan.monthlyPrice * 12 : null;
               
               return (
-                <div key={plan.id} className="relative">
+                <div key={plan._id} className="relative">
                   {/* Most Popular Badge */}
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
@@ -378,21 +335,21 @@ const PricingPage = () => {
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                         <div className="mb-2">
                           <div className="flex items-baseline justify-center">
-                            <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                            {plan.id !== 'free' && plan.id !== 'enterprise' && (
+                            <span className="text-4xl font-bold text-gray-900">{formatPrice(price, plan.planId === 'enterprise')}</span>
+                            {plan.planId !== 'free' && plan.planId !== 'enterprise' && (
                               <span className="text-gray-600 text-lg ml-1">
-                                {plan.period}
+                                {isYearly ? '/year' : '/month'}
                               </span>
                             )}
                           </div>
-                          {plan.originalPrice && (
+                          {originalPrice && plan.planId !== 'enterprise' && (
                             <div className="flex items-center gap-2 mt-1 justify-center">
                               <span className="text-gray-500 line-through text-sm">
-                                {plan.originalPrice}
+                                {formatPrice(originalPrice)}
                               </span>
                               {isYearly && (
                                 <span className="text-green-600 text-sm font-medium">
-                                  {formatPrice(plan.inrPrice / 12)}/mo
+                                  {formatPrice(plan.monthlyPrice)}/mo
                                 </span>
                               )}
                             </div>
@@ -406,9 +363,9 @@ const PricingPage = () => {
                       <ul className="space-y-3 mb-8 flex-grow">
                         {plan.features.map((feature, i) => (
                           <li key={i} className="flex items-start gap-3">
-                            <Check className={`h-5 w-5 ${isFreePlan && i > 3 ? 'text-gray-400' : 'text-green-500'} flex-shrink-0 mt-0.5`} />
-                            <span className={`text-sm ${isFreePlan && i > 3 ? 'text-gray-500' : 'text-gray-700'}`}>
-                              {feature}
+                            <Check className={`h-5 w-5 ${feature.included ? 'text-green-500' : 'text-gray-400'} flex-shrink-0 mt-0.5`} />
+                            <span className={`text-sm ${feature.included ? 'text-gray-700' : 'text-gray-500 line-through'}`}>
+                              {feature.name}
                             </span>
                           </li>
                         ))}
@@ -417,7 +374,7 @@ const PricingPage = () => {
                       {/* Button at the bottom */}
                       <div className="mt-auto">
                         <Button
-                          onClick={() => handleSubscribe(plan.name, plan.id)}
+                          onClick={() => handleSubscribe(plan.name, plan.planId)}
                           disabled={isNavigating}
                           className={`w-full ${
                             plan.popular
@@ -514,7 +471,7 @@ const PricingPage = () => {
             </div>
           </motion.div>
 
-          {/* Final CTA Section - LIGHT COLOR */}
+          {/* Final CTA Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -537,7 +494,10 @@ const PricingPage = () => {
                 {isNavigating ? 'Redirecting...' : 'Start Free Plan'}
               </Button>
               <Button 
-                onClick={() => handleSubscribe('Pro', 'pro')}
+                onClick={() => {
+                  const proPlan = plans.find(p => p.planId === 'pro');
+                  if (proPlan) handleSubscribe(proPlan.name, proPlan.planId);
+                }}
                 disabled={isNavigating}
                 className="bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
