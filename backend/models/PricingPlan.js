@@ -17,13 +17,16 @@ const pricingPlanSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ['Free', 'Pro', 'Business', 'Enterprise']
+    trim: true
+    // REMOVED enum to allow any plan name
   },
   planId: {
     type: String,
     required: true,
     unique: true,
-    enum: ['free', 'pro', 'business', 'enterprise']
+    trim: true,
+    lowercase: true
+    // REMOVED enum to allow any plan ID
   },
   description: {
     type: String,
