@@ -1,5 +1,5 @@
 // backend/controllers/pricingController.js
-const Pricing = require('../models/Pricing');
+const Pricing = require('../models/PricingPlan');
 
 // Get all pricing plans (public - only active)
 const getPricingPlans = async (req, res) => {
