@@ -15,6 +15,7 @@ import SubCategories from './admin/SubCategories';
 import UserAccess from './admin/UserAccess';
 import ContactSubmissions from './admin/ContactSubmissions';
 import GlobalSearch from './admin/components/GlobalSearch';
+import AdminPricingManager from './admin/AdminPricingManager';
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -198,7 +199,7 @@ const AdminPage = () => {
                   <h1 className="text-3xl font-bold text-slate-900 mb-1">
                     Administration Panel
                   </h1>
-                  <div className="text-slate-600 text-base"> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-slate-600 text-base">
                     Comprehensive platform management and oversight
                   </div>
                 </div>
@@ -237,8 +238,8 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-slate-600">Active Users</div> {/* ✅ Changed from <p> to <div> */}
-                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-sm font-medium text-slate-600">Active Users</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-1">
                     {loading ? (
                       <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                     ) : (
@@ -251,7 +252,7 @@ const AdminPage = () => {
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="text-xs text-slate-500"> {/* ✅ Changed from <p> to <div> */}
+                <div className="text-xs text-slate-500">
                   {loading ? (
                     <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
@@ -270,8 +271,8 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-slate-600">Templates</div> {/* ✅ Changed from <p> to <div> */}
-                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-sm font-medium text-slate-600">Templates</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-1">
                     {loading ? (
                       <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
                     ) : (
@@ -284,7 +285,7 @@ const AdminPage = () => {
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="text-xs text-slate-500"> {/* ✅ Changed from <p> to <div> */}
+                <div className="text-xs text-slate-500">
                   {loading ? (
                     <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
@@ -303,8 +304,8 @@ const AdminPage = () => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-slate-600">System Health</div> {/* ✅ Changed from <p> to <div> */}
-                  <div className="text-2xl font-bold text-slate-900 mt-1"> {/* ✅ Changed from <p> to <div> */}
+                  <div className="text-sm font-medium text-slate-600">System Health</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-1">
                     {dashboardData.systemHealth}
                   </div>
                 </div>
@@ -313,7 +314,7 @@ const AdminPage = () => {
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="text-xs text-slate-500">All systems operational</div> {/* ✅ Changed from <p> to <div> */}
+                <div className="text-xs text-slate-500">All systems operational</div>
               </div>
             </motion.div>
           </div>
@@ -329,6 +330,8 @@ const AdminPage = () => {
               <Route path="subcategories" element={<SubCategories />} />
               <Route path="user-access" element={<UserAccess />} />
               <Route path="contact-submissions" element={<ContactSubmissions />} />
+              {/* ADD THIS NEW ROUTE FOR PRICING MANAGER */}
+              <Route path="pricing-manager" element={<AdminPricingManager />} />
               <Route path="settings" element={
                 <div className="p-8">
                   <div className="flex items-center space-x-3 mb-6">
@@ -336,8 +339,8 @@ const AdminPage = () => {
                     <h2 className="text-2xl font-semibold text-slate-900">System Configuration</h2>
                   </div>
                   <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-                    <div className="text-slate-600">System configuration panel is currently under development.</div> {/* ✅ Changed from <p> to <div> */}
-                    <div className="text-sm text-slate-500 mt-2">Advanced settings and preferences will be available in the next update.</div> {/* ✅ Changed from <p> to <div> */}
+                    <div className="text-slate-600">System configuration panel is currently under development.</div>
+                    <div className="text-sm text-slate-500 mt-2">Advanced settings and preferences will be available in the next update.</div>
                   </div>
                 </div>
               } />

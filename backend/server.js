@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -6,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/database');
 const fileUpload = require('express-fileupload');
-// NO LONGER NEEDED: const { createProxyMiddleware } = require('http-proxy-middleware'); 
 
 // Import Routes
 const adminRoutes = require('./routes/adminRoutes');
@@ -15,6 +15,7 @@ const newsletterRoutes = require("./routes/newsletterRoutes");
 const publicRoutes = require('./routes/publicRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const editorRoutes = require("./routes/editorRoutes");
+const pricingRoutes = require('./routes/pricingRoutes'); // Make sure this path is correct
 
 // Initialize Express
 const app = express();
@@ -164,12 +165,15 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api', publicRoutes);
 app.use("/api/editor", editorRoutes);
+app.use('/api/pricing', pricingRoutes); // Make sure this line exists and is correct
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
 console.log("✅ Newsletter routes mounted at /api/newsletter");
 console.log("✅ Contact routes mounted at /api/contact");
 console.log("✅ Public routes mounted at /api");
+console.log("✅ Editor routes mounted at /api/editor");
+console.log("✅ Pricing routes mounted at /api/pricing"); // Added this log
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
@@ -205,6 +209,8 @@ app.use('*', (req, res) => {
             newsletter: '/api/newsletter',
             contact: '/api/contact',
             public: '/api',
+            editor: '/api/editor',
+            pricing: '/api/pricing', // Added pricing to available endpoints
             // Specific user endpoints
             userLogin: '/api/users/login',
             userForgotPassword: '/api/users/forgot-password',
@@ -223,5 +229,6 @@ app.listen(PORT, HOST, () => {
     console.log(`🌐 CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
     console.log(`🔗 Health check: http://${HOST}:${PORT}/api/health`);
     console.log(`📚 API Base: http://${HOST}:${PORT}/api`);
+    console.log(`💰 Pricing API: http://${HOST}:${PORT}/api/pricing`); // Added pricing API info
     console.log(`✅ Available user routes: login, forgot-password, reset-password`);
 });

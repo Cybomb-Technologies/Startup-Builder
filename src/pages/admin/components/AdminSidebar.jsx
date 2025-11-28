@@ -1,3 +1,4 @@
+// src/pages/admin/components/AdminSidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   FileText, 
@@ -13,7 +14,8 @@ import {
   ChevronRight,
   Building,
   Shield,
-  RefreshCw
+  RefreshCw,
+  IndianRupee // Add this import
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -226,6 +228,14 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       count: 0
     },
     {
+      name: 'Pricing Manager', // Add this new item
+      path: 'pricing-manager',
+      icon: IndianRupee,
+      description: 'Manage subscription plans',
+      badge: null,
+      count: 0
+    },
+    {
       type: 'divider',
       label: 'Settings'
     },
@@ -392,28 +402,6 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       {/* Enhanced Footer with Dynamic Admin Data - Fixed at bottom */}
       <div className="p-4 border-t border-gray-700 bg-gray-800/30 flex-shrink-0">
-        {/* Stats Summary
-        <div className="mb-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-center">
-              <div className="text-blue-400 font-semibold">{formatCount(dynamicCounts.users)}</div>
-              <div className="text-gray-400">Users</div>
-            </div>
-            <div className="text-center">
-              <div className="text-green-400 font-semibold">{formatCount(dynamicCounts.templates)}</div>
-              <div className="text-gray-400">Templates</div>
-            </div>
-            <div className="text-center">
-              <div className="text-purple-400 font-semibold">{formatCount(dynamicCounts.contactSubmissions)}</div>
-              <div className="text-gray-400">Contacts</div>
-            </div>
-            <div className="text-center">
-              <div className="text-orange-400 font-semibold">{formatCount(dynamicCounts.newsletter)}</div>
-              <div className="text-gray-400">Subscribers</div>
-            </div>
-          </div>
-        </div> */}
-
         {/* Admin Profile */}
         <div className="mb-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/30">
           <div className="flex items-center gap-3">
