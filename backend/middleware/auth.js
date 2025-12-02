@@ -10,19 +10,42 @@ module.exports = async function auth(req, res, next) {
       return res.status(401).json({ success: false, message: 'No token, authorization denied' });
     }
 
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId || decoded.id; // support both keys
-    if (!userId) throw new Error('Invalid token payload');
-
-    const user = await User.findById(userId).select('-password');
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Token is not valid' });
+    
+    // Extract user ID - support multiple possible field names
+    const userId = decoded.userId || decoded.id || decoded._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Invalid token payload' });
     }
 
-    req.user = user;
+    // Find user
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'User not found' });
+    }
+
+    // Add user to request
+    req.user = {
+      id: user._id.toString(),
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+      plan: user.plan,
+      accessLevel: user.accessLevel
+    };
+
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    console.error('Auth middleware error:', error.message);
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Token expired' });
+    }
+    
     res.status(401).json({ success: false, message: 'Token is not valid' });
   }
 };
