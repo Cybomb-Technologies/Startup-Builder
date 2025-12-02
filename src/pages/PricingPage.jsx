@@ -1,21 +1,28 @@
-// Replace the entire PricingPage.jsx with this dynamic version
+// Replace the entire PricingPage.jsx with this version
 import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Zap, IndianRupee, DollarSign, Globe, Check, FileText, Crown, Building2, Download, Star } from 'lucide-react';
+import { CheckCircle, Zap, IndianRupee, DollarSign, Globe, Check, FileText, Crown, Building2, Download, Star, CheckCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const PricingPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, token, refreshUser } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
   const [currency, setCurrency] = useState('INR');
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userPlan, setUserPlan] = useState(null);
+  const [userPayments, setUserPayments] = useState([]);
+  const [checkingPayments, setCheckingPayments] = useState(true);
 
   const exchangeRate = 83;
 
@@ -23,7 +30,7 @@ const PricingPage = () => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/pricing');
+        const response = await fetch(`${API_URL}/api/pricing`);
         if (response.ok) {
           const data = await response.json();
           setPlans(data.plans);
@@ -45,6 +52,90 @@ const PricingPage = () => {
     fetchPlans();
   }, [toast]);
 
+  // Fetch user's current plan info
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      if (!user || !token) {
+        setUserPlan(null);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/users/current-plan`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setUserPlan(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user plan:', error);
+      }
+    };
+
+    fetchUserPlan();
+  }, [user, token]);
+
+  // Fetch user's payment history if logged in
+  useEffect(() => {
+    const fetchUserPayments = async () => {
+      if (!user || !token) {
+        setCheckingPayments(false);
+        return;
+      }
+
+      try {
+        setCheckingPayments(true);
+        const response = await fetch(`${API_URL}/api/payments/user-payments`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserPayments(data.payments || []);
+        } else {
+          console.error('Failed to fetch user payments:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching user payments:', error);
+      } finally {
+        setCheckingPayments(false);
+      }
+    };
+
+    fetchUserPayments();
+  }, [user, token]);
+
+  // Check if user is currently subscribed to a specific plan
+  const isUserSubscribedToPlan = (planId) => {
+    if (!user) return false;
+    
+    // Check from userPlan data (from API)
+    if (userPlan && userPlan.planId === planId) {
+      return true;
+    }
+    
+    // Check from user context
+    if (user.planId === planId) {
+      return true;
+    }
+    
+    // Check from user payments
+    const hasActivePayment = userPayments.some(payment => 
+      payment.status === 'success' && 
+      payment.planId === planId
+    );
+    
+    return hasActivePayment;
+  };
+
   const formatPrice = (inrPrice, isCustom = false) => {
     if (isCustom) return 'Custom';
     
@@ -55,22 +146,97 @@ const PricingPage = () => {
     return `₹${inrPrice}`;
   };
 
+  const getButtonText = (planId, planName) => {
+    if (!user) {
+      return planId === 'free' ? 'Get Started Free' : 'Subscribe Now';
+    }
+    
+    if (isUserSubscribedToPlan(planId)) {
+      if (planId === 'free') {
+        return 'Current Plan';
+      }
+      return 'Current Plan';
+    }
+    
+    if (planId === 'free') {
+      return 'Get Started Free';
+    }
+    
+    return 'Subscribe Now';
+  };
+
+  const getButtonVariant = (planId, isPopular) => {
+    if (!user) {
+      return isPopular ? 'gradient-blue' : 'default';
+    }
+    
+    if (isUserSubscribedToPlan(planId)) {
+      return 'current-plan';
+    }
+    
+    return isPopular ? 'gradient-blue' : 'default';
+  };
+
   const handleSubscribe = async (planName, planId) => {
     if (isNavigating) return;
+    
+    // Prevent action if user is already subscribed to this plan
+    if (user && isUserSubscribedToPlan(planId)) {
+      toast({
+        title: "Already Subscribed",
+        description: `You are already subscribed to the ${planName} plan`,
+        variant: "default"
+      });
+      return;
+    }
     
     setIsNavigating(true);
     
     try {
       // For free plan, show toast and redirect to dashboard
       if (planId === 'free') {
+        if (!user) {
+          toast({
+            title: "Login Required",
+            description: "Please login to activate your free plan",
+            variant: "destructive"
+          });
+          navigate('/login', { state: { from: '/pricing' } });
+          return;
+        }
+
         toast({
-          title: "Welcome to StartupDocs! 🎉",
+          title: "Welcome to PDF Works! 🎉",
           description: "Your free plan has been activated. Start creating documents now!",
         });
         
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
+        return;
+      }
+
+      // For enterprise plan, redirect to checkout with contact form
+      if (planId === 'enterprise') {
+        navigate(`/checkout/${planId}`, { 
+          state: { 
+            billingCycle: isYearly ? 'annual' : 'monthly',
+            currency,
+            exchangeRate,
+            planName: planName
+          }
+        });
+        return;
+      }
+
+      // Check if user is logged in for paid plans
+      if (!user) {
+        toast({
+          title: "Login Required",
+          description: "Please login to proceed with payment",
+          variant: "destructive"
+        });
+        navigate('/login', { state: { from: `/checkout/${planId}` } });
         return;
       }
 
@@ -104,36 +270,28 @@ const PricingPage = () => {
 
   const faqs = [
     {
-      question: 'What can I do with the free plan?',
-      answer: 'The free plan includes 5 document downloads per month with basic templates and PDF export only. Perfect for occasional personal use or testing the platform.'
+      question: "Can I switch plans later?",
+      answer: "Yes, you can upgrade or downgrade your plan at any time. When you upgrade, you'll get immediate access to new features. When you downgrade, the changes take effect at the end of your current billing period."
     },
     {
-      question: 'What document formats do you support?',
-      answer: 'We support all major formats including PDF, DOCX, XLSX, and more. Free plan supports PDF export only. Higher plans unlock all formats and advanced features.'
+      question: "Is there a free trial?",
+      answer: "Yes! All paid plans come with a 14-day free trial. No credit card is required to start the trial. You can cancel anytime during the trial period without being charged."
     },
     {
-      question: 'How secure are my documents?',
-      answer: 'Your documents are encrypted in transit and at rest. We automatically delete all processed files from our servers within 24 hours. Enterprise plans offer extended retention options.'
+      question: "What payment methods do you accept?",
+      answer: "We accept all major credit cards (Visa, MasterCard, American Express), debit cards, and UPI payments. We use secure payment processing with encryption to protect your financial information."
     },
     {
-      question: 'Can I cancel my subscription anytime?',
-      answer: 'Yes, you can cancel your subscription at any time. When you cancel, you\'ll continue to have access to your plan features until the end of your billing period.'
+      question: "Can I cancel my subscription?",
+      answer: "Yes, you can cancel your subscription at any time. After cancellation, you'll continue to have access to your paid plan features until the end of your current billing period."
     },
     {
-      question: `Do you offer discounts for annual billing?`,
-      answer: `Yes, we offer discounts when you choose annual billing instead of monthly payments across all paid plans. The free plan remains completely free forever.`
+      question: "Do you offer discounts for annual plans?",
+      answer: "Yes! Annual plans save you up to 20% compared to monthly billing. The discount is automatically applied when you choose annual billing."
     },
     {
-      question: 'What happens if I exceed my monthly download limit?',
-      answer: 'If you exceed your monthly limit on the free plan, you can upgrade to a higher plan or wait until your limits reset the following month.'
-    },
-    {
-      question: 'Is there a free trial available?',
-      answer: 'Yes, we offer a 14-day free trial for both Pro and Business plans with full access to all features. No credit card required to start your trial.'
-    },
-    {
-      question: `Do you support Indian Rupee (INR) payments?`,
-      answer: `Yes! You can view prices in INR or USD and pay in your preferred currency. We support all major Indian payment methods including UPI, Net Banking, and credit/debit cards.`
+      question: "What happens to my documents if I downgrade?",
+      answer: "When you downgrade, you'll retain access to all your existing documents. However, you may lose access to certain premium features or hit limitations based on your new plan. We'll notify you before any changes take effect."
     }
   ];
 
@@ -141,31 +299,12 @@ const PricingPage = () => {
     setExpandedFaq(expandedFaq === index ? null : index);
   };
 
-  if (loading) {
+  if (loading || checkingPayments) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="animate-pulse">
-              <div className="h-12 bg-gray-300 rounded w-1/3 mx-auto mb-4"></div>
-              <div className="h-6 bg-gray-300 rounded w-1/2 mx-auto"></div>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-lg p-8 animate-pulse">
-                <div className="h-8 bg-gray-300 rounded w-1/2 mx-auto mb-4"></div>
-                <div className="h-12 bg-gray-300 rounded w-3/4 mx-auto mb-6"></div>
-                <div className="space-y-3">
-                  {[...Array(6)].map((_, j) => (
-                    <div key={j} className="h-4 bg-gray-300 rounded"></div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
+          <p className="text-gray-600">Loading pricing plans...</p>
         </div>
       </div>
     );
@@ -174,8 +313,8 @@ const PricingPage = () => {
   return (
     <>
       <Helmet>
-        <title>Pricing - StartupDocs Builder</title>
-        <meta name="description" content="Choose the perfect plan for your business. Simple, transparent pricing with no hidden fees." />
+        <title>Pricing - PDF Works | Choose Your Plan</title>
+        <meta name="description" content="Choose the perfect plan for your PDF needs. Simple, transparent pricing with no hidden fees. Free plan available." />
       </Helmet>
 
       <div className="min-h-screen bg-white">
@@ -196,6 +335,14 @@ const PricingPage = () => {
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Choose the plan that fits your needs. No hidden fees, cancel anytime.
+                {user && userPlan && (
+                  <span className="block mt-2 text-sm font-medium text-green-600">
+                    Your current plan: <span className="font-bold">{userPlan.plan || 'Free'}</span>
+                    {userPayments.some(p => p.status === 'success') && (
+                      <span className="ml-2 text-blue-600">✓ Active Subscription</span>
+                    )}
+                  </span>
+                )}
               </p>
             </motion.div>
 
@@ -292,13 +439,15 @@ const PricingPage = () => {
             {plans.map((plan, index) => {
               const Icon = icons[plan.icon] || Zap;
               const isFreePlan = plan.planId === 'free';
+              const isEnterprisePlan = plan.planId === 'enterprise';
               const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
               const originalPrice = isYearly ? plan.monthlyPrice * 12 : null;
+              const isCurrentPlan = user && isUserSubscribedToPlan(plan.planId);
               
               return (
                 <div key={plan._id} className="relative">
                   {/* Most Popular Badge */}
-                  {plan.popular && (
+                  {plan.popular && !isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
                       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
                         <Zap className="h-3 w-3" />
@@ -307,12 +456,32 @@ const PricingPage = () => {
                     </div>
                   )}
 
+                  {/* Current Plan Badge */}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
+                        <CheckCheck className="h-3 w-3" />
+                        Your Current Plan
+                      </div>
+                    </div>
+                  )}
+
                   {/* Free Forever Badge */}
-                  {isFreePlan && (
+                  {isFreePlan && !isCurrentPlan && !plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
                       <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
                         <Star className="h-3 w-3" />
                         Free Forever
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Enterprise Badge */}
+                  {isEnterprisePlan && !isCurrentPlan && !plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
+                      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
+                        <Building2 className="h-3 w-3" />
+                        Enterprise
                       </div>
                     </div>
                   )}
@@ -323,26 +492,29 @@ const PricingPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className={`bg-white rounded-2xl shadow-lg flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-200 h-full ${
-                      plan.popular ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
+                      plan.popular && !isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 
+                      isCurrentPlan ? 'ring-2 ring-green-500 mt-8' : 'mt-8'
                     }`}
                   >
                     <div className="p-8 flex flex-col flex-grow">
                       {/* Header section */}
                       <div className="text-center mb-6">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 mx-auto`}>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 mx-auto ${
+                          isCurrentPlan ? 'opacity-100' : ''
+                        }`}>
                           <Icon className="h-6 w-6 text-white" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                         <div className="mb-2">
                           <div className="flex items-baseline justify-center">
-                            <span className="text-4xl font-bold text-gray-900">{formatPrice(price, plan.planId === 'enterprise')}</span>
-                            {plan.planId !== 'free' && plan.planId !== 'enterprise' && (
+                            <span className="text-4xl font-bold text-gray-900">{formatPrice(price, isEnterprisePlan)}</span>
+                            {!isFreePlan && !isEnterprisePlan && (
                               <span className="text-gray-600 text-lg ml-1">
                                 {isYearly ? '/year' : '/month'}
                               </span>
                             )}
                           </div>
-                          {originalPrice && plan.planId !== 'enterprise' && (
+                          {originalPrice && !isEnterprisePlan && (
                             <div className="flex items-center gap-2 mt-1 justify-center">
                               <span className="text-gray-500 line-through text-sm">
                                 {formatPrice(originalPrice)}
@@ -375,24 +547,38 @@ const PricingPage = () => {
                       <div className="mt-auto">
                         <Button
                           onClick={() => handleSubscribe(plan.name, plan.planId)}
-                          disabled={isNavigating}
+                          disabled={isNavigating || isCurrentPlan}
                           className={`w-full ${
-                            plan.popular
+                            isCurrentPlan
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-default'
+                              : plan.popular
                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : isFreePlan
                               ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                              : isEnterprisePlan
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
                               : 'bg-gray-900 hover:bg-gray-800'
-                          } ${isNavigating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${(isNavigating || isCurrentPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
                         >
                           {isNavigating ? (
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               Redirecting...
                             </div>
+                          ) : isCurrentPlan ? (
+                            <div className="flex items-center gap-2">
+                              <CheckCheck className="h-4 w-4" />
+                              Current Plan
+                            </div>
                           ) : (
-                            plan.ctaText
+                            getButtonText(plan.planId, plan.name)
                           )}
                         </Button>
+                        {isCurrentPlan && (
+                          <p className="text-xs text-green-600 text-center mt-2 font-medium">
+                            ✓ You're subscribed to this plan
+                          </p>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -413,22 +599,22 @@ const PricingPage = () => {
               <div className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-gray-900">Indian Compliance Focused</p>
-                  <p className="text-sm text-gray-600">Templates verified for Indian regulations</p>
+                  <p className="font-semibold text-gray-900">Secure & Private</p>
+                  <p className="text-sm text-gray-600">Your documents are encrypted and protected</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-gray-900">Regular Updates</p>
-                  <p className="text-sm text-gray-600">New templates added monthly</p>
+                  <p className="text-sm text-gray-600">New features and templates added regularly</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-gray-900">Secure & Private</p>
-                  <p className="text-sm text-gray-600">Your data is encrypted and protected</p>
+                  <p className="font-semibold text-gray-900">Multi-Format Support</p>
+                  <p className="text-sm text-gray-600">PDF, DOCX, XLSX and more formats supported</p>
                 </div>
               </div>
             </div>
@@ -481,27 +667,27 @@ const PricingPage = () => {
             <div className="flex justify-center mb-4">
               <Download className="h-10 w-10 text-blue-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900">Ready to Transform Your Document Workflow?</h2>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900">Ready to Transform Your PDF Workflow?</h2>
             <p className="text-gray-600 text-sm mb-6 max-w-2xl mx-auto">
-              Start with our free plan today. No credit card required. Upgrade anytime to unlock powerful features.
+              Start with our free plan today. No credit card required. Upgrade anytime to unlock powerful PDF features.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
                 onClick={() => handleSubscribe('Free', 'free')}
-                disabled={isNavigating}
-                className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isNavigating || (user && isUserSubscribedToPlan('free'))}
+                className={`${(user && isUserSubscribedToPlan('free')) ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isNavigating ? 'Redirecting...' : 'Start Free Plan'}
+                {isNavigating ? 'Redirecting...' : (user && isUserSubscribedToPlan('free')) ? 'Current Plan ✓' : 'Start Free Plan'}
               </Button>
               <Button 
                 onClick={() => {
                   const proPlan = plans.find(p => p.planId === 'pro');
                   if (proPlan) handleSubscribe(proPlan.name, proPlan.planId);
                 }}
-                disabled={isNavigating}
-                className="bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isNavigating || (user && isUserSubscribedToPlan('pro'))}
+                className={`${(user && isUserSubscribedToPlan('pro')) ? 'bg-green-100 text-green-700 border-green-300 cursor-default' : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'} px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isNavigating ? 'Redirecting...' : 'Try Professional Free'}
+                {isNavigating ? 'Redirecting...' : (user && isUserSubscribedToPlan('pro')) ? 'Current Pro Plan ✓' : 'Try Professional Free'}
               </Button>
             </div>
             <p className="text-gray-500 text-xs mt-4">

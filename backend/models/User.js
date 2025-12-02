@@ -20,16 +20,36 @@ const userSchema = new mongoose.Schema({
   },
   plan: { 
     type: String,
-    enum: ['Free', 'Pro', 'Business'],
+    enum: ['Free', 'Pro', 'Business', 'Enterprise'],
     default: 'Free'
+  },
+  planId: { 
+    type: String,
+    default: 'free'
   },
   accessLevel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserAccess'
   },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'inactive', 'trial', 'cancelled'],
+    default: 'inactive'
+  },
+  isPremium: {
+    type: Boolean,
+    default: false
+  },
   isActive: {
     type: Boolean,
     default: true
+  },
+  planExpiryDate: {
+    type: Date
+  },
+  currentPlanId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PricingPlan'
   }
 }, {
   timestamps: true

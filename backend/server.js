@@ -16,6 +16,7 @@ const publicRoutes = require('./routes/publicRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const editorRoutes = require("./routes/editorRoutes");
 const pricingRoutes = require('./routes/pricingRoutes'); // Make sure this path is correct
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Initialize Express
 const app = express();
@@ -166,6 +167,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api', publicRoutes);
 app.use("/api/editor", editorRoutes);
 app.use('/api/pricing', pricingRoutes); // Make sure this line exists and is correct
+app.use('/api/payments', paymentRoutes);
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
@@ -174,6 +176,7 @@ console.log("✅ Contact routes mounted at /api/contact");
 console.log("✅ Public routes mounted at /api");
 console.log("✅ Editor routes mounted at /api/editor");
 console.log("✅ Pricing routes mounted at /api/pricing"); // Added this log
+console.log("✅ Payment routes mounted at /api/payments");
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {

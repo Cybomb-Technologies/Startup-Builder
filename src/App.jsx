@@ -17,6 +17,7 @@ import ContactPage from "@/pages/ContactPage";
 import LoginPage from "@/pages/LoginPage";
 import Settings from "./pages/Settings";
 import PricingPolicy from './pages/PricingPolicy';
+import PaymentResult from './pages/PaymentResult';
 
 // ===== Auth Pages =====
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -94,6 +95,7 @@ function App() {
         <Route path="/pricing-policy" element={<PricingPolicy />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/payment/result" element={<PaymentResult />} />
 
         {/* ---------- Checkout Route ---------- */}
         <Route 
