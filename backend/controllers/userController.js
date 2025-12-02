@@ -92,7 +92,9 @@ exports.register = async (req, res) => {
         id: newUser._id, 
         username: newUser.username, 
         email: newUser.email,
-        plan: newUser.plan 
+        plan: newUser.plan,
+        planId: newUser.planId,
+        isPremium: newUser.isPremium
       },
     });
   } catch (error) {
@@ -156,6 +158,10 @@ exports.login = async (req, res) => {
         email: user.email,
         name: user.name || user.username,
         plan: user.plan,
+        planId: user.planId,
+        isPremium: user.isPremium,
+        subscriptionStatus: user.subscriptionStatus,
+        planExpiryDate: user.planExpiryDate
       },
       token: token
     });
@@ -181,7 +187,11 @@ exports.validateToken = async (req, res) => {
         id: req.user._id,
         username: req.user.username,
         email: req.user.email,
-        plan: req.user.plan || 'Free'
+        plan: req.user.plan || 'Free',
+        planId: req.user.planId || 'free',
+        isPremium: req.user.isPremium || false,
+        subscriptionStatus: req.user.subscriptionStatus || 'inactive',
+        planExpiryDate: req.user.planExpiryDate
       }
     });
   } catch (error) {
@@ -478,6 +488,10 @@ exports.getExtendedProfile = async (req, res) => {
         email: user.email,
         name: user.name || user.username,
         plan: user.plan,
+        planId: user.planId,
+        isPremium: user.isPremium,
+        subscriptionStatus: user.subscriptionStatus,
+        planExpiryDate: user.planExpiryDate,
         joinedDate: user.createdAt,
         documentCount
       }
@@ -936,7 +950,11 @@ exports.getProfile = async (req, res) => {
         id: req.user._id,
         username: req.user.username,
         email: req.user.email,
-        plan: req.user.plan
+        plan: req.user.plan,
+        planId: req.user.planId,
+        isPremium: req.user.isPremium,
+        subscriptionStatus: req.user.subscriptionStatus,
+        planExpiryDate: req.user.planExpiryDate
       }
     });
   } catch (error) {
@@ -990,10 +1008,13 @@ exports.getUserPlanDetails = async (req, res) => {
       success: true,
       data: {
         plan: user.plan || 'Free',
-        planId: user.planId,
+        planId: user.planId || 'free',
         subscriptionStatus: user.subscriptionStatus || 'inactive',
         isPremium: user.isPremium || false,
         planExpiryDate: user.planExpiryDate,
+        billingCycle: user.billingCycle,
+        lastPaymentDate: user.lastPaymentDate,
+        nextPaymentDate: user.nextPaymentDate,
         accessLevel: user.accessLevel,
         paymentDetails: activePayment ? {
           planName: activePayment.planName,
@@ -1025,6 +1046,7 @@ exports.checkTemplateAccess = async (req, res) => {
       success: true,
       hasAccess: true,
       userPlan: user.plan || 'Free',
+      planId: user.planId || 'free',
       isPremium: user.isPremium || false
     });
   } catch (error) {
@@ -1036,15 +1058,53 @@ exports.checkTemplateAccess = async (req, res) => {
   }
 };
 
-// ✅ UPDATE USER PLAN (Internal function - used by payment controller)
-exports.updateUserPlanAfterPayment = async (userId, planId, billingCycle) => {
+// ✅ UPDATE USER PLAN AFTER PAYMENT (CRITICAL FIX)
+exports.updateUserPlanAfterPayment = async (userId, planId, billingCycle = 'monthly') => {
   try {
+    console.log('🔥 CRITICAL UPDATE STARTING:', { userId, planId, billingCycle });
+    
     const user = await User.findById(userId);
-    const plan = await PricingPlan.findById(planId);
-
-    if (!user || !plan) {
-      throw new Error('User or plan not found');
+    
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
     }
+
+    console.log('🔄 Found user:', user.email);
+    console.log('📊 Current plan:', {
+      plan: user.plan,
+      planId: user.planId,
+      isPremium: user.isPremium
+    });
+
+    let plan;
+    
+    // Try to find by planId string first
+    plan = await PricingPlan.findOne({ planId: planId });
+    
+    // If not found, try by name
+    if (!plan) {
+      plan = await PricingPlan.findOne({ name: planId });
+    }
+    
+    // Last resort: try by ObjectId
+    if (!plan && mongoose.Types.ObjectId.isValid(planId)) {
+      plan = await PricingPlan.findById(planId);
+    }
+
+    if (!plan) {
+      console.warn(`⚠️ Plan not found in DB, using provided planId: ${planId}`);
+      plan = {
+        name: planId.charAt(0).toUpperCase() + planId.slice(1),
+        planId: planId,
+        _id: null
+      };
+    }
+
+    console.log('📋 Plan details to apply:', {
+      planName: plan.name,
+      planId: plan.planId,
+      isPremium: plan.name.toLowerCase() !== 'free'
+    });
 
     // Calculate expiry date
     const calculateExpiryDate = (cycle) => {
@@ -1056,24 +1116,61 @@ exports.updateUserPlanAfterPayment = async (userId, planId, billingCycle) => {
       }
     };
 
-    console.log(`🔄 Updating user ${user.email} plan from "${user.plan}" to "${plan.name}"`);
-
-    // Update user plan details
+    // DIRECT UPDATE - Don't use instance method to avoid confusion
     user.plan = plan.name;
     user.planId = plan.planId;
-    user.currentPlanId = plan._id;
-    user.accessLevel = plan.planId;
+    user.currentPlanId = plan.planId;
+    user.billingCycle = billingCycle;
     user.subscriptionStatus = 'active';
-    user.planExpiryDate = calculateExpiryDate(billingCycle || 'monthly');
     user.isPremium = plan.name.toLowerCase() !== 'free';
+    user.planExpiryDate = calculateExpiryDate(billingCycle);
+    user.lastPaymentDate = new Date();
     
-    await user.save();
+    // Calculate next payment date
+    const now = new Date();
+    if (billingCycle === 'annual') {
+      user.nextPaymentDate = new Date(now.setFullYear(now.getFullYear() + 1));
+    } else {
+      user.nextPaymentDate = new Date(now.setMonth(now.getMonth() + 1));
+    }
 
-    console.log(`✅ User ${user.email} plan updated to ${plan.name} successfully`);
-    
-    return user;
+    console.log('🛠️ User object before save:', {
+      plan: user.plan,
+      planId: user.planId,
+      isPremium: user.isPremium,
+      subscriptionStatus: user.subscriptionStatus,
+      planExpiryDate: user.planExpiryDate
+    });
+
+    // Save the user
+    try {
+      await user.save();
+      console.log('✅ User saved successfully');
+      
+      // Verify the save by fetching fresh data
+      const updatedUser = await User.findById(userId);
+      console.log('✅ Verified updated user:', {
+        plan: updatedUser.plan,
+        planId: updatedUser.planId,
+        isPremium: updatedUser.isPremium,
+        subscriptionStatus: updatedUser.subscriptionStatus,
+        planExpiryDate: updatedUser.planExpiryDate,
+        billingCycle: updatedUser.billingCycle,
+        lastPaymentDate: updatedUser.lastPaymentDate,
+        nextPaymentDate: updatedUser.nextPaymentDate
+      });
+      
+      return updatedUser;
+    } catch (saveError) {
+      console.error('❌ Error saving user:', saveError.message);
+      if (saveError.errors) {
+        console.error('Validation errors:', saveError.errors);
+      }
+      throw saveError;
+    }
   } catch (error) {
-    console.error('❌ Error updating user plan:', error);
+    console.error('❌ updateUserPlanAfterPayment error:', error.message);
+    console.error('Stack:', error.stack);
     throw error;
   }
 };
@@ -1090,16 +1187,87 @@ exports.getUserCurrentPlan = async (req, res) => {
       });
     }
 
+    // Get payment details
+    const latestPayment = await Payment.findOne({
+      userId: user._id,
+      status: 'success'
+    }).sort({ createdAt: -1 });
+
     res.json({
       success: true,
       plan: user.plan,
       planId: user.planId,
+      currentPlanId: user.currentPlanId,
       subscriptionStatus: user.subscriptionStatus,
       isPremium: user.isPremium,
-      planExpiryDate: user.planExpiryDate
+      planExpiryDate: user.planExpiryDate,
+      billingCycle: user.billingCycle,
+      lastPaymentDate: user.lastPaymentDate,
+      nextPaymentDate: user.nextPaymentDate,
+      paymentDetails: latestPayment ? {
+        transactionId: latestPayment.transactionId,
+        planName: latestPayment.planName,
+        planId: latestPayment.planId,
+        amount: latestPayment.amount,
+        currency: latestPayment.currency,
+        paymentDate: latestPayment.paidAt
+      } : null
     });
   } catch (error) {
     console.error('Get user current plan error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ✅ VERIFY USER PLAN STATUS
+exports.verifyPlanStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if plan has expired
+    let isActive = true;
+    let message = 'Plan is active';
+
+    if (user.planExpiryDate && new Date() > user.planExpiryDate) {
+      // Plan expired, downgrade to free
+      user.plan = 'Free';
+      user.planId = 'free';
+      user.currentPlanId = 'free';
+      user.subscriptionStatus = 'inactive';
+      user.isPremium = false;
+      user.planExpiryDate = null;
+      user.billingCycle = 'monthly';
+      
+      await user.save();
+      
+      isActive = false;
+      message = 'Plan expired, downgraded to Free';
+    }
+
+    res.json({
+      success: true,
+      isActive,
+      message,
+      user: {
+        plan: user.plan,
+        planId: user.planId,
+        subscriptionStatus: user.subscriptionStatus,
+        isPremium: user.isPremium,
+        planExpiryDate: user.planExpiryDate
+      }
+    });
+  } catch (error) {
+    console.error('Verify plan status error:', error);
     res.status(500).json({
       success: false,
       message: error.message

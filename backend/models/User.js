@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema({
   },
   plan: { 
     type: String,
-    enum: ['Free', 'Pro', 'Business', 'Enterprise'],
     default: 'Free'
   },
   planId: { 
@@ -48,8 +47,19 @@ const userSchema = new mongoose.Schema({
     type: Date
   },
   currentPlanId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'PricingPlan'
+    type: String,
+    default: 'free'
+  },
+  billingCycle: {
+    type: String,
+    enum: ['monthly', 'annual'],
+    default: 'monthly'
+  },
+  lastPaymentDate: {
+    type: Date
+  },
+  nextPaymentDate: {
+    type: Date
   }
 }, {
   timestamps: true
@@ -71,6 +81,52 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to update user plan
+userSchema.methods.updatePlan = async function(planDetails) {
+  const {
+    planName,
+    planId,
+    billingCycle = 'monthly',
+    expiryDate,
+    isPremium = false
+  } = planDetails;
+
+  this.plan = planName || this.plan;
+  this.planId = planId || this.planId;
+  this.currentPlanId = planId || this.currentPlanId;
+  this.billingCycle = billingCycle;
+  this.subscriptionStatus = 'active';
+  this.isPremium = isPremium || false;
+  this.planExpiryDate = expiryDate || this.planExpiryDate;
+  this.lastPaymentDate = new Date();
+
+  // Calculate next payment date
+  const now = new Date();
+  if (billingCycle === 'annual') {
+    this.nextPaymentDate = new Date(now.setFullYear(now.getFullYear() + 1));
+  } else {
+    this.nextPaymentDate = new Date(now.setMonth(now.getMonth() + 1));
+  }
+
+  console.log('🔄 User plan update details:', {
+    plan: this.plan,
+    planId: this.planId,
+    billingCycle: this.billingCycle,
+    isPremium: this.isPremium,
+    subscriptionStatus: this.subscriptionStatus,
+    planExpiryDate: this.planExpiryDate
+  });
+
+  try {
+    await this.save();
+    console.log('✅ User plan saved successfully');
+    return this;
+  } catch (saveError) {
+    console.error('❌ Error saving user plan:', saveError);
+    throw saveError;
+  }
 };
 
 const User = mongoose.model('User', userSchema);

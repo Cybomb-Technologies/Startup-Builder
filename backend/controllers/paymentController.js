@@ -4,6 +4,7 @@ const PricingPlan = require("../models/PricingPlan");
 const User = require("../models/User");
 const Payment = require("../models/Payment");
 const userController = require("./userController");
+const { sendInvoiceAfterPayment } = require("../controllers/invoiceController"); // NEW IMPORT
 require("dotenv").config();
 
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL || "https://sandbox.cashfree.com/pg/orders";
@@ -25,19 +26,17 @@ const calculateAmountFromPlan = async (planId, billingCycle, currency) => {
   
   let plan;
   
-  // Try to find plan by ObjectId
-  if (mongoose.Types.ObjectId.isValid(planId)) {
-    plan = await PricingPlan.findById(planId);
-  }
+  // First try to find by planId string (like "free", "pro")
+  plan = await PricingPlan.findOne({ planId: planId });
   
-  // If not found by ObjectId, try to find by planId string
-  if (!plan) {
-    plan = await PricingPlan.findOne({ planId: planId });
-  }
-  
-  // If still not found, try by name
+  // If not found by planId, try by name
   if (!plan) {
     plan = await PricingPlan.findOne({ name: planId });
+  }
+  
+  // Last resort: try by ObjectId
+  if (!plan && mongoose.Types.ObjectId.isValid(planId)) {
+    plan = await PricingPlan.findById(planId);
   }
 
   if (!plan) {
@@ -61,7 +60,7 @@ const calculateAmountFromPlan = async (planId, billingCycle, currency) => {
 
   console.log("Final calculated amount:", {
     planName: plan.name,
-    planId: plan._id,
+    planId: plan.planId,
     originalAmount: billingCycle === "annual" ? plan.yearlyPrice : plan.monthlyPrice,
     convertedAmount: amount,
     currency: finalCurrency,
@@ -83,9 +82,13 @@ const updateUserPlan = async (userId, planId, billingCycle) => {
       email: updatedUser.email,
       newPlan: updatedUser.plan,
       planId: updatedUser.planId,
+      currentPlanId: updatedUser.currentPlanId,
+      billingCycle: updatedUser.billingCycle,
       subscriptionStatus: updatedUser.subscriptionStatus,
       isPremium: updatedUser.isPremium,
-      planExpiryDate: updatedUser.planExpiryDate
+      planExpiryDate: updatedUser.planExpiryDate,
+      lastPaymentDate: updatedUser.lastPaymentDate,
+      nextPaymentDate: updatedUser.nextPaymentDate
     });
 
     return updatedUser;
@@ -131,6 +134,7 @@ const createOrder = async (req, res) => {
     }
 
     console.log("User found:", user.email);
+    console.log("Current user plan:", user.plan, "planId:", user.planId);
     console.log("Looking for plan with ID:", planId);
 
     try {
@@ -144,12 +148,12 @@ const createOrder = async (req, res) => {
         });
       }
 
-      console.log("Plan found:", plan.name);
+      console.log("Plan found:", plan.name, "with planId:", plan.planId);
 
       // Check if user already has this plan active
       const activePayment = await Payment.findOne({
         userId: userId,
-        planId: plan._id,
+        planId: plan.planId,
         status: 'success',
         expiryDate: { $gt: new Date() }
       });
@@ -195,14 +199,16 @@ const createOrder = async (req, res) => {
       });
 
       // Create payment record first (before calling Cashfree)
+      const expiryDate = calculateExpiryDate(billingCycle);
+      
       const paymentRecord = new Payment({
         userId,
         amount,
         currency: orderCurrency,
         status: "pending",
         transactionId: orderId,
-        expiryDate: calculateExpiryDate(billingCycle),
-        planId: plan._id,
+        expiryDate: expiryDate,
+        planId: plan.planId,
         planName: plan.name,
         billingCycle,
         autoRenewal: true,
@@ -212,6 +218,12 @@ const createOrder = async (req, res) => {
       await paymentRecord.save();
 
       console.log("✅ Payment record created successfully with ID:", paymentRecord._id);
+      console.log("Payment record details:", {
+        planId: paymentRecord.planId,
+        planName: paymentRecord.planName,
+        billingCycle: paymentRecord.billingCycle,
+        expiryDate: paymentRecord.expiryDate
+      });
 
       // Now create Cashfree order
       let cashfreeResponse;
@@ -248,7 +260,7 @@ const createOrder = async (req, res) => {
         orderId: cashfreeResponse.data.order_id || orderId,
         amount,
         currency: orderCurrency,
-        planId: plan._id,
+        planId: plan.planId,
         planName: plan.name,
         billingCycle,
         paymentRecordId: paymentRecord._id
@@ -325,7 +337,7 @@ const verifyPayment = async (req, res) => {
           console.log("User after payment:", userAfter);
           
           // Get plan details
-          const plan = await PricingPlan.findById(existingPayment.planId);
+          const plan = await PricingPlan.findOne({ planId: existingPayment.planId });
           console.log("Plan found:", plan);
 
           return res.status(200).json({
@@ -342,9 +354,13 @@ const verifyPayment = async (req, res) => {
               email: userAfter.email,
               plan: userAfter.plan,
               planId: userAfter.planId,
+              currentPlanId: userAfter.currentPlanId,
+              billingCycle: userAfter.billingCycle,
               subscriptionStatus: userAfter.subscriptionStatus,
               isPremium: userAfter.isPremium,
-              planExpiryDate: userAfter.planExpiryDate
+              planExpiryDate: userAfter.planExpiryDate,
+              lastPaymentDate: userAfter.lastPaymentDate,
+              nextPaymentDate: userAfter.nextPaymentDate
             }
           });
         } catch (userError) {
@@ -408,17 +424,23 @@ const verifyPayment = async (req, res) => {
       
       if (planId) {
         let plan;
-        if (mongoose.Types.ObjectId.isValid(planId)) {
+        // Try to find by planId string first
+        plan = await PricingPlan.findOne({ planId: planId });
+        
+        // If not found by planId string, try by name
+        if (!plan) {
+          plan = await PricingPlan.findOne({ name: planId });
+        }
+        
+        // Last resort: try by ObjectId
+        if (!plan && mongoose.Types.ObjectId.isValid(planId)) {
           plan = await PricingPlan.findById(planId);
-        } else {
-          plan = await PricingPlan.findOne({ planId: planId }) || 
-                 await PricingPlan.findOne({ name: planId });
         }
         
         if (plan) {
-          finalPlanId = plan._id;
+          finalPlanId = plan.planId;
           finalPlanName = plan.name;
-          paymentRecord.planId = plan._id;
+          paymentRecord.planId = plan.planId;
           paymentRecord.planName = plan.name;
         }
       }
@@ -438,6 +460,17 @@ const verifyPayment = async (req, res) => {
           await updateUserPlan(userId, finalPlanId, paymentRecord.billingCycle);
         }
 
+        // SEND INVOICE EMAIL - NEW FUNCTIONALITY
+        console.log("📧 Sending invoice email for transaction:", paymentRecord.transactionId);
+        try {
+          // This will generate PDF and send email
+          await sendInvoiceAfterPayment(paymentRecord.transactionId, userId);
+          console.log("✅ Invoice email sent successfully");
+        } catch (invoiceError) {
+          console.error("❌ Failed to send invoice email:", invoiceError);
+          // Don't fail the payment if email fails
+        }
+
         // Get updated user
         const userAfter = await User.findById(userId).select('-password');
 
@@ -445,7 +478,7 @@ const verifyPayment = async (req, res) => {
 
         return res.status(200).json({
           success: true,
-          message: "Payment verified and plan upgraded successfully!",
+          message: "Payment verified and plan upgraded successfully! Invoice has been sent to your email.",
           orderStatus: data.order_status,
           orderAmount: data.order_amount || paymentRecord.amount,
           orderCurrency: data.order_currency || paymentRecord.currency,
@@ -457,9 +490,13 @@ const verifyPayment = async (req, res) => {
             email: userAfter.email,
             plan: userAfter.plan,
             planId: userAfter.planId,
+            currentPlanId: userAfter.currentPlanId,
+            billingCycle: userAfter.billingCycle,
             subscriptionStatus: userAfter.subscriptionStatus,
             isPremium: userAfter.isPremium,
-            planExpiryDate: userAfter.planExpiryDate
+            planExpiryDate: userAfter.planExpiryDate,
+            lastPaymentDate: userAfter.lastPaymentDate,
+            nextPaymentDate: userAfter.nextPaymentDate
           }
         });
       } else {
@@ -501,11 +538,19 @@ const verifyPayment = async (req, res) => {
             await updateUserPlan(userId, fallbackPayment.planId, fallbackPayment.billingCycle);
           }
           
+          // Send invoice email for fallback case too
+          try {
+            await sendInvoiceAfterPayment(fallbackPayment.transactionId, userId);
+            console.log("✅ Invoice email sent for fallback payment");
+          } catch (invoiceError) {
+            console.error("❌ Failed to send invoice email for fallback:", invoiceError);
+          }
+          
           const userAfter = await User.findById(userId).select('-password');
           
           return res.status(200).json({
             success: true,
-            message: "Payment verified successfully (from database fallback)!",
+            message: "Payment verified successfully (from database fallback)! Invoice has been sent to your email.",
             orderStatus: "PAID",
             orderAmount: fallbackPayment.amount,
             orderCurrency: fallbackPayment.currency,
@@ -517,9 +562,13 @@ const verifyPayment = async (req, res) => {
               email: userAfter.email,
               plan: userAfter.plan,
               planId: userAfter.planId,
+              currentPlanId: userAfter.currentPlanId,
+              billingCycle: userAfter.billingCycle,
               subscriptionStatus: userAfter.subscriptionStatus,
               isPremium: userAfter.isPremium,
-              planExpiryDate: userAfter.planExpiryDate
+              planExpiryDate: userAfter.planExpiryDate,
+              lastPaymentDate: userAfter.lastPaymentDate,
+              nextPaymentDate: userAfter.nextPaymentDate
             }
           });
         }
@@ -564,8 +613,23 @@ const handlePaymentWebhook = async (req, res) => {
         paymentRecord.paidAt = new Date();
         await paymentRecord.save();
 
-        // Update user plan - CRITICAL: Update user plan via webhook too
+        // CRITICAL: Update user plan via webhook too
+        console.log("🔄 Webhook: Updating user plan with:", {
+          userId: paymentRecord.userId,
+          planId: paymentRecord.planId,
+          billingCycle: paymentRecord.billingCycle
+        });
+        
         await updateUserPlan(paymentRecord.userId, paymentRecord.planId, paymentRecord.billingCycle);
+
+        // SEND INVOICE EMAIL VIA WEBHOOK - NEW FUNCTIONALITY
+        console.log("📧 Webhook: Sending invoice email for transaction:", paymentRecord.transactionId);
+        try {
+          await sendInvoiceAfterPayment(paymentRecord.transactionId, paymentRecord.userId);
+          console.log("✅ Webhook: Invoice email sent successfully");
+        } catch (invoiceError) {
+          console.error("❌ Webhook: Failed to send invoice email:", invoiceError);
+        }
 
         console.log("✅ User plan updated via webhook for order:", orderId);
       }
@@ -639,13 +703,18 @@ const getUserPlanDetails = async (req, res) => {
       user: {
         plan: user.plan,
         planId: user.planId,
+        currentPlanId: user.currentPlanId,
         subscriptionStatus: user.subscriptionStatus,
         isPremium: user.isPremium,
         planExpiryDate: user.planExpiryDate,
+        billingCycle: user.billingCycle,
+        lastPaymentDate: user.lastPaymentDate,
+        nextPaymentDate: user.nextPaymentDate,
         accessLevel: user.accessLevel
       },
       paymentDetails: activePayment ? {
         planName: activePayment.planName,
+        planId: activePayment.planId,
         billingCycle: activePayment.billingCycle,
         amount: activePayment.amount,
         currency: activePayment.currency,
@@ -663,11 +732,32 @@ const getUserPlanDetails = async (req, res) => {
   }
 };
 
+// NEW: Get invoice download endpoint
+const downloadInvoice = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const userId = req.user.id;
+
+    // Import invoice controller
+    const { generateInvoice } = require("./invoiceController");
+    
+    // Use the existing invoice controller function
+    return await generateInvoice(req, res);
+  } catch (error) {
+    console.error("Error in downloadInvoice:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to download invoice",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   verifyPayment,
   handlePaymentWebhook,
   getUserPayments,
   getUserPlanDetails,
-  updateUserPlan
+  updateUserPlan,
+  downloadInvoice // NEW EXPORT
 };

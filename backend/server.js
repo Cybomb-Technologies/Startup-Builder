@@ -15,8 +15,9 @@ const newsletterRoutes = require("./routes/newsletterRoutes");
 const publicRoutes = require('./routes/publicRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const editorRoutes = require("./routes/editorRoutes");
-const pricingRoutes = require('./routes/pricingRoutes'); // Make sure this path is correct
+const pricingRoutes = require('./routes/pricingRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const billingRoutes = require('./routes/billingRoutes'); // NEW: Billing routes
 
 // Initialize Express
 const app = express();
@@ -166,8 +167,9 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api', publicRoutes);
 app.use("/api/editor", editorRoutes);
-app.use('/api/pricing', pricingRoutes); // Make sure this line exists and is correct
+app.use('/api/pricing', pricingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/payments', billingRoutes); // NEW: Billing routes under payments
 
 console.log("✅ Admin routes mounted at /api/admin");
 console.log("✅ User routes mounted at /api/users");
@@ -175,8 +177,9 @@ console.log("✅ Newsletter routes mounted at /api/newsletter");
 console.log("✅ Contact routes mounted at /api/contact");
 console.log("✅ Public routes mounted at /api");
 console.log("✅ Editor routes mounted at /api/editor");
-console.log("✅ Pricing routes mounted at /api/pricing"); // Added this log
+console.log("✅ Pricing routes mounted at /api/pricing");
 console.log("✅ Payment routes mounted at /api/payments");
+console.log("✅ Billing routes mounted at /api/payments"); // NEW: Billing routes log
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
@@ -213,7 +216,12 @@ app.use('*', (req, res) => {
             contact: '/api/contact',
             public: '/api',
             editor: '/api/editor',
-            pricing: '/api/pricing', // Added pricing to available endpoints
+            pricing: '/api/pricing',
+            payments: '/api/payments',
+            // Billing endpoints
+            billingHistory: '/api/payments/history',
+            autoRenewalStatus: '/api/payments/auto-renewal/status',
+            toggleAutoRenewal: '/api/payments/auto-renewal/toggle',
             // Specific user endpoints
             userLogin: '/api/users/login',
             userForgotPassword: '/api/users/forgot-password',
@@ -232,6 +240,11 @@ app.listen(PORT, HOST, () => {
     console.log(`🌐 CORS enabled for: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
     console.log(`🔗 Health check: http://${HOST}:${PORT}/api/health`);
     console.log(`📚 API Base: http://${HOST}:${PORT}/api`);
-    console.log(`💰 Pricing API: http://${HOST}:${PORT}/api/pricing`); // Added pricing API info
-    console.log(`✅ Available user routes: login, forgot-password, reset-password`);
+    console.log(`💰 Pricing API: http://${HOST}:${PORT}/api/pricing`);
+    console.log(`💳 Payment API: http://${HOST}:${PORT}/api/payments`);
+    console.log(`📊 Billing API: http://${HOST}:${PORT}/api/payments/history`);
+    console.log(`✅ Available billing routes:`);
+    console.log(`   - GET /api/payments/history`);
+    console.log(`   - GET /api/payments/auto-renewal/status`);
+    console.log(`   - POST /api/payments/auto-renewal/toggle`);
 });

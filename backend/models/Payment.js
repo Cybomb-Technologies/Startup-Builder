@@ -26,8 +26,7 @@ const paymentSchema = new mongoose.Schema(
       unique: true 
     },
     planId: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "Pricing",
+      type: String, // Changed from ObjectId to String
       required: true 
     },
     planName: {
