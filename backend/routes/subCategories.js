@@ -1,10 +1,11 @@
+// routes/subCategoryRoutes.js (if you have a separate file)
 const express = require('express');
 const {
   getSubCategories,
   createSubCategory,
   updateSubCategory,
   deleteSubCategory
-} = require('../controllers/subCategoryController');
+} = require('../controllers/subCategory/subCategoryController'); // Updated path
 const { adminProtect } = require('../middleware/adminauth');
 
 const router = express.Router();

@@ -1,10 +1,11 @@
+// routes/categoryRoutes.js
 const express = require('express');
 const {
   getCategories,
   createCategory,
   updateCategory,
   deleteCategory
-} = require('../controllers/categoryController');
+} = require('../controllers/category/categoryController');
 const { adminProtect } = require('../middleware/adminauth');
 
 const router = express.Router();

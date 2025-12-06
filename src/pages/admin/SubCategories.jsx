@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const SubCategories = () => {
   const { toast } = useToast();
   const [categories, setCategories] = useState([]);
@@ -54,7 +56,7 @@ const SubCategories = () => {
       setLoading(true);
       
       // Load categories
-      const categoriesResponse = await fetch('http://localhost:5000/api/admin/categories', {
+      const categoriesResponse = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         headers: getAuthHeaders()
       });
       
@@ -67,7 +69,7 @@ const SubCategories = () => {
       }
 
       // Load subcategories
-      const subCategoriesResponse = await fetch('http://localhost:5000/api/admin/subcategories', {
+      const subCategoriesResponse = await fetch(`${API_BASE_URL}/api/admin/subcategories`, {
         headers: getAuthHeaders()
       });
       
@@ -131,7 +133,7 @@ const SubCategories = () => {
 
       console.log('📤 Sending request body:', requestBody);
       
-      const response = await fetch('http://localhost:5000/api/admin/subcategories', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/subcategories`, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
@@ -171,7 +173,7 @@ const SubCategories = () => {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
 
-      const response = await fetch(`http://localhost:5000/api/admin/subcategories/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/subcategories/${id}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ name: editValue.trim() }),
@@ -210,7 +212,7 @@ const SubCategories = () => {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
 
-      const response = await fetch(`http://localhost:5000/api/admin/subcategories/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/subcategories/${id}`, {
         method: 'DELETE',
         headers,
       });

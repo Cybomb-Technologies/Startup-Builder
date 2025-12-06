@@ -1,6 +1,6 @@
 /********************************************************************************************
- * INVOICE CONTROLLER – FULL VERSION
- * NOTHING REMOVED — FULL SIZE — FULLY COMMENTED — EMAIL + PDF + ATTACHMENT
+ * INVOICE CONTROLLER – MODERN UI VERSION
+ * FULL FUNCTIONALITY WITH REFRESHED DESIGN
  ********************************************************************************************/
 
 const PDFDocument = require("pdfkit");
@@ -73,28 +73,48 @@ async function buildInvoicePdfBuffer(transactionId, userId) {
       doc.on("error", (err) => reject(err));
 
       const pageWidth = doc.page.width;
+      const pageHeight = doc.page.height;
 
       /********************************************************************************************
-       * HEADER SECTION — GRADIENT BAR
+       * MODERN HEADER SECTION — DARK GRADIENT
        ********************************************************************************************/
-      const gradient = doc.linearGradient(0, 0, pageWidth, 0);
-      gradient.stop(0, "#8EC5FC");
-      gradient.stop(1, "#E0C3FC");
-      doc.rect(0, 0, pageWidth, 150).fill(gradient);
+      const headerGradient = doc.linearGradient(0, 0, pageWidth, 0);
+      headerGradient.stop(0, "#0f172a");
+      headerGradient.stop(1, "#1e293b");
+      doc.rect(0, 0, pageWidth, 140).fill(headerGradient);
 
+      // Add subtle pattern overlay
+      doc.fillColor("#ffffff").opacity(0.05);
+      for (let i = 0; i < 10; i++) {
+        doc.circle(40 + i * 80, 70, 20).fill();
+      }
+      doc.opacity(1);
+
+      // Logo placeholder with modern shape
+      doc.fillColor("#ffffff")
+        .roundedRect(40, 30, 60, 60, 12)
+        .fill();
+      
       try {
-        doc.image("server/assets/logo.png", 40, 25, { width: 60 });
-      } catch {}
+        doc.image("server/assets/logo.png", 50, 40, { width: 40 });
+      } catch {
+        // If no logo, show text
+        doc.fillColor("#3b82f6")
+          .fontSize(16)
+          .font("Helvetica-Bold")
+          .text("SB", 50, 50);
+      }
 
-      doc.fillColor("#000000")
-        .fontSize(22)
+      // Company Name
+      doc.fillColor("#ffffff")
+        .fontSize(28)
         .font("Helvetica-Bold")
-        .text("Startup Builder", 120, 30);
+        .text("Startup Builder", 120, 40);
 
       doc.fontSize(10)
         .font("Helvetica")
-        .fillColor("#000000")
-        .text("Startup Builder template Platform", 120, 60);
+        .fillColor("#cbd5e1")
+        .text("Startup Builder Template Platform", 120, 75);
 
       doc.fontSize(9)
         .text(
@@ -102,136 +122,181 @@ async function buildInvoicePdfBuffer(transactionId, userId) {
             "GSTIN: IN07AADCT2341D2Z\n" +
             "Chennai, Tamil Nadu, India",
           120,
-          85
+          95
         );
 
-      doc.font("Helvetica-Bold")
-        .fontSize(10)
-        .fillColor("#000000")
-        .text(`${transactionId}`, pageWidth - 260, 30, {
-          align: "right",
-          width: 220,
-        });
 
       /********************************************************************************************
        * BILL TO SECTION
        ********************************************************************************************/
-      doc.font("Helvetica-Bold")
-        .fontSize(11)
-        .fillColor("#000000")
+      doc.fillColor("#0f172a")
+        .font("Helvetica-Bold")
+        .fontSize(12)
         .text("BILL TO:", 40, 170);
 
-      doc.fillColor("#000000").font("Helvetica").fontSize(11);
-      doc.text(user.name || "Customer", 40, 190);
-      doc.text(user.email || "", 40, 210);
+      doc.rect(40, 185, 280, 60)
+        .fill("#f8fafc")
+        .stroke("#e2e8f0");
+
+      doc.fillColor("#334155").font("Helvetica").fontSize(11);
+      doc.text(user.name || "Customer", 50, 195);
+      doc.text(user.email || "", 50, 215);
+      if (user.phone) doc.text(user.phone, 50, 235);
 
       /********************************************************************************************
-       * RIGHT SIDE INFO BOX
+       * RIGHT SIDE INFO CARD
        ********************************************************************************************/
-      const rightBoxX = pageWidth - 260;
-      doc.rect(rightBoxX, 165, 220, 100).fill("#f6f6f8").stroke("#e0e0e0");
+      const rightBoxX = pageWidth - 280;
+      doc.fillColor("#ffffff")
+        .roundedRect(rightBoxX, 165, 240, 80, 8)
+        .fill()
+        .stroke("#e2e8f0");
 
-      doc.fillColor("#000000").fontSize(9);
+      doc.fillColor("#64748b").fontSize(9).font("Helvetica");
 
       const createdDate = new Date(payment.createdAt).toLocaleDateString("en-IN");
       const expiryDate = new Date(payment.expiryDate).toLocaleDateString("en-IN");
 
-      doc.text("Invoice Date:", rightBoxX + 10, 175);
+      doc.text("Invoice Date:", rightBoxX + 15, 175);
+      doc.fillColor("#0f172a").font("Helvetica-Bold");
       doc.text(createdDate, rightBoxX + 90, 175);
 
-      doc.text("Due Date:", rightBoxX + 10, 190);
-      doc.text(createdDate, rightBoxX + 90, 190);
+      doc.fillColor("#64748b").font("Helvetica");
+      doc.text("Status:", rightBoxX + 15, 190);
+      doc.fillColor("#10b981").font("Helvetica-Bold");
+      doc.text((payment.status || "success").toUpperCase(), rightBoxX + 90, 190);
 
-      doc.text("Status:", rightBoxX + 10, 205);
-      doc.fillColor("#000000").font("Helvetica-Bold");
-      doc.text((payment.status || "success").toUpperCase(), rightBoxX + 90, 205);
+      doc.fillColor("#64748b").font("Helvetica");
+      doc.text("Billing Cycle:", rightBoxX + 15, 205);
+      doc.fillColor("#0f172a").font("Helvetica-Bold");
+      doc.text(payment.billingCycle || "", rightBoxX + 90, 205);
 
-      doc.fillColor("#000000").font("Helvetica");
-      doc.text("Billing Cycle:", rightBoxX + 10, 220);
-      doc.text(payment.billingCycle || "", rightBoxX + 90, 220);
-
-      doc.text("Service Period:", rightBoxX + 10, 235);
-      doc.text(`${createdDate} → ${expiryDate}`, rightBoxX + 90, 235, {
-        width: 115,
+      doc.fillColor("#64748b").font("Helvetica");
+      doc.text("Service Period:", rightBoxX + 15, 220);
+      doc.fillColor("#0f172a").font("Helvetica");
+      doc.text(`${createdDate} to ${expiryDate}`, rightBoxX + 90, 220, {
+        width: 120,
       });
 
       /********************************************************************************************
-       * TABLE HEADER
+       * TABLE HEADER WITH GRADIENT
        ********************************************************************************************/
-      doc.rect(0, 265, pageWidth, 28).fill("#E9B6FF");
+      const tableGradient = doc.linearGradient(0, 265, 0, 293);
+      tableGradient.stop(0, "#8b5cf6");
+      tableGradient.stop(1, "#6366f1");
+      doc.rect(0, 265, pageWidth, 28).fill(tableGradient);
 
-      doc.fillColor("#000000").fontSize(11).font("Helvetica-Bold")
+      doc.fillColor("#ffffff").fontSize(11).font("Helvetica-Bold")
         .text("DESCRIPTION", 40, 273);
       doc.text("QTY", 350, 273);
       doc.text("PRICE", 420, 273);
       doc.text("AMOUNT", 500, 273);
 
       /********************************************************************************************
-       * DESCRIPTION ROW
+       * DESCRIPTION ROW WITH MODERN STYLING
        ********************************************************************************************/
       const descY = 305;
+      
+      // Row background
+      doc.fillColor("#f8fafc")
+        .roundedRect(35, descY - 10, pageWidth - 70, 50, 6)
+        .fill();
 
-      doc.fillColor("#000000")
+      doc.fillColor("#0f172a")
         .font("Helvetica-Bold")
-        .fontSize(11)
+        .fontSize(12)
         .text(`${payment.planName} Subscription`, 40, descY);
 
-      doc.font("Helvetica").fontSize(9)
+      doc.fillColor("#64748b").font("Helvetica").fontSize(9)
         .text(`${payment.billingCycle} billing with full feature access`, 40, descY + 18);
 
-      doc.fontSize(10).text("1", 355, descY);
+      doc.fillColor("#334155").fontSize(10);
+      doc.text("1", 355, descY);
       doc.text(formatCurrency(baseAmount, payment.currency), 415, descY);
       doc.text(formatCurrency(baseAmount, payment.currency), 500, descY);
 
       /********************************************************************************************
-       * TOTAL SECTION
+       * TOTAL SECTION WITH ACCENT COLOR
        ********************************************************************************************/
-      const summaryY = descY + 75;
+      const summaryY = descY + 70;
 
-      doc.font("Helvetica").fontSize(10)
-        .fillColor("#000000")
-        .text("Subtotal:", 420, summaryY);
-      doc.text(formatCurrency(baseAmount, payment.currency), 500, summaryY);
+      // Total box
+      doc.fillColor("#ffffff")
+        .roundedRect(350, summaryY - 15, 200, payment.currency === "INR" ? 90 : 65, 8)
+        .fill()
+        .stroke("#e2e8f0");
+
+      doc.fillColor("#64748b").font("Helvetica").fontSize(10)
+        .text("Subtotal:", 360, summaryY);
+      doc.fillColor("#0f172a").font("Helvetica-Bold");
+      doc.text(formatCurrency(baseAmount, payment.currency), 460, summaryY);
 
       if (payment.currency === "INR") {
-        doc.text("GST (18%):", 420, summaryY + 18);
-        doc.text(formatCurrency(gstAmount, payment.currency), 500, summaryY + 18);
+        doc.fillColor("#64748b").font("Helvetica");
+        doc.text("GST (18%):", 360, summaryY + 20);
+        doc.fillColor("#0f172a").font("Helvetica-Bold");
+        doc.text(formatCurrency(gstAmount, payment.currency), 460, summaryY + 20);
 
-        doc.font("Helvetica-Bold").fontSize(12)
-          .fillColor("#000000")
-          .text("TOTAL PAID", 420, summaryY + 45);
-        doc.text(formatCurrency(payment.amount, payment.currency), 500, summaryY + 45);
+        doc.fillColor("#8b5cf6").font("Helvetica-Bold").fontSize(13)
+          .text("TOTAL PAID", 360, summaryY + 50);
+        doc.fontSize(14)
+          .text(formatCurrency(payment.amount, payment.currency), 460, summaryY + 50);
       } else {
-        doc.font("Helvetica-Bold").fontSize(12).fillColor("#000000")
-          .text("TOTAL PAID", 420, summaryY + 20);
-        doc.text(formatCurrency(payment.amount, payment.currency), 500, summaryY + 20);
+        doc.fillColor("#8b5cf6").font("Helvetica-Bold").fontSize(13)
+          .text("TOTAL PAID", 360, summaryY + 25);
+        doc.fontSize(14)
+          .text(formatCurrency(payment.amount, payment.currency), 460, summaryY + 25);
       }
 
       /********************************************************************************************
-       * QR CODE AT FOOTER
+       * QR CODE IN MODERN CONTAINER
        ********************************************************************************************/
-      doc.image(qrCodeImage, 40, summaryY + 90, { width: 85 });
+      const qrY = summaryY + (payment.currency === "INR" ? 100 : 85);
+      
+      doc.fillColor("#ffffff")
+        .roundedRect(40, qrY, 100, 100, 8)
+        .fill()
+        .stroke("#e2e8f0");
+      
+      doc.image(qrCodeImage, 50, qrY + 10, { width: 80 });
 
       /********************************************************************************************
-       * TERMS SECTION
+       * TERMS AND FOOTER SECTION
        ********************************************************************************************/
-      doc.fillColor("#000000")
+      const termsX = 150;
+      
+      doc.fillColor("#0f172a")
         .font("Helvetica-Bold")
         .fontSize(11)
-        .text("Payment Status: SUCCESS", 150, summaryY + 90);
 
-      doc.fillColor("#000000").fontSize(8)
+
+      doc.fillColor("#64748b").fontSize(8).font("Helvetica")
         .text(
-          "\n\nGST Note:\nAll amounts are inclusive of GST 18% as applicable.\n\nTerms & Conditions:\n• This is a computer-generated invoice.\n• For support, contact support@startupbuilder.com\n\n\n\n",
-          150
+          "INVOICE TERMS\n" +
+          "• This is a computer-generated invoice\n" +
+          "• All amounts are inclusive of applicable taxes\n" +
+          "• For support, contact: support@startupBuider.com\n" +
+          "• Invoice ID: " + transactionId + "\n\n",
+          termsX, qrY + 25
         );
 
-      doc.fontSize(9).fillColor("#000000")
-        .text("Thank you for choosing Startup Builder!", 40, 800, { align: "center" });
-
-      doc.fontSize(8)
-        .text("This invoice was generated automatically.", 40, 815, {
+      /********************************************************************************************
+       * FOOTER
+       ********************************************************************************************/
+      doc.fillColor("#f8fafc")
+        .rect(0, pageHeight - 40, pageWidth, 40)
+        .fill();
+      
+      doc.fillColor("#64748b").fontSize(9)
+        .text("Thank you for choosing Startup Builder!", 0, pageHeight - 30, {
           align: "center",
+          width: pageWidth
+        });
+
+      doc.fillColor("#94a3b8").fontSize(8)
+        .text(`Invoice generated on ${new Date().toLocaleDateString()}`, 0, pageHeight - 15, {
+          align: "center",
+          width: pageWidth
         });
 
       doc.end();

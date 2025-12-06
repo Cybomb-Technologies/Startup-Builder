@@ -20,6 +20,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const AdminSidebar = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,7 +58,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       
       // Fetch users count
       try {
-        const usersResponse = await fetch('http://localhost:5000/api/admin/users', { headers });
+        const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, { headers });
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
           setDynamicCounts(prev => ({ ...prev, users: usersData.users?.length || 0 }));
@@ -67,7 +69,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       // Fetch contact submissions count
       try {
-        const contactResponse = await fetch('http://localhost:5000/api/contact/submissions', { headers });
+        const contactResponse = await fetch(`${API_BASE_URL}/api/contact/submissions`, { headers });
         if (contactResponse.ok) {
           const contactData = await contactResponse.json();
           setDynamicCounts(prev => ({ ...prev, contactSubmissions: contactData.submissions?.length || 0 }));
@@ -78,7 +80,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       // Fetch newsletter subscribers count
       try {
-        const newsletterResponse = await fetch('http://localhost:5000/api/newsletter/subscribers', { headers });
+        const newsletterResponse = await fetch(`${API_BASE_URL}/api/newsletter/subscribers`, { headers });
         if (newsletterResponse.ok) {
           const newsletterData = await newsletterResponse.json();
           setDynamicCounts(prev => ({ ...prev, newsletter: newsletterData.subscribers?.length || 0 }));
@@ -89,7 +91,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       // Fetch templates count
       try {
-        const templatesResponse = await fetch('http://localhost:5000/api/admin/templates', { headers });
+        const templatesResponse = await fetch(`${API_BASE_URL}/api/admin/templates`, { headers });
         if (templatesResponse.ok) {
           const templatesData = await templatesResponse.json();
           setDynamicCounts(prev => ({ ...prev, templates: templatesData.templates?.length || 0 }));
@@ -100,7 +102,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       // Fetch categories count
       try {
-        const categoriesResponse = await fetch('http://localhost:5000/api/admin/categories', { headers });
+        const categoriesResponse = await fetch(`${API_BASE_URL}/api/admin/categories`, { headers });
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json();
           setDynamicCounts(prev => ({ ...prev, categories: categoriesData.categories?.length || 0 }));
@@ -111,7 +113,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
       // Fetch subcategories count
       try {
-        const subcategoriesResponse = await fetch('http://localhost:5000/api/admin/subcategories', { headers });
+        const subcategoriesResponse = await fetch(`${API_BASE_URL}/api/admin/subcategories`, { headers });
         if (subcategoriesResponse.ok) {
           const subcategoriesData = await subcategoriesResponse.json();
           setDynamicCounts(prev => ({ ...prev, subcategories: subcategoriesData.subCategories?.length || 0 }));
@@ -192,6 +194,22 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       count: 0
     },
     {
+      name: 'Pricing Manager', // Add this new item
+      path: 'pricing-manager',
+      icon: IndianRupee,
+      description: 'Manage subscription plans',
+      badge: null,
+      count: 0
+    },
+    {
+      name: 'Payment Manager', // Add this new item
+      path: 'payment-manager',
+      icon: IndianRupee,
+      description: 'Manage payment plans',
+      badge: null,
+      count: 0
+    },
+    {
       type: 'divider',
       label: 'Content Management'
     },
@@ -227,14 +245,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       badge: null,
       count: 0
     },
-    {
-      name: 'Pricing Manager', // Add this new item
-      path: 'pricing-manager',
-      icon: IndianRupee,
-      description: 'Manage subscription plans',
-      badge: null,
-      count: 0
-    },
+    
     {
       type: 'divider',
       label: 'Settings'

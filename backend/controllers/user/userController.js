@@ -1,0 +1,23 @@
+// userController.js - SIMPLIFIED VERSION
+exports.register = require('./register').register;
+exports.login = require('./login').login;
+exports.validateToken = require('./validatetoken').validateToken;
+exports.getUserDocuments = require('./getUserDocuments').getUserDocuments;
+exports.getUserStats = require('./getUserStats').getUserStats;
+exports.downloadTemplate = require('./downloadTemplate').downloadTemplate;
+exports.getUserDocument = require('./getUserDocument').getUserDocument;
+exports.updateUserDocument = require('./updateUserDocument').updateUserDocument;
+exports.deleteUserDocument = require('./deleteUserDocument').deleteUserDocument;
+exports.getExtendedProfile = require('./getExtendedProfile').getExtendedProfile;
+exports.forgotPassword = require('./forgotPassword').forgotPassword;
+exports.verifyOtp = require('./verifyOtp').verifyOtp;
+exports.resetPassword = require('./resetPassword').resetPassword;
+exports.downloadTemplateFile = require('./downloadTemplateFile').downloadTemplateFile;
+exports.getTemplatePreview = require('./getTemplatePreview').getTemplatePreview;
+exports.getAllTemplates = require('./getAllTemplates').getAllTemplates;
+exports.getProfile = require('./getProfile').getProfile;
+exports.testOtp = require('./testOtp').testOtp;
+exports.getUserPlanDetails = require('./getUserPlanDetails').getUserPlanDetails;
+exports.checkTemplateAccess = require('./checkTemplateAccess').checkTemplateAccess;
+exports.getUserCurrentPlan = require('./getUserCurrentPlan').getUserCurrentPlan;
+exports.verifyPlanStatus = require('./verifyPlanStatus').verifyPlanStatus;

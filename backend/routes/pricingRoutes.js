@@ -1,4 +1,4 @@
-// backend/routes/pricingRoutes.js
+// routes/pricingRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -9,7 +9,7 @@ const {
   updatePricingPlan,
   deletePricingPlan,
   togglePlanStatus
-} = require('../controllers/pricingController');
+} = require('../controllers/pricing/pricingController'); // Updated path
 const { adminProtect } = require('../middleware/adminAuth');
 
 // Public routes

@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const EditorPage = () => {
   const { id } = useParams();
   const [editorConfig, setEditorConfig] = useState(null);
@@ -17,7 +19,7 @@ const EditorPage = () => {
     }
 
     axios
-      .get(`http://localhost:5000/api/editor/${id}/config`, {
+      .get(`${API_BASE_URL}/api/editor/${id}/config`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {

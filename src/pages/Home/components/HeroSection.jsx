@@ -5,6 +5,8 @@ import { Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const HeroSection = () => {
   const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,7 +69,7 @@ const HeroSection = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories');
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
         
         if (response.ok) {
           const data = await response.json();

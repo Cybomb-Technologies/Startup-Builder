@@ -75,6 +75,7 @@ const TemplateImageCarousel = ({
     console.log(`✅ Successfully loaded image ${index}:`, images[index]?.url);
     setImageLoadErrors(prev => ({ ...prev, [index]: false }));
   };
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   // Ensure URLs are absolute
   const getImageUrl = (image) => {
@@ -85,7 +86,7 @@ const TemplateImageCarousel = ({
     } else {
       const baseURL = process.env.NODE_ENV === 'production' 
         ? window.location.origin 
-        : 'http://localhost:5000';
+        : `${API_BASE_URL}`;
       return `${baseURL}${image.url}`;
     }
   };

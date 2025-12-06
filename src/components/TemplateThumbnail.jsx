@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Image, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const TemplateThumbnail = ({ 
   template, 
   className = "h-48",
@@ -54,7 +56,7 @@ const TemplateThumbnail = ({
       // Prepend base URL for relative URLs
       const baseURL = process.env.NODE_ENV === 'production' 
         ? window.location.origin 
-        : 'http://localhost:5000';
+        : `${API_BASE_URL}`;
       return `${baseURL}${image.url}`;
     }
   };

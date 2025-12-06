@@ -8,36 +8,37 @@ const {
   registerAdmin, 
   getAdminProfile, 
   updateAdminProfile, 
-  getAllUsers 
-} = require('../controllers/adminController');
+  getAllUsers,
+  getUserDetails 
+} = require('../controllers/admin/adminController');
 
 const {
   getCategories,
   createCategory,
   updateCategory,
   deleteCategory
-} = require('../controllers/categoryController');
+} = require('../controllers/category/categoryController');
 
 const {
   getSubCategories,
   createSubCategory,
   updateSubCategory,
   deleteSubCategory
-} = require('../controllers/subCategoryController');
+} = require('../controllers/subCategory/subCategoryController');
 
 const {
   getFileTypes,
   createFileType,
   updateFileType,
   deleteFileType
-} = require('../controllers/fileTypeController');
+} = require('../controllers/fileType/fileTypeController');
 
 const {
   getAccessLevels,
   createAccessLevel,
   updateAccessLevel,
   deleteAccessLevel
-} = require('../controllers/userAccessController');
+} = require('../controllers/userAccess/userAccessController');
 
 // Import template controller with ALL functions including image management
 const {
@@ -54,7 +55,25 @@ const {
   deleteTemplateImage,
   setPrimaryImage,
   reorderImages
-} = require('../controllers/templateController');
+} = require('../controllers/template/templateController');
+
+const {
+  getAllPayments,
+  getPaymentById,
+  updatePaymentStatus,
+  getPaymentStats,
+} = require('../controllers/adminPayment/adminPaymentController');
+
+// ========== IMPORT PRICING CONTROLLER ==========
+const {
+  getPricingPlans,
+  getAllPricingPlans,
+  getPricingPlan,
+  createPricingPlan,
+  updatePricingPlan,
+  deletePricingPlan,
+  togglePlanStatus
+} = require('../controllers/pricing/pricingController');
 
 // ==================== ROUTE LOGGING MIDDLEWARE ====================
 router.use((req, res, next) => {
@@ -80,6 +99,7 @@ router.put('/profile', updateAdminProfile);
 
 // Users Management
 router.get('/users', getAllUsers);
+router.get('/users/:id', getUserDetails); // Add this line for user details
 
 // ==================== CATEGORY MANAGEMENT ROUTES ====================
 router.get('/categories', getCategories);
@@ -104,6 +124,17 @@ router.get('/access-levels', getAccessLevels);
 router.post('/access-levels', createAccessLevel);
 router.put('/access-levels/:id', updateAccessLevel);
 router.delete('/access-levels/:id', deleteAccessLevel);
+
+// ==================== PRICING PLAN MANAGEMENT ROUTES ====================
+router.get('/pricing-plans', getAllPricingPlans); // Get all plans (admin)
+router.post('/pricing-plans', createPricingPlan); // Create plan
+router.put('/pricing-plans/:planId', updatePricingPlan); // Update plan
+router.delete('/pricing-plans/:planId', deletePricingPlan); // Delete plan
+router.patch('/pricing-plans/:planId/toggle-status', togglePlanStatus); // Toggle status
+
+// Public pricing plans route (no auth needed)
+router.get('/pricing-plans/public', getPricingPlans); // Get active plans (public)
+router.get('/pricing-plans/:planId', getPricingPlan); // Get single plan
 
 // ==================== TEMPLATE MANAGEMENT ROUTES ====================
 
@@ -145,6 +176,15 @@ router.put('/templates/:id', updateTemplate);
 // Delete template and all associated files/images
 router.delete('/templates/:id', deleteTemplate);
 
+
+// ==================== PAYMENT MANAGEMENT ROUTES ====================
+router.get('/payments', getAllPayments);
+router.get('/payments/stats', getPaymentStats);
+router.get('/payments/:id', getPaymentById);
+router.put('/payments/:id/status', updatePaymentStatus);
+// router.put('/payments/:id/auto-renewal', toggleAutoRenewal);
+// router.delete('/payments/:id', deletePayment);
+
 // ==================== HEALTH CHECK ====================
 router.get('/health', (req, res) => {
   res.status(200).json({
@@ -157,7 +197,9 @@ router.get('/health', (req, res) => {
       subcategories: '✓',
       fileTypes: '✓',
       accessLevels: '✓',
-      imageManagement: '✓'
+      pricingPlans: '✓',
+      imageManagement: '✓',
+      payments: '✓'
     }
   });
 });

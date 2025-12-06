@@ -22,6 +22,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 // Auth functions directly in the component
 const getAdminToken = () => {
   const token = localStorage.getItem('adminToken');
@@ -103,7 +105,7 @@ const ContactSubmissions = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/contact/submissions', {
+      const response = await fetch(`${API_BASE_URL}/api/contact/submissions`, {
         headers
       });
       
@@ -156,7 +158,7 @@ const ContactSubmissions = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/contact/${id}/read`, {
+      const response = await fetch(`${API_BASE_URL}/api/contact/${id}/read`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ read: !currentStatus }),
@@ -198,7 +200,7 @@ const ContactSubmissions = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/contact/${id}/flag`, {
+      const response = await fetch(`${API_BASE_URL}/api/contact/${id}/flag`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ flag: flagType }),
@@ -675,14 +677,14 @@ const ContactSubmissions = () => {
                   </div>
                   
                   <div className="relative">
-                    <Button
+                    {/* <Button
                       onClick={() => setShowFlagDropdown(!showFlagDropdown)}
                       className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
                     >
                       <Flag className="w-4 h-4" />
                       Actions
                       <ChevronDown className="w-4 h-4" />
-                    </Button>
+                    </Button> */}
                     
                     {showFlagDropdown && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">

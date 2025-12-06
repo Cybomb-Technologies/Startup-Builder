@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast'; 
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 // Auth functions directly in the component
 const getAdminToken = () => {
   const token = localStorage.getItem('adminToken');
@@ -86,7 +88,7 @@ const Categories = () => {
 
       console.log('📡 Loading categories from API...');
       
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         headers
       });
       
@@ -136,7 +138,7 @@ const Categories = () => {
 
       console.log('📤 Creating category:', newCategory);
       
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ 

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { FileText, Mail, Phone, MapPin } from "lucide-react";
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -10,7 +12,7 @@ const Footer = () => {
   const handleSubscribe = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/newsletter/subscribe", { email });
+      const res = await axios.post(`${API_BASE_URL}/api/newsletter/subscribe`, { email });
       setMessage("✅ Thank you for subscribing!");
       setEmail("");
     } catch (error) {
@@ -83,6 +85,9 @@ const Footer = () => {
               </Link>
               <Link to="/about" className="block text-gray-300 hover:text-white transition-colors">
                 About Us
+              </Link>
+              <Link to="/contact" className="block text-gray-300 hover:text-white transition-colors">
+                Contact Us
               </Link>
                
             </div>

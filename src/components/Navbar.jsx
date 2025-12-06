@@ -129,13 +129,13 @@ const Navbar = () => {
                         Dashboard
                       </button>
 
-                      <button
+                      {/* <button
                         onClick={() => handleNavigation('/settings')}
                         className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <Settings className="w-4 h-4 mr-3" />
                         Settings
-                      </button>
+                      </button> */}
 
                       {/* Logout Button */}
                       <div className="border-t border-gray-100 mt-2 pt-2">

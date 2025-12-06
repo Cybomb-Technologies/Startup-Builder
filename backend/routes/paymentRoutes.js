@@ -1,3 +1,4 @@
+// routes/paymentRoutes.js
 const express = require('express');
 const router = express.Router();
 const { 
@@ -6,8 +7,8 @@ const {
   handlePaymentWebhook, 
   getUserPayments,
   getUserPlanDetails,
-  downloadInvoice // NEW IMPORT
-} = require('../controllers/paymentController');
+  downloadInvoice
+} = require('../controllers/payment/paymentController'); // Updated path
 const auth = require('../middleware/auth');
 
 // Payment routes
