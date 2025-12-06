@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
  
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +25,7 @@ const ContactPage = () => {
     setIsSubmitting(true);
  
     try {
-      const response = await fetch('http://localhost:5000/api/contact/submit', {
+      const response = await fetch(`${API_BASE_URL}/api/contact/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

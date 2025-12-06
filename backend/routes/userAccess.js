@@ -1,10 +1,11 @@
+// routes/accessLevelRoutes.js (or wherever your routes are)
 const express = require('express');
 const {
   getAccessLevels,
   createAccessLevel,
   updateAccessLevel,
   deleteAccessLevel
-} = require('../controllers/userAccessController');
+} = require('../controllers/userAccess/userAccessController');  // Updated path
 
 const router = express.Router();
 

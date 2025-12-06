@@ -4,7 +4,7 @@ import HeroSection from './components/HeroSection';
 import FeaturesSection from './components/FeaturesSection';
 import TemplatesSection from './components/TemplatesSection';
 import HowItWorksSection from './components/HowItWorksSection';
-import PricingSection from './components/PricingSection';
+// import PricingSection from './components/PricingSection';
 import TestimonialsSection from './components/TestimonialsSection';
 import CTASection from './components/CTASection';
 
@@ -22,7 +22,7 @@ const HomePage = () => {
          <TemplatesSection />
           <HowItWorksSection />
         <FeaturesSection />
-        <PricingSection />
+        {/* <PricingSection /> */}
         <TestimonialsSection />
         <CTASection />
         

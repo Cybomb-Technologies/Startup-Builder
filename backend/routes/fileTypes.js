@@ -1,10 +1,11 @@
+// routes/fileTypes.js
 const express = require('express');
 const {
   getFileTypes,
   createFileType,
   updateFileType,
   deleteFileType
-} = require('../controllers/fileTypeController');
+} = require('../controllers/fileType/fileTypeController'); // Updated path
 
 const router = express.Router();
 

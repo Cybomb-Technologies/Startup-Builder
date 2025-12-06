@@ -1,3 +1,4 @@
+// routes/templates.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -8,13 +9,12 @@ const {
   downloadTemplateFile,
   deleteTemplateFile,
   getTemplateFileInfo,
-  // IMAGE MANAGEMENT CONTROLLERS
   uploadTemplateImages,
   getTemplateImage,
   deleteTemplateImage,
   setPrimaryImage,
   reorderImages
-} = require('../controllers/templateController');
+} = require('../controllers/template/templateController');  // Updated path
 const { adminProtect } = require('../middleware/adminauth');
 
 // Add route logging middleware for debugging

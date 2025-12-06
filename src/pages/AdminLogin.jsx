@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 // Temporary basic components (keep these as is)
 const TemporaryButton = ({ children, onClick, disabled, className = '', type = 'button' }) => (
   <button 
@@ -56,8 +56,9 @@ const AdminLoginPage = () => {
 
     try {
       console.log('🔐 Attempting admin login...');
+      const url =`${API_BASE_URL}/api/admin/login`;
       
-      const response = await fetch('http://localhost:5000/api/admin/login', {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

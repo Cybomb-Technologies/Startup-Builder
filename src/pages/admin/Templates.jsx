@@ -4,6 +4,8 @@ import { FileText, Trash2, Edit, Plus, Upload, Download, Eye, X, Image, Star, Ch
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const Templates = () => {
   const { toast } = useToast();
   const [templates, setTemplates] = useState([]);
@@ -91,7 +93,7 @@ const Templates = () => {
       }
 
       // Load templates
-      const templatesResponse = await fetch('http://localhost:5000/api/admin/templates', {
+      const templatesResponse = await fetch(`${API_BASE_URL}/api/admin/templates`, {
         headers
       });
       if (templatesResponse.ok) {
@@ -103,7 +105,7 @@ const Templates = () => {
       }
 
       // Load categories
-      const categoriesResponse = await fetch('http://localhost:5000/api/admin/categories', {
+      const categoriesResponse = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         headers
       });
       if (categoriesResponse.ok) {
@@ -115,7 +117,7 @@ const Templates = () => {
       }
 
       // Load access levels
-      const accessLevelsResponse = await fetch('http://localhost:5000/api/admin/access-levels', {
+      const accessLevelsResponse = await fetch(`${API_BASE_URL}/api/admin/access-levels`, {
         headers
       });
       if (accessLevelsResponse.ok) {
@@ -127,7 +129,7 @@ const Templates = () => {
       }
 
       // Load all subcategories initially
-      const subCategoriesResponse = await fetch('http://localhost:5000/api/admin/subcategories', {
+      const subCategoriesResponse = await fetch(`${API_BASE_URL}/api/admin/subcategories`, {
         headers
       });
       if (subCategoriesResponse.ok) {
@@ -352,7 +354,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
       
-      const response = await fetch('http://localhost:5000/api/admin/templates', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates`, {
         method: 'POST',
         headers: headers,
         body: formData,
@@ -485,7 +487,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
       
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${selectedTemplate._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates/${selectedTemplate._id}`, {
         method: 'PUT',
         headers: headers,
         body: formData,
@@ -543,7 +545,7 @@ const Templates = () => {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates/${id}`, {
         method: 'DELETE',
         headers,
       });
@@ -579,7 +581,7 @@ const Templates = () => {
         formData.append('images', image);
       });
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates/${templateId}/images`, {
         method: 'POST',
         headers: headers,
         body: formData,
@@ -604,7 +606,7 @@ const Templates = () => {
   const handleDeleteImage = async (templateId, imageId) => {
     try {
       const headers = getAuthHeaders();
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images/${imageId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates/${templateId}/images/${imageId}`, {
         method: 'DELETE',
         headers: headers,
       });
@@ -630,7 +632,7 @@ const Templates = () => {
   const handleSetPrimaryImage = async (templateId, imageId) => {
     try {
       const headers = getAuthHeaders();
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${templateId}/images/${imageId}/primary`, {
+      const response = await fetch(`${API_BASE_URL}api/admin/templates/${templateId}/images/${imageId}/primary`, {
         method: 'PUT',
         headers: headers,
       });
@@ -696,7 +698,7 @@ const Templates = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/templates/${template._id}/download`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/templates/${template._id}/download`, {
         headers,
         method: 'GET',
       });
@@ -754,20 +756,38 @@ const Templates = () => {
   };
 
   const getCategoryName = (categoryId) => {
-    const category = categories.find(cat => cat._id === categoryId);
+    if (!categoryId) return '-';
+    
+    // Check if categoryId is an object with _id property
+    const category = categories.find(cat => 
+      cat._id === (categoryId._id || categoryId)
+    );
     return category ? category.name : '-';
   };
 
   const getSubCategoryName = (subCategoryId) => {
+    if (!subCategoryId) return '-';
+    
     const subCategory = subCategories.find(sub => 
-      sub._id === subCategoryId || sub._id === subCategoryId?._id
+      sub._id === (subCategoryId._id || subCategoryId)
     );
     return subCategory ? subCategory.name : '-';
   };
 
-  const getAccessLevelName = (accessLevelId) => {
-    const accessLevel = accessLevels.find(level => level._id === accessLevelId);
-    return accessLevel ? accessLevel.name : '-';
+  // FIXED: Get access level name - handle both object and ID
+  const getAccessLevelName = (accessLevel) => {
+    if (!accessLevel) return '-';
+    
+    // If accessLevel is an object with name property
+    if (typeof accessLevel === 'object' && accessLevel !== null) {
+      return accessLevel.name || '-';
+    }
+    
+    // If accessLevel is a string ID
+    const level = accessLevels.find(level => 
+      level._id === accessLevel
+    );
+    return level ? level.name : '-';
   };
 
   // Get filtered subcategories for the selected category

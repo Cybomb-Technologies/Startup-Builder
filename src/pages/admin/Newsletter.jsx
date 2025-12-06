@@ -6,6 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { getAuthHeaders, validateAdminSession, adminLogout } from '@/utils/adminAuth';
 import { Input } from '@/components/ui/input';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const Newsletter = () => {
   const { toast } = useToast();
   const [newsletterSubscribers, setNewsletterSubscribers] = useState([]);
@@ -28,7 +30,7 @@ const Newsletter = () => {
 
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/newsletter/subscribers', {
+      const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribers`, {
         headers: getAuthHeaders(),
       });
 
@@ -65,7 +67,7 @@ const Newsletter = () => {
 
   const handleUnsubscribe = async (email) => {
     try {
-      const response = await fetch('http://localhost:5000/api/newsletter/unsubscribe', {
+      const response = await fetch(`${API_BASE_URL}/api/newsletter/unsubscribe`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ email }),

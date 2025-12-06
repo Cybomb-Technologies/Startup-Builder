@@ -16,6 +16,9 @@ import UserAccess from './admin/UserAccess';
 import ContactSubmissions from './admin/ContactSubmissions';
 import GlobalSearch from './admin/components/GlobalSearch';
 import AdminPricingManager from './admin/AdminPricingManager';
+import PaymentsPage from './admin/Payments';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -89,14 +92,14 @@ const AdminPage = () => {
       setLoading(true);
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
-
+      
       // Fetch users data
-      const usersResponse = await fetch('http://localhost:5000/api/admin/users', {
+      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers
       });
-
+      
       // Fetch templates data
-      const templatesResponse = await fetch('http://localhost:5000/api/admin/templates', {
+      const templatesResponse = await fetch(`${API_BASE_URL}/api/admin/templates`, {
         headers
       });
 
@@ -332,6 +335,7 @@ const AdminPage = () => {
               <Route path="contact-submissions" element={<ContactSubmissions />} />
               {/* ADD THIS NEW ROUTE FOR PRICING MANAGER */}
               <Route path="pricing-manager" element={<AdminPricingManager />} />
+              <Route path="payment-manager" element={<PaymentsPage />} />
               <Route path="settings" element={
                 <div className="p-8">
                   <div className="flex items-center space-x-3 mb-6">

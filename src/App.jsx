@@ -27,7 +27,6 @@ import ResetPasswordPage from "@/pages/ResetPasswordPage";
 // ===== Admin Pages =====
 import AdminPage from "@/pages/AdminPage";
 import AdminLoginPage from "@/pages/AdminLogin";
-import AdminUploadPage from "@/pages/AdminUploadPage";
 import ContactSubmissions from "./pages/admin/ContactSubmissions";
 
 // ===== Legal Pages =====

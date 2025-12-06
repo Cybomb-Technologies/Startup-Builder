@@ -3,12 +3,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Zap, IndianRupee, DollarSign, Globe, Check, FileText, Crown, Building2, Download, Star, CheckCheck, Loader2 } from 'lucide-react';
+import { CheckCircle, Zap, IndianRupee, DollarSign, Globe, Check, FileText, Crown, Building2, Download, Star, CheckCheck, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const PricingPage = () => {
   const { toast } = useToast();
@@ -23,6 +23,7 @@ const PricingPage = () => {
   const [userPlan, setUserPlan] = useState(null);
   const [userPayments, setUserPayments] = useState([]);
   const [checkingPayments, setCheckingPayments] = useState(true);
+  const [refreshingPlan, setRefreshingPlan] = useState(false);
 
   const exchangeRate = 83;
 
@@ -52,6 +53,47 @@ const PricingPage = () => {
     fetchPlans();
   }, [toast]);
 
+  // Refresh user plan data
+  const refreshUserPlanData = async () => {
+    if (!user || !token) return;
+
+    setRefreshingPlan(true);
+    try {
+      // Refresh user data from auth context
+      await refreshUser();
+      
+      // Fetch updated user plan
+      const response = await fetch(`${API_URL}/api/users/current-plan`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUserPlan(data);
+        }
+      }
+
+      // Fetch updated payment history
+      const paymentResponse = await fetch(`${API_URL}/api/payments/user-payments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (paymentResponse.ok) {
+        const paymentData = await paymentResponse.json();
+        setUserPayments(paymentData.payments || []);
+      }
+    } catch (error) {
+      console.error('Error refreshing user plan:', error);
+    } finally {
+      setRefreshingPlan(false);
+    }
+  };
+
   // Fetch user's current plan info
   useEffect(() => {
     const fetchUserPlan = async () => {
@@ -70,6 +112,7 @@ const PricingPage = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
+            console.log('User plan data:', data);
             setUserPlan(data);
           }
         }
@@ -99,6 +142,7 @@ const PricingPage = () => {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('User payments:', data.payments);
           setUserPayments(data.payments || []);
         } else {
           console.error('Failed to fetch user payments:', response.status);
@@ -113,27 +157,43 @@ const PricingPage = () => {
     fetchUserPayments();
   }, [user, token]);
 
-  // Check if user is currently subscribed to a specific plan
-  const isUserSubscribedToPlan = (planId) => {
-    if (!user) return false;
+  // Get user's current active plan ID
+  const getUserCurrentPlanId = () => {
+    if (!user) return null;
     
-    // Check from userPlan data (from API)
-    if (userPlan && userPlan.planId === planId) {
-      return true;
+    // Priority 1: Check userPlan from API (most accurate)
+    if (userPlan && userPlan.planId) {
+      return userPlan.planId;
     }
     
-    // Check from user context
-    if (user.planId === planId) {
-      return true;
+    // Priority 2: Check user context
+    if (user.planId && user.planId !== 'free') {
+      return user.planId;
     }
     
-    // Check from user payments
-    const hasActivePayment = userPayments.some(payment => 
-      payment.status === 'success' && 
-      payment.planId === planId
-    );
+    // Priority 3: Check for most recent successful payment
+    const successfulPayments = userPayments.filter(p => p.status === 'success');
+    if (successfulPayments.length > 0) {
+      // Sort by payment date (newest first)
+      successfulPayments.sort((a, b) => new Date(b.paidAt || b.createdAt) - new Date(a.paidAt || a.createdAt));
+      const latestPayment = successfulPayments[0];
+      return latestPayment.planId;
+    }
     
-    return hasActivePayment;
+    // Default to free if no paid plan found
+    return 'free';
+  };
+
+  // Check if a specific plan is the user's current active plan
+  const isPlanCurrentPlan = (planId) => {
+    const currentPlanId = getUserCurrentPlanId();
+    return currentPlanId === planId;
+  };
+
+  // Check if user has any active paid subscription
+  const hasActivePaidSubscription = () => {
+    const currentPlanId = getUserCurrentPlanId();
+    return currentPlanId && currentPlanId !== 'free';
   };
 
   const formatPrice = (inrPrice, isCustom = false) => {
@@ -151,18 +211,15 @@ const PricingPage = () => {
       return planId === 'free' ? 'Get Started Free' : 'Subscribe Now';
     }
     
-    if (isUserSubscribedToPlan(planId)) {
-      if (planId === 'free') {
-        return 'Current Plan';
-      }
+    if (isPlanCurrentPlan(planId)) {
       return 'Current Plan';
     }
     
     if (planId === 'free') {
-      return 'Get Started Free';
+      return 'Switch to Free';
     }
     
-    return 'Subscribe Now';
+    return 'Upgrade Now';
   };
 
   const getButtonVariant = (planId, isPopular) => {
@@ -170,7 +227,7 @@ const PricingPage = () => {
       return isPopular ? 'gradient-blue' : 'default';
     }
     
-    if (isUserSubscribedToPlan(planId)) {
+    if (isPlanCurrentPlan(planId)) {
       return 'current-plan';
     }
     
@@ -181,7 +238,7 @@ const PricingPage = () => {
     if (isNavigating) return;
     
     // Prevent action if user is already subscribed to this plan
-    if (user && isUserSubscribedToPlan(planId)) {
+    if (user && isPlanCurrentPlan(planId)) {
       toast({
         title: "Already Subscribed",
         description: `You are already subscribed to the ${planName} plan`,
@@ -193,7 +250,7 @@ const PricingPage = () => {
     setIsNavigating(true);
     
     try {
-      // For free plan, show toast and redirect to dashboard
+      // For free plan, redirect to checkout page
       if (planId === 'free') {
         if (!user) {
           toast({
@@ -205,14 +262,16 @@ const PricingPage = () => {
           return;
         }
 
-        toast({
-          title: "Welcome to PDF Works! 🎉",
-          description: "Your free plan has been activated. Start creating documents now!",
+        // Navigate to checkout page for free plan
+        navigate(`/checkout/${planId}`, { 
+          state: { 
+            billingCycle: isYearly ? 'annual' : 'monthly',
+            currency,
+            exchangeRate,
+            planName: planName,
+            currentPlanId: getUserCurrentPlanId()
+          }
         });
-        
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
         return;
       }
 
@@ -246,7 +305,8 @@ const PricingPage = () => {
           billingCycle: isYearly ? 'annual' : 'monthly',
           currency,
           exchangeRate,
-          planName: planName
+          planName: planName,
+          currentPlanId: getUserCurrentPlanId()
         }
       });
     } catch (error) {
@@ -299,6 +359,29 @@ const PricingPage = () => {
     setExpandedFaq(expandedFaq === index ? null : index);
   };
 
+  // Refresh button component
+  // const RefreshButton = () => (
+  //   <Button
+  //     variant="outline"
+  //     size="sm"
+  //     onClick={refreshUserPlanData}
+  //     disabled={refreshingPlan}
+  //     className="ml-2"
+  //   >
+  //     {refreshingPlan ? (
+  //       <>
+  //         <Loader2 className="h-3 w-3 animate-spin mr-1" />
+  //         Refreshing...
+  //       </>
+  //     ) : (
+  //       <>
+  //         <RefreshCw className="h-3 w-3 mr-1" />
+  //         Refresh Plan
+  //       </>
+  //     )}
+  //   </Button>
+  // );
+
   if (loading || checkingPayments) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -335,12 +418,13 @@ const PricingPage = () => {
               </h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Choose the plan that fits your needs. No hidden fees, cancel anytime.
-                {user && userPlan && (
+                {user && (
                   <span className="block mt-2 text-sm font-medium text-green-600">
-                    Your current plan: <span className="font-bold">{userPlan.plan || 'Free'}</span>
-                    {userPayments.some(p => p.status === 'success') && (
+                    Your current plan: <span className="font-bold">{userPlan?.plan || user?.plan || 'Free'}</span>
+                    {hasActivePaidSubscription() && (
                       <span className="ml-2 text-blue-600">✓ Active Subscription</span>
                     )}
+                    {/* <RefreshButton /> */}
                   </span>
                 )}
               </p>
@@ -442,7 +526,7 @@ const PricingPage = () => {
               const isEnterprisePlan = plan.planId === 'enterprise';
               const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
               const originalPrice = isYearly ? plan.monthlyPrice * 12 : null;
-              const isCurrentPlan = user && isUserSubscribedToPlan(plan.planId);
+              const isCurrentPlan = user && isPlanCurrentPlan(plan.planId);
               
               return (
                 <div key={plan._id} className="relative">
@@ -459,7 +543,7 @@ const PricingPage = () => {
                   {/* Current Plan Badge */}
                   {isCurrentPlan && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
-                      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
+                      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
                         <CheckCheck className="h-3 w-3" />
                         Your Current Plan
                       </div>
@@ -467,24 +551,24 @@ const PricingPage = () => {
                   )}
 
                   {/* Free Forever Badge */}
-                  {isFreePlan && !isCurrentPlan && !plan.popular && (
+                  {/* {isFreePlan && !isCurrentPlan && !plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
                       <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
                         <Star className="h-3 w-3" />
                         Free Forever
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Enterprise Badge */}
-                  {isEnterprisePlan && !isCurrentPlan && !plan.popular && (
+                  {/* {isEnterprisePlan && !isCurrentPlan && !plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-50 w-full flex justify-center">
                       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg whitespace-nowrap">
                         <Building2 className="h-3 w-3" />
                         Enterprise
                       </div>
                     </div>
-                  )}
+                  )} */}
                   
                   {/* Card Content */}
                   <motion.div
@@ -493,7 +577,7 @@ const PricingPage = () => {
                     transition={{ delay: index * 0.1 }}
                     className={`bg-white rounded-2xl shadow-lg flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-200 h-full ${
                       plan.popular && !isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 
-                      isCurrentPlan ? 'ring-2 ring-green-500 mt-8' : 'mt-8'
+                      isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
                     }`}
                   >
                     <div className="p-8 flex flex-col flex-grow">
@@ -547,23 +631,23 @@ const PricingPage = () => {
                       <div className="mt-auto">
                         <Button
                           onClick={() => handleSubscribe(plan.name, plan.planId)}
-                          disabled={isNavigating || isCurrentPlan}
+                          disabled={isNavigating || isCurrentPlan || refreshingPlan}
                           className={`w-full ${
                             isCurrentPlan
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-default'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : plan.popular
                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : isFreePlan
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : isEnterprisePlan
-                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : 'bg-gray-900 hover:bg-gray-800'
-                          } ${(isNavigating || isCurrentPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
+                          } ${(isNavigating || isCurrentPlan || refreshingPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
                         >
-                          {isNavigating ? (
+                          {isNavigating || refreshingPlan ? (
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Redirecting...
+                              {isNavigating ? 'Redirecting...' : 'Refreshing...'}
                             </div>
                           ) : isCurrentPlan ? (
                             <div className="flex items-center gap-2">
@@ -575,7 +659,7 @@ const PricingPage = () => {
                           )}
                         </Button>
                         {isCurrentPlan && (
-                          <p className="text-xs text-green-600 text-center mt-2 font-medium">
+                          <p className="text-xs text-blue-600 text-center mt-2 font-medium">
                             ✓ You're subscribed to this plan
                           </p>
                         )}
@@ -674,20 +758,20 @@ const PricingPage = () => {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
                 onClick={() => handleSubscribe('Free', 'free')}
-                disabled={isNavigating || (user && isUserSubscribedToPlan('free'))}
-                className={`${(user && isUserSubscribedToPlan('free')) ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={isNavigating || (user && isPlanCurrentPlan('free'))}
+                className={`${(user && isPlanCurrentPlan('free')) ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isNavigating ? 'Redirecting...' : (user && isUserSubscribedToPlan('free')) ? 'Current Plan ✓' : 'Start Free Plan'}
+                {isNavigating ? 'Redirecting...' : (user && isPlanCurrentPlan('free')) ? 'Current Plan ✓' : 'Start Free Plan'}
               </Button>
               <Button 
                 onClick={() => {
                   const proPlan = plans.find(p => p.planId === 'pro');
                   if (proPlan) handleSubscribe(proPlan.name, proPlan.planId);
                 }}
-                disabled={isNavigating || (user && isUserSubscribedToPlan('pro'))}
-                className={`${(user && isUserSubscribedToPlan('pro')) ? 'bg-green-100 text-green-700 border-green-300 cursor-default' : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'} px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={isNavigating || (user && isPlanCurrentPlan('pro'))}
+                className={`${(user && isPlanCurrentPlan('pro')) ? 'bg-green-100 text-green-700 border-green-300 cursor-default' : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'} px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isNavigating ? 'Redirecting...' : (user && isUserSubscribedToPlan('pro')) ? 'Current Pro Plan ✓' : 'Try Professional Free'}
+                {isNavigating ? 'Redirecting...' : (user && isPlanCurrentPlan('pro')) ? 'Current Pro Plan ✓' : 'Try Professional Free'}
               </Button>
             </div>
             <p className="text-gray-500 text-xs mt-4">

@@ -1,7 +1,8 @@
+// users.js (Router)
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const userController = require('../controllers/userController');
+const userController = require('../controllers/user/userController');
 
 // ✅ REGISTER USER
 router.post('/register', userController.register);
@@ -65,5 +66,8 @@ router.get('/template-access/:templateId', auth, userController.checkTemplateAcc
 
 // ✅ GET USER CURRENT PLAN INFO
 router.get('/current-plan', auth, userController.getUserCurrentPlan);
+
+// ✅ VERIFY PLAN STATUS
+router.get('/verify-plan-status', auth, userController.verifyPlanStatus);
 
 module.exports = router;
