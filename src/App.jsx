@@ -18,6 +18,7 @@ import LoginPage from "@/pages/LoginPage";
 import Settings from "./pages/Settings";
 import PricingPolicy from './pages/PricingPolicy';
 import PaymentResult from './pages/PaymentResult';
+import FavoritesPage from './pages/FavoritesPage';
 
 // ===== Auth Pages =====
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -121,6 +122,16 @@ function App() {
             </ProtectedUserRoute>
           }
         />
+
+        <Route
+          path="/favorites"
+          element={
+            <ProtectedUserRoute>
+              <FavoritesPage />
+            </ProtectedUserRoute>
+          }
+        />
+        
         <Route
           path="/settings"
           element={

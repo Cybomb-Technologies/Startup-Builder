@@ -22,7 +22,7 @@ const deleteTemplateImage = async (req, res) => {
   try {
     const { id, imageId } = req.params;
 
-    console.log('🗑️ Deleting template image:', { id, imageId });
+    // console.log('🗑️ Deleting template image:', { id, imageId });
 
     const template = await Template.findById(id);
     if (!template) {
@@ -46,9 +46,9 @@ const deleteTemplateImage = async (req, res) => {
     // Delete from GridFS
     try {
       await gridFSBucket.delete(image.fileId);
-      console.log('✅ Image deleted from GridFS');
+      // console.log('✅ Image deleted from GridFS');
     } catch (error) {
-      console.log('⚠️ Could not delete image from GridFS:', error.message);
+      // console.log('⚠️ Could not delete image from GridFS:', error.message);
     }
 
     // Remove from template images array
@@ -61,7 +61,7 @@ const deleteTemplateImage = async (req, res) => {
 
     await template.save();
 
-    console.log('✅ Image deleted from template');
+    // console.log('✅ Image deleted from template');
 
     // Populate the updated template
     const updatedTemplate = await Template.findById(template._id)

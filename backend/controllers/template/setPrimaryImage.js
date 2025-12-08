@@ -8,7 +8,7 @@ const setPrimaryImage = async (req, res) => {
   try {
     const { id, imageId } = req.params;
 
-    console.log('⭐ Setting primary image:', { id, imageId });
+    // console.log('⭐ Setting primary image:', { id, imageId });
 
     const template = await Template.findById(id);
     if (!template) {
@@ -25,7 +25,7 @@ const setPrimaryImage = async (req, res) => {
 
     await template.save();
 
-    console.log('✅ Primary image set');
+    // console.log('✅ Primary image set');
 
     // Populate the updated template
     const updatedTemplate = await Template.findById(template._id)

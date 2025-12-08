@@ -246,18 +246,18 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       count: 0
     },
     
-    {
-      type: 'divider',
-      label: 'Settings'
-    },
-    {
-      name: 'System Settings',
-      path: 'settings',
-      icon: Settings,
-      description: 'System configuration',
-      badge: null,
-      count: 0
-    }
+    // {
+    //   type: 'divider',
+    //   label: 'Settings'
+    // },
+    // {
+    //   name: 'System Settings',
+    //   path: 'settings',
+    //   icon: Settings,
+    //   description: 'System configuration',
+    //   badge: null,
+    //   count: 0
+    // }
   ];
 
   const handleLogout = () => {
@@ -321,14 +321,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
             <Shield className="w-3 h-3" />
             <span>Administrator Access</span>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="p-1 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-            title="Refresh Data"
-          >
-            <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
+          
         </div>
       </div>
 

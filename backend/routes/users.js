@@ -70,4 +70,13 @@ router.get('/current-plan', auth, userController.getUserCurrentPlan);
 // ✅ VERIFY PLAN STATUS
 router.get('/verify-plan-status', auth, userController.verifyPlanStatus);
 
+// ✅ GET USER FAVORITES
+router.get('/favorites', auth, require('../controllers/user/favoriteController').getFavorites);
+
+// ✅ ADD TO FAVORITES
+router.post('/favorites', auth, require('../controllers/user/favoriteController').addToFavorites);
+
+// ✅ REMOVE FROM FAVORITES
+router.delete('/favorites/:templateId', auth, require('../controllers/user/favoriteController').removeFromFavorites);
+
 module.exports = router;

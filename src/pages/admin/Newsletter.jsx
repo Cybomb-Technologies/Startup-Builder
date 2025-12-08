@@ -325,13 +325,6 @@ const Newsletter = () => {
               </div>
             </div>
             
-            <Button
-              onClick={loadSubscribers}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="w-4 h-4" />
-              Refresh
-            </Button>
           </div>
         </div>
       </div>

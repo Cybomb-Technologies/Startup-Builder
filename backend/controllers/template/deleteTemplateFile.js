@@ -36,10 +36,10 @@ const deleteTemplateFile = async (req, res) => {
       });
     }
 
-    console.log('🗑️ Deleting file from template:', {
-      templateId: template._id,
-      fileId: template.file.fileId
-    });
+    // console.log('🗑️ Deleting file from template:', {
+    //   templateId: template._id,
+    //   fileId: template.file.fileId
+    // });
 
     // Delete file from GridFS
     await gridFSBucket.delete(template.file.fileId);
@@ -48,7 +48,7 @@ const deleteTemplateFile = async (req, res) => {
     template.file = null;
     await template.save();
 
-    console.log('✅ File deleted from template:', req.params.id);
+    // console.log('✅ File deleted from template:', req.params.id);
 
     res.status(200).json({
       success: true,

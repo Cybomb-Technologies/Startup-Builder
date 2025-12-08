@@ -20,7 +20,7 @@ mongoose.connection.on('connected', () => {
 // @access  Private/Admin
 const downloadTemplateFile = async (req, res) => {
   try {
-    console.log('📥 Download request for template:', req.params.id);
+    // console.log('📥 Download request for template:', req.params.id);
     
     const template = await Template.findById(req.params.id);
     
@@ -51,10 +51,10 @@ const downloadTemplateFile = async (req, res) => {
     template.downloadCount += 1;
     await template.save();
 
-    console.log('✅ Streaming file download:', {
-      fileName: template.file.fileName,
-      fileSize: template.file.fileSize
-    });
+    // console.log('✅ Streaming file download:', {
+    //   fileName: template.file.fileName,
+    //   fileSize: template.file.fileSize
+    // });
 
     // Set headers
     res.setHeader('Content-Type', template.file.fileType || 'application/octet-stream');

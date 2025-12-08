@@ -9,7 +9,7 @@ const reorderImages = async (req, res) => {
     const { id } = req.params;
     const { imageOrder } = req.body;
 
-    console.log('🔄 Reordering images:', { id, imageOrder });
+    // console.log('🔄 Reordering images:', { id, imageOrder });
 
     const template = await Template.findById(id);
     if (!template) {
@@ -32,7 +32,7 @@ const reorderImages = async (req, res) => {
 
     await template.save();
 
-    console.log('✅ Images reordered');
+    // console.log('✅ Images reordered');
 
     // Populate the updated template
     const updatedTemplate = await Template.findById(template._id)

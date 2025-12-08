@@ -29,19 +29,19 @@ const deleteTemplate = async (req, res) => {
       });
     }
 
-    console.log('🗑️ Deleting template:', {
-      id: template._id,
-      documentId: template.documentId,
-      name: template.name
-    });
+    // console.log('🗑️ Deleting template:', {
+    //   id: template._id,
+    //   documentId: template.documentId,
+    //   name: template.name
+    // });
 
     // Delete file from GridFS if exists
     if (template.file && template.file.fileId) {
       try {
         await gridFSBucket.delete(template.file.fileId);
-        console.log('✅ File deleted from GridFS');
+        // console.log('✅ File deleted from GridFS');
       } catch (error) {
-        console.log('⚠️ Could not delete file from GridFS:', error.message);
+        // console.log('⚠️ Could not delete file from GridFS:', error.message);
       }
     }
 
@@ -50,16 +50,16 @@ const deleteTemplate = async (req, res) => {
       for (const image of template.images) {
         try {
           await gridFSBucket.delete(image.fileId);
-          console.log('✅ Image deleted from GridFS:', image.fileId);
+          // console.log('✅ Image deleted from GridFS:', image.fileId);
         } catch (error) {
-          console.log('⚠️ Could not delete image from GridFS:', error.message);
+          // console.log('⚠️ Could not delete image from GridFS:', error.message);
         }
       }
     }
 
     await Template.findByIdAndDelete(req.params.id);
 
-    console.log('✅ Template deleted successfully:', req.params.id);
+    // console.log('✅ Template deleted successfully:', req.params.id);
 
     res.status(200).json({
       success: true,

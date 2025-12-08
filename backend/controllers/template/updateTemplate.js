@@ -20,9 +20,9 @@ mongoose.connection.on('connected', () => {
 // @access  Private/Admin
 const updateTemplate = async (req, res) => {
   try {
-    console.log('📥 UPDATE TEMPLATE REQUEST RECEIVED');
-    console.log('📥 Request body:', req.body);
-    console.log('📥 Request files:', req.files);
+    // console.log('📥 UPDATE TEMPLATE REQUEST RECEIVED');
+    // console.log('📥 Request body:', req.body);
+    // console.log('📥 Request files:', req.files);
     
     const { 
       name, 
@@ -76,9 +76,9 @@ const updateTemplate = async (req, res) => {
         if (template.file && template.file.fileId) {
           gridFSBucket.delete(template.file.fileId, (err) => {
             if (err) {
-              console.log('⚠️ Could not delete old file:', err.message);
+              // console.log('⚠️ Could not delete old file:', err.message);
             } else {
-              console.log('✅ Old file deleted');
+              // console.log('✅ Old file deleted');
             }
           });
         }
@@ -104,7 +104,7 @@ const updateTemplate = async (req, res) => {
               uploadDate: new Date()
             };
 
-            console.log('✅ New file uploaded to GridFS:', fileData);
+            // console.log('✅ New file uploaded to GridFS:', fileData);
 
             // Update template with new file
             template = await Template.findByIdAndUpdate(
@@ -126,10 +126,10 @@ const updateTemplate = async (req, res) => {
             .populate('accessLevel', 'name')
             .populate('createdBy', 'name email');
 
-            console.log('✅ Template updated successfully with file:', {
-              id: template._id,
-              documentId: template.documentId
-            });
+            // console.log('✅ Template updated successfully with file:', {
+            //   id: template._id,
+            //   documentId: template.documentId
+            // });
 
             res.status(200).json({
               success: true,
@@ -184,10 +184,10 @@ const updateTemplate = async (req, res) => {
       .populate('accessLevel', 'name')
       .populate('createdBy', 'name email');
 
-      console.log('✅ Template updated successfully:', {
-        id: template._id,
-        documentId: template.documentId
-      });
+      // console.log('✅ Template updated successfully:', {
+      //   id: template._id,
+      //   documentId: template.documentId
+      // });
 
       res.status(200).json({
         success: true,
