@@ -1,13 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, Menu, X, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { FileText, Menu, X, User, LogOut, Settings, ChevronDown, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const profileRef = useRef(null);
@@ -26,11 +30,71 @@ const Navbar = () => {
     };
   }, []);
 
+  // Fetch favorites count when user is logged in
+  useEffect(() => {
+    const fetchFavoritesCount = async () => {
+      const token = localStorage.getItem('token');
+      if (!user || !token) {
+        setFavoritesCount(0);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL || ''}/api/users/favorites`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFavoritesCount(data.count || 0);
+        } else {
+          setFavoritesCount(0);
+        }
+      } catch (error) {
+        console.error('Error fetching favorites count:', error);
+        setFavoritesCount(0);
+      }
+    };
+
+    fetchFavoritesCount();
+    
+    // Set up an interval to refresh favorites count periodically
+    const intervalId = setInterval(fetchFavoritesCount, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [user]);
+
+  // Listen for favorite updates from other components
+  useEffect(() => {
+    const handleFavoriteUpdate = () => {
+      // Trigger a refetch of favorites count
+      const token = localStorage.getItem('token');
+      if (user && token) {
+        fetch(`${API_BASE_URL || ''}/api/users/favorites`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.ok ? response.json() : { count: 0 })
+          .then(data => setFavoritesCount(data.count || 0))
+          .catch(() => setFavoritesCount(0));
+      }
+    };
+
+    window.addEventListener('favoriteUpdated', handleFavoriteUpdate);
+    return () => window.removeEventListener('favoriteUpdated', handleFavoriteUpdate);
+  }, [user]);
+
   const handleLogout = () => {
     logout();
     navigate('/');
     setIsProfileOpen(false);
-    setIsOpen(false); // Also close mobile menu
+    setIsOpen(false);
+    setFavoritesCount(0);
   };
 
   // Function to handle navigation and close menus
@@ -75,18 +139,27 @@ const Navbar = () => {
             <Link to="/pricing" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Pricing
             </Link>
-            {/* <Link to="/blog" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Blog */}
-            {/* </Link> */}
             <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               About
             </Link>
-            {/* <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Contact
-            </Link> */}
             
             {user ? (
               <div className="flex items-center space-x-4">
+                {/* Favorites Button */}
+                {/* <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleNavigation('/favorites')}
+                  className="relative text-gray-700 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                >
+                  <Heart className="w-4 h-4" fill="currentColor" />
+                  {favoritesCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-pink-600 text-white text-xs">
+                      {favoritesCount}
+                    </Badge>
+                  )}
+                </Button> */}
+
                 {/* User Profile Dropdown */}
                 <div className="relative" ref={profileRef}>
                   <button
@@ -120,13 +193,24 @@ const Navbar = () => {
                         </p>
                       </div>
 
-                      {/* Menu Items - Fixed navigation */}
+                      {/* Menu Items */}
                       <button
                         onClick={() => handleNavigation('/dashboard')}
                         className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <User className="w-4 h-4 mr-3" />
                         Dashboard
+                      </button>
+
+                      <button
+                        onClick={() => handleNavigation('/favorites')}
+                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <Heart className="w-4 h-4 mr-3" fill="currentColor" />
+                        Favorites
+                        <Badge className="ml-auto bg-pink-100 text-pink-600 text-xs">
+                          {favoritesCount}
+                        </Badge>
                       </button>
 
                       {/* <button
@@ -188,13 +272,6 @@ const Navbar = () => {
             >
               Pricing
             </Link>
-            {/* <Link 
-              to="/blog" 
-              className="block text-gray-700 hover:text-blue-600 py-2"
-              onClick={() => setIsOpen(false)}
-            >
-              Blog
-            </Link> */}
             <Link 
               to="/about" 
               className="block text-gray-700 hover:text-blue-600 py-2"
@@ -211,6 +288,20 @@ const Navbar = () => {
             </Link>
             {user ? (
               <>
+                {/* Favorites Button for Mobile */}
+                <button
+                  onClick={() => handleNavigation('/favorites')}
+                  className="flex items-center w-full text-gray-700 hover:text-pink-600 hover:bg-pink-50 py-2 px-4 rounded-lg transition-colors"
+                >
+                  <Heart className="w-4 h-4 mr-3" fill="currentColor" />
+                  Favorites
+                  {favoritesCount > 0 && (
+                    <Badge className="ml-auto bg-pink-600 text-white text-xs">
+                      {favoritesCount}
+                    </Badge>
+                  )}
+                </button>
+
                 {/* Mobile User Profile */}
                 <div className="border-t border-gray-100 pt-4">
                   <div className="flex items-center space-x-3 py-2 px-2 mb-3">
@@ -229,7 +320,7 @@ const Navbar = () => {
 
                   <button
                     onClick={() => handleNavigation('/dashboard')}
-                    className="w-full"
+                    className="w-full mb-2"
                   >
                     <Button variant="outline" className="w-full justify-start">
                       <User className="w-4 h-4 mr-2" />
@@ -237,19 +328,19 @@ const Navbar = () => {
                     </Button>
                   </button>
                   
-                  <button
+                  {/* <button
                     onClick={() => handleNavigation('/settings')}
-                    className="w-full block py-2"
+                    className="w-full mb-2"
                   >
                     <Button variant="outline" className="w-full justify-start">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </Button>
-                  </button>
+                  </button> */}
                   
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 mt-2" 
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
                     onClick={handleLogout}
                   >
                     <LogOut className="w-4 h-4 mr-2" />

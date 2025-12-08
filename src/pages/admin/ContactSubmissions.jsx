@@ -451,13 +451,7 @@ const ContactSubmissions = () => {
               )}
               Export CSV
             </Button>
-            <Button
-              onClick={loadSubmissions}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <Filter className="w-4 h-4" />
-              Refresh
-            </Button>
+
           </div>
         </div>
       </div>

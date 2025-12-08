@@ -247,10 +247,7 @@ const UsersPage = () => {
             <Download className="w-4 h-4" />
             Export Excel
           </Button>
-          <Button onClick={loadUsers} variant="outline" className="flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </Button>
+          
         </div>
       </div>
 

@@ -60,7 +60,19 @@ const userSchema = new mongoose.Schema({
   },
   nextPaymentDate: {
     type: Date
-  }
+  },
+  // ADD THIS FAVORITES FIELD
+  favorites: [{
+    template: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Template',
+      required: true
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });

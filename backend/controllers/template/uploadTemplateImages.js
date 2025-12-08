@@ -21,8 +21,8 @@ mongoose.connection.on('connected', () => {
 // @access  Private/Admin
 const uploadTemplateImages = async (req, res) => {
   try {
-    console.log('📸 UPLOAD TEMPLATE IMAGES REQUEST RECEIVED');
-    console.log('📸 Request files:', req.files);
+    // console.log('📸 UPLOAD TEMPLATE IMAGES REQUEST RECEIVED');
+    // console.log('📸 Request files:', req.files);
     
     const template = await Template.findById(req.params.id);
     if (!template) {
@@ -44,22 +44,22 @@ const uploadTemplateImages = async (req, res) => {
 
     // Process each image
     for (const image of images) {
-      console.log('📸 Processing image:', {
-        fileName: image.name,
-        fileSize: image.size,
-        fileType: image.mimetype
-      });
+      // console.log('📸 Processing image:', {
+      //   fileName: image.name,
+      //   fileSize: image.size,
+      //   fileType: image.mimetype
+      // });
 
       // Validate image type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedTypes.includes(image.mimetype)) {
-        console.log('❌ Invalid image type:', image.mimetype);
+        // console.log('❌ Invalid image type:', image.mimetype);
         continue; // Skip invalid images but continue with others
       }
 
       // Validate image size (5MB limit)
       if (image.size > 5 * 1024 * 1024) {
-        console.log('❌ Image too large:', image.size);
+        // console.log('❌ Image too large:', image.size);
         continue;
       }
 
@@ -111,7 +111,7 @@ const uploadTemplateImages = async (req, res) => {
     template.images.push(...uploadedImages);
     await template.save();
 
-    console.log('✅ Images uploaded successfully:', uploadedImages.length);
+    // console.log('✅ Images uploaded successfully:', uploadedImages.length);
 
     // Populate the updated template
     const updatedTemplate = await Template.findById(template._id)

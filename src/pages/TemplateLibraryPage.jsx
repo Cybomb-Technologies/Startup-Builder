@@ -24,7 +24,20 @@ import {
   Clock,
   Users,
   Lock,
-  Crown
+  Crown,
+  ChevronDown,
+  ChevronUp,
+  Folder,
+  FolderOpen,
+  Grid,
+  List,
+  LayoutGrid,
+  MoreVertical,
+  Check,
+  Tag,
+  Hash,
+  Layers,
+  Filter as FilterIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,14 +57,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+// Import the dropdown components
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from '@/components/ui/dropdown-menu';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Import the separate components
 import TemplateImageCarousel from '@/components/TemplateImageCarousel';
 import TemplateThumbnail from '@/components/TemplateThumbnail';
 
-// API service
+// API service (keep as is - same as before)
 const apiService = {
   baseURL: process.env.NODE_ENV === 'production' 
     ? '/api' 
@@ -126,7 +146,6 @@ const apiService = {
   },
 
   async getTemplates() {
-    // Public endpoint - shows all templates
     const data = await this.makeRequest('/templates');
     return data.templates || data.data || data;
   },
@@ -244,48 +263,23 @@ const apiService = {
   },
 
   async addToFavorites(templateId) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Please login to add favorites');
-    }
-
-    const data = await this.makeRequest('/user/favorites', {
+    const data = await this.makeRequest('/users/favorites', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
       body: JSON.stringify({ templateId }),
     });
     return data;
   },
 
   async removeFromFavorites(templateId) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Please login to remove favorites');
-    }
-
-    const data = await this.makeRequest(`/user/favorites/${templateId}`, {
+    const data = await this.makeRequest(`/users/favorites/${templateId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
     return data;
   },
 
   async getUserFavorites() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return [];
-    }
-
-    const data = await this.makeRequest('/user/favorites', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    return data.favorites || data.data || data;
+    const data = await this.makeRequest('/users/favorites');
+    return data.favorites || [];
   },
 
   async downloadImage(imageUrl) {
@@ -457,6 +451,336 @@ const QuickStats = ({ templates, filteredTemplates, userPlan }) => {
   );
 };
 
+// Scalable Category Selector for Sidebar Only
+const SidebarCategorySelector = ({ 
+  categories, 
+  selectedCategory, 
+  setSelectedCategory,
+  categoryCounts = {}
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  
+  // Calculate total templates
+  const totalTemplates = Object.values(categoryCounts).reduce((a, b) => a + b, 0);
+  
+  // Filter categories based on search
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // Show first 5 categories by default, show all when "Show All" is clicked
+  const maxVisible = 3;
+  const visibleCategories = showAll ? filteredCategories : filteredCategories.slice(0, maxVisible);
+  
+  const hasManyCategories = categories.length > maxVisible;
+  const hasSearchResults = searchTerm && filteredCategories.length > 0;
+
+  // Color generator for selected category
+  const getCategoryColor = (categoryId) => {
+    const colors = [
+      'bg-gradient-to-r from-blue-500 to-blue-600',
+      'bg-gradient-to-r from-purple-500 to-purple-600',
+      'bg-gradient-to-r from-green-500 to-green-600',
+      'bg-gradient-to-r from-orange-500 to-orange-600',
+      'bg-gradient-to-r from-red-500 to-red-600',
+      'bg-gradient-to-r from-pink-500 to-pink-600',
+      'bg-gradient-to-r from-indigo-500 to-indigo-600',
+      'bg-gradient-to-r from-teal-500 to-teal-600'
+    ];
+    
+    const index = categories.findIndex(c => c._id === categoryId);
+    return colors[index % colors.length] || 'bg-gradient-to-r from-gray-500 to-gray-600';
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <FolderOpen className="w-5 h-5" />
+            Categories
+            {/* <Badge variant="secondary" className="ml-2">
+              {categories.length}
+            </Badge> */}
+          </h3>
+        </div>
+
+        {/* Search for categories */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            type="text"
+            placeholder="Search categories..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Category list with scroll */}
+        <div className="max-h-96 overflow-y-auto pr-2">
+          {/* All Categories Option */}
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`w-full flex items-center justify-between px-3 py-3 rounded-lg mb-2 transition-all duration-200 ${
+              selectedCategory === 'all'
+                ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-md'
+                : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${selectedCategory === 'all' ? 'bg-white/20' : 'bg-gray-100'}`}>
+                <LayoutGrid className={`w-4 h-4 ${selectedCategory === 'all' ? 'text-white' : 'text-gray-500'}`} />
+              </div>
+              <div className="text-left">
+                <span className="font-semibold">All Templates</span>
+                <p className="text-xs text-gray-500">Browse all categories</p>
+              </div>
+            </div>
+            {/* <Badge variant={selectedCategory === 'all' ? "secondary" : "outline"}>
+              {totalTemplates}
+            </Badge> */}
+          </button>
+
+          {/* Categories List */}
+          <div className="space-y-2">
+            {visibleCategories.map((category) => (
+              <button
+                key={category._id}
+                onClick={() => setSelectedCategory(category._id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                  selectedCategory === category._id
+                    ? `${getCategoryColor(category._id)} text-white shadow-md`
+                    : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-1.5 rounded-lg ${selectedCategory === category._id ? 'bg-white/20' : 'bg-gray-100'}`}>
+                    <Folder className={`w-4 h-4 ${selectedCategory === category._id ? 'text-white' : 'text-gray-500'}`} />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-medium block">{category.name}</span>
+                    {category.description && (
+                      <span className="text-xs text-gray-500 block truncate max-w-[150px]">
+                        {category.description}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                     {selectedCategory === category._id && (
+                    <Check className="w-4 h-4" />
+                  )}
+                </div>
+              </button>
+            ))}
+
+            {/* Show More/Less Button */}
+            {hasManyCategories && filteredCategories.length > maxVisible && !showAll && (
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAll(true)}
+                  className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                  Show More ({filteredCategories.length - maxVisible} more)
+                </Button>
+              </div>
+            )}
+
+            {/* Show Less Button */}
+            {showAll && (
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAll(false)}
+                  className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                  Show Less
+                </Button>
+              </div>
+            )}
+
+            {/* No search results */}
+            {searchTerm && filteredCategories.length === 0 && (
+              <div className="text-center py-4">
+                <p className="text-gray-500">No categories found matching "{searchTerm}"</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Search results info */}
+        {hasSearchResults && (
+          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-600">
+              Found {filteredCategories.length} categories matching "{searchTerm}"
+            </p>
+          </div>
+        )}
+
+        {/* Selected Category Info */}
+        {selectedCategory !== 'all' && categories.find(c => c._id === selectedCategory) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200"
+          >
+            <div className="flex items-start gap-3">
+              <Folder className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-blue-800">
+                  {categories.find(c => c._id === selectedCategory)?.name}
+                </h4>
+                {categories.find(c => c._id === selectedCategory)?.description && (
+                  <p className="text-sm text-blue-600 mt-1">
+                    {categories.find(c => c._id === selectedCategory)?.description}
+                  </p>
+                )}
+                {categoryCounts[selectedCategory] > 0 && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    {categoryCounts[selectedCategory]} templates available
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Mobile Category Selector (for dialog)
+const MobileCategorySelector = ({ 
+  categories, 
+  selectedCategory, 
+  setSelectedCategory,
+  categoryCounts = {}
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalTemplates = Object.values(categoryCounts).reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium text-gray-900">Categories</h3>
+        <Badge variant="outline">{categories.length}</Badge>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Input
+          type="text"
+          placeholder="Search categories..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      <div className="h-64 overflow-y-auto space-y-2">
+        {/* All Categories */}
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between ${
+            selectedCategory === 'all'
+              ? 'bg-blue-600 text-white'
+              : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="w-4 h-4" />
+            <span className="font-medium">All Templates</span>
+          </div>
+
+        </button>
+
+        {/* Categories */}
+        {filteredCategories.map((category) => (
+          <button
+            key={category._id}
+            onClick={() => setSelectedCategory(category._id)}
+            className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between ${
+              selectedCategory === category._id
+                ? 'bg-blue-100 border border-blue-300 text-blue-700'
+                : 'hover:bg-gray-100 text-gray-700'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Folder className="w-4 h-4" />
+              <div>
+                <span className="block font-medium">{category.name}</span>
+                {category.description && (
+                  <span className="text-xs text-gray-500 block truncate max-w-[180px]">
+                    {category.description}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {categoryCounts[category._id] > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {categoryCounts[category._id]}
+                </Badge>
+              )}
+              {selectedCategory === category._id && (
+                <Check className="w-4 h-4 text-blue-600" />
+              )}
+            </div>
+          </button>
+        ))}
+
+        {/* No search results */}
+        {searchTerm && filteredCategories.length === 0 && (
+          <div className="text-center py-4">
+            <p className="text-gray-500">No categories found</p>
+          </div>
+        )}
+      </div>
+
+      {/* Selected Category Info */}
+      {selectedCategory !== 'all' && categories.find(c => c._id === selectedCategory) && (
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Folder className="w-4 h-4 text-blue-600" />
+            <div>
+              <p className="font-medium text-blue-800">
+                {categories.find(c => c._id === selectedCategory)?.name}
+              </p>
+              {categoryCounts[selectedCategory] > 0 && (
+                <p className="text-xs text-blue-600">
+                  {categoryCounts[selectedCategory]} templates
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TemplateLibraryPage = () => {
   const [templates, setTemplates] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -488,6 +812,18 @@ const TemplateLibraryPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, token, isAuthenticated } = useAuth();
+
+  // Calculate template counts per category
+  const categoryCounts = React.useMemo(() => {
+    const counts = {};
+    templates.forEach(template => {
+      const categoryId = template.category?._id || template.category;
+      if (categoryId) {
+        counts[categoryId] = (counts[categoryId] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [templates]);
 
   // Test server connection first
   useEffect(() => {
@@ -569,6 +905,7 @@ const TemplateLibraryPage = () => {
       
       setTemplates(enhancedTemplates);
       console.log(`✅ Loaded ${enhancedTemplates.length} templates`);
+      console.log(`📊 Loaded ${categoriesData?.length || 0} categories`);
       console.log('📊 Sample template:', enhancedTemplates[0]);
 
     } catch (err) {
@@ -930,14 +1267,6 @@ const TemplateLibraryPage = () => {
 
   const fileTypes = getUniqueFileTypes();
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return 'N/A';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   // Template Card Component
   const TemplateCard = ({ template, index }) => {
     const isFavorite = userFavorites.has(template._id);
@@ -1009,29 +1338,14 @@ const TemplateLibraryPage = () => {
 
           <CardContent className="pb-3">
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              {/* <FileExtensionBadge format={template.fileExtension} /> */}
-              {/* <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">
-                {template.category?.name || 'Uncategorized'}
-              </Badge> */}
               <AccessLevelBadge accessLevel={template.accessLevel} userPlan={userPlan} />
-              {hasImages && (
+              {/* {hasImages && (
                 <Badge variant="outline" className="bg-green-500/10 text-green-600">
                   <Image className="w-3 h-3 mr-1" />
                   {template.imageUrls.length}
                 </Badge>
-              )}
+              )} */}
             </div>
-
-            {/* <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Download className="w-3 h-3" />
-                <span>{template.downloadCount || 0}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{new Date(template.updatedAt).toLocaleDateString()}</span>
-              </div>
-            </div> */}
 
             {!hasAccess && isAuthenticated && (
               <div className="mt-3 p-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
@@ -1236,37 +1550,13 @@ const TemplateLibraryPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Categories */}
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setSelectedCategory('all')}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                          selectedCategory === 'all'
-                            ? 'bg-blue-600 text-white'
-                            : 'hover:bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        All Categories
-                      </button>
-                      {categories.map((category) => (
-                        <button
-                          key={category._id}
-                          onClick={() => setSelectedCategory(category._id)}
-                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                            selectedCategory === category._id
-                              ? 'bg-blue-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {category.name}
-                        </button>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Categories Panel - Sidebar Only */}
+                <SidebarCategorySelector
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  categoryCounts={categoryCounts}
+                />
 
                 {/* Access Level Filter */}
                 <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-sm">
@@ -1275,31 +1565,32 @@ const TemplateLibraryPage = () => {
                     <div className="space-y-2">
                       <button
                         onClick={() => setFilters(f => ({ ...f, access: 'all' }))}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
                           filters.access === 'all'
-                            ? 'bg-blue-600 text-white'
-                            : 'hover:bg-gray-100 text-gray-700'
+                            ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
+                            : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
                         }`}
                       >
-                        All Templates
+                        <span>All Templates</span>
+                        
                       </button>
                       {accessLevels.map((accessLevel) => (
                         <button
                           key={accessLevel._id}
                           onClick={() => setFilters(f => ({ ...f, access: accessLevel.name.toLowerCase() }))}
-                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
                             filters.access === accessLevel.name.toLowerCase()
-                              ? 'bg-blue-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-700'
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                              : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
                             <span>{accessLevel.name}</span>
                             {accessLevel.name.toLowerCase() !== 'free' && (
                               <Crown className="w-3 h-3 text-yellow-500" fill="currentColor" />
                             )}
                           </div>
-                        </button>
+                          </button>
                       ))}
                     </div>
                   </CardContent>
@@ -1397,6 +1688,7 @@ const TemplateLibraryPage = () => {
                       ? `in ${categories.find(c => c._id === selectedCategory)?.name || 'Selected Category'}` 
                       : 'across all categories'}
                     {filters.access !== 'all' && ` • ${filters.access.toUpperCase()} access only`}
+                    {selectedCategory !== 'all' && categoryCounts[selectedCategory] && ` • ${categoryCounts[selectedCategory]} templates`}
                   </p>
                 </div>
 
@@ -1494,69 +1786,57 @@ const TemplateLibraryPage = () => {
 
       {/* Mobile Filters Dialog */}
       <Dialog open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Filters</DialogTitle>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <FilterIcon className="w-5 h-5" />
+              Filters & Categories
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 p-1">
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                    selectedCategory === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  All Categories
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category._id}
-                    onClick={() => setSelectedCategory(category._id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                      selectedCategory === category._id
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
+          
+          <div className="space-y-6 py-4">
+            <MobileCategorySelector
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              categoryCounts={categoryCounts}
+            />
 
             <div>
               <h3 className="font-medium text-gray-900 mb-3">Access Level</h3>
               <div className="space-y-2">
                 <button
                   onClick={() => setFilters(f => ({ ...f, access: 'all' }))}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
                     filters.access === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-100 text-gray-700'
+                      ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
+                      : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
                   }`}
                 >
-                  All Templates
+                  <span>All Templates</span>
+                  <Badge variant={filters.access === 'all' ? 'secondary' : 'outline'}>
+                    {templates.length}
+                  </Badge>
                 </button>
                 {accessLevels.map((accessLevel) => (
                   <button
                     key={accessLevel._id}
                     onClick={() => setFilters(f => ({ ...f, access: accessLevel.name.toLowerCase() }))}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
                       filters.access === accessLevel.name.toLowerCase()
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                        : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <span>{accessLevel.name}</span>
                       {accessLevel.name.toLowerCase() !== 'free' && (
                         <Crown className="w-3 h-3 text-yellow-500" fill="currentColor" />
                       )}
                     </div>
+                    <Badge variant={filters.access === accessLevel.name.toLowerCase() ? 'secondary' : 'outline'}>
+                      {templates.filter(t => t.accessLevel?.name?.toLowerCase() === accessLevel.name.toLowerCase()).length}
+                    </Badge>
                   </button>
                 ))}
               </div>
@@ -1597,6 +1877,21 @@ const TemplateLibraryPage = () => {
                   <SelectItem value="name">Name A-Z</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="pt-4 border-t">
+              <Button 
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                  setSelectedSubCategory('all');
+                  setFilters({ fileType: 'all', access: 'all', sortBy: 'newest' });
+                }} 
+                variant="outline" 
+                className="w-full"
+              >
+                Clear All Filters
+              </Button>
             </div>
           </div>
         </DialogContent>

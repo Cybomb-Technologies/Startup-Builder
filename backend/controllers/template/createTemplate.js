@@ -24,9 +24,9 @@ mongoose.connection.on('connected', () => {
 // @access  Private/Admin
 const createTemplate = async (req, res) => {
   try {
-    console.log('📥 CREATE TEMPLATE REQUEST RECEIVED');
-    console.log('📥 Request body:', req.body);
-    console.log('📥 Request files:', req.files);
+    // console.log('📥 CREATE TEMPLATE REQUEST RECEIVED');
+    // console.log('📥 Request body:', req.body);
+    // console.log('📥 Request files:', req.files);
     
     const { 
       name, 
@@ -151,7 +151,7 @@ const createTemplate = async (req, res) => {
               uploadDate: new Date()
             };
 
-            console.log('✅ File uploaded to GridFS:', fileData);
+            // console.log('✅ File uploaded to GridFS:', fileData);
 
             // Create template with file reference
             const template = await Template.create({
@@ -170,11 +170,11 @@ const createTemplate = async (req, res) => {
             await template.populate('accessLevel', 'name');
             await template.populate('createdBy', 'name email');
 
-            console.log('✅ Template created successfully with file:', {
-              id: template._id,
-              documentId: template.documentId,
-              name: template.name
-            });
+            // console.log('✅ Template created successfully with file:', {
+            //   id: template._id,
+            //   documentId: template.documentId,
+            //   name: template.name
+            // });
 
             res.status(201).json({
               success: true,
@@ -211,7 +211,7 @@ const createTemplate = async (req, res) => {
       });
     } else {
       // Create template without file
-      console.log('📝 Creating template without file');
+      // console.log('📝 Creating template without file');
       
       try {
         const template = await Template.create({
@@ -229,11 +229,11 @@ const createTemplate = async (req, res) => {
         await template.populate('accessLevel', 'name');
         await template.populate('createdBy', 'name email');
 
-        console.log('✅ Template created successfully (no file):', {
-          id: template._id,
-          documentId: template.documentId,
-          name: template.name
-        });
+        // console.log('✅ Template created successfully (no file):', {
+        //   id: template._id,
+        //   documentId: template.documentId,
+        //   name: template.name
+        // });
 
         res.status(201).json({
           success: true,

@@ -23,7 +23,7 @@ const getTemplateImage = async (req, res) => {
     const { id, imageId } = req.params;
     const { size } = req.query;
 
-    console.log('📸 Getting template image:', { id, imageId, size });
+    // console.log('📸 Getting template image:', { id, imageId, size });
 
     const template = await Template.findById(id);
     if (!template) {
