@@ -205,10 +205,7 @@ const LoginPage = () => {
                 </div>
               )}
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center text-sm text-blue-800">
-                <strong>Note:</strong> Connected to API at{' '}
-                <code className="bg-blue-100 px-1 rounded">{API_BASE_URL}</code>
-              </div>
+            
             </div>
           </div>
         </motion.div>
