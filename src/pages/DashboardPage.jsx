@@ -1042,25 +1042,29 @@ const Dashboard = () => {
               
               {/* Total Spent (with tax included) */}
               {billingData.totalSpent > 0 && (
-                <div className="pt-4 border-t">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-600">Total Spent:</span>
-                    <span className="font-semibold">
-                      {formatCurrency(billingData.totalSpent)}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    <div className="flex justify-between">
-                      <span>Base Amount:</span>
-                      <span>{formatCurrency(billingData.totalSpent / (1 + TAX_RATE))}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>GST ({TAX_RATE * 100}%):</span>
-                      <span>{formatCurrency(billingData.totalSpent * TAX_RATE / (1 + TAX_RATE))}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+    <div className="pt-4 border-t">
+        <div className="flex justify-between items-center mb-2">
+            <span className="text-gray-600">Total Spent:</span>
+            <span className="font-semibold">
+                {/* *** MODIFIED HERE *** Pass 'INR' as the second argument to formatCurrency
+                */}
+                {formatCurrency(billingData.totalSpent, 'INR')} 
+            </span>
+        </div>
+        <div className="text-xs text-gray-500">
+            <div className="flex justify-between">
+                <span>Base Amount:</span>
+                {/* *** MODIFIED HERE *** */}
+                <span>{formatCurrency(billingData.totalSpent / (1 + TAX_RATE), 'INR')}</span>
+            </div>
+            <div className="flex justify-between">
+                <span>GST ({TAX_RATE * 100}%):</span>
+                {/* *** MODIFIED HERE *** */}
+                <span>{formatCurrency(billingData.totalSpent * TAX_RATE / (1 + TAX_RATE), 'INR')}</span>
+            </div>
+        </div>
+    </div>
+)}
               
             </div>
           </div>
