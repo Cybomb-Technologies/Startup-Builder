@@ -7,7 +7,7 @@ const TestimonialsSection = () => {
     { 
       name: 'Rajesh Kumar', 
       role: 'Founder, TechStart', 
-      text: 'StartupDocs saved us weeks of legal paperwork. Highly recommended!', 
+      text: 'Paplixo saved us weeks of legal paperwork. Highly recommended!', 
       rating: 5 
     },
     { 

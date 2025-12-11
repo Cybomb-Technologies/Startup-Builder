@@ -181,7 +181,7 @@ const PricingPolicy = () => {
           </p>
           <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
             <p className="text-indigo-600 text-xl font-semibold">
-              📩 support@startupdocs.com
+              📩 support@cybomb.com
             </p>
             <p className="text-gray-600 mt-2">
               Our support team typically responds within 24 hours.

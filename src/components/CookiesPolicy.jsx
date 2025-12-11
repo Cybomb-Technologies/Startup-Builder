@@ -97,7 +97,7 @@ const CookiesPolicy = () => {
               <div className="prose prose-lg max-w-none">
                 <div className="mb-8 p-6 bg-amber-50 rounded-xl border border-amber-200">
                   <p className="text-amber-800 font-semibold">
-                    This Cookies Policy explains how StartupDocs Builder uses cookies and similar technologies 
+                    This Cookies Policy explains how Paplixo uses cookies and similar technologies 
                     to recognize you when you visit our website. It explains what these technologies are and 
                     why we use them, as well as your rights to control our use of them.
                   </p>
@@ -338,7 +338,7 @@ const CookiesPolicy = () => {
                         <Eye className="w-5 h-5 mr-3 mt-1 text-amber-600" />
                         <div>
                           <h4 className="font-semibold text-gray-900">Questions about Cookies?</h4>
-                          <p className="text-gray-700">privacy@startupdocsbuilder.com</p>
+                          <p className="text-gray-700">support@cybomb.com</p>
                         </div>
                       </div>
                       <p className="text-gray-700 text-sm">

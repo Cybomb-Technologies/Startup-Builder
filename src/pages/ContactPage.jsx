@@ -100,7 +100,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-700">support@startupdocs.com</p>
+                    <p className="text-gray-700">support@cybomb.com</p>
                   </div>
                 </div>
  

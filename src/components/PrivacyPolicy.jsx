@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
               <div className="prose prose-lg max-w-none">
                 <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
                   <p className="text-blue-800 font-semibold">
-                    This Privacy Policy describes how StartupDocs Builder ("we," "our," or "us") collects, uses, 
+                    This Privacy Policy describes how Paplixo ("we," "our," or "us") collects, uses, 
                     and protects your personal information when you use our website and services.
                   </p>
                 </div>
@@ -212,7 +212,7 @@ const PrivacyPolicy = () => {
                         <Mail className="w-5 h-5 mr-3 mt-1 text-blue-600" />
                         <div>
                           <h4 className="font-semibold text-gray-900">Privacy Questions</h4>
-                          <p className="text-gray-700">privacy@startupdocsbuilder.com</p>
+                          <p className="text-gray-700">support@cybomb.com</p>
                         </div>
                       </div>
                       <p className="text-gray-700 text-sm">

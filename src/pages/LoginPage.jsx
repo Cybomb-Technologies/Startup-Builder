@@ -78,10 +78,10 @@ const LoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>{isSignup ? 'Sign Up' : 'Login'} - StartupDocs Builder</title>
+        <title>{isSignup ? 'Sign Up' : 'Login'} - Paplixo</title>
         <meta
           name="description"
-          content="Access your StartupDocs Builder account to manage your documents."
+          content="Access your Paplixo Builder account to manage your documents."
         />
       </Helmet>
 
@@ -97,7 +97,7 @@ const LoginPage = () => {
               <div className="w-16 h-16 bg-white/20 backdrop-blur-lg rounded-xl flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8" />
               </div>
-              <h1 className="text-3xl font-bold mb-2">StartupDocs Builder</h1>
+              <h1 className="text-3xl font-bold mb-2">Paplixo</h1>
               <p className="text-blue-100">
                 {isSignup ? 'Join us today!' : 'Simplify Compliance. Amplify Growth.'}
               </p>

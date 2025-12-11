@@ -313,7 +313,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Admin Panel
             </h1>
-            <p className="text-gray-400 text-sm">StartupDocs Builder</p>
+            <p className="text-gray-400 text-sm">Paplixo</p>
           </div>
         </div>
         <div className="flex items-center justify-between">
@@ -419,7 +419,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
                 {adminData?.name || 'Administrator'}
               </p>
               <p className="text-xs text-gray-400 truncate">
-                {adminData?.email || 'admin@startupdocs.com'}
+                {adminData?.email || 'admin@Paplixo.com'}
               </p>
             </div>
           </div>

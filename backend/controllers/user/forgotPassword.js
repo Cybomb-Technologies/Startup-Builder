@@ -39,7 +39,7 @@ exports.forgotPassword = async (req, res) => {
     const message = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4F46E5; text-align: center;">Password Reset OTP</h2>
-        <p>You requested a password reset for your StartupDocs Builder account.</p>
+        <p>You requested a password reset for your Paplixo account.</p>
         <p>Your OTP code is:</p>
         <div style="text-align: center; margin: 30px 0;">
           <div style="font-size: 32px; font-weight: bold; color: #4F46E5; letter-spacing: 8px; background: #f3f4f6; padding: 20px; border-radius: 8px; display: inline-block;">
@@ -55,7 +55,7 @@ exports.forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: email,
-      subject: 'StartupDocs Builder - Password Reset OTP',
+      subject: 'Paplixo - Password Reset OTP',
       html: message,
     });
 
