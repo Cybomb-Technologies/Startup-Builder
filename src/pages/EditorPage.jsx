@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { Helmet } from 'react-helmet';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -76,6 +77,15 @@ const EditorPage = () => {
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+      <Helmet>
+        <title>Editor - Paplixo</title>
+        <meta
+          name="description"
+          content="Edit text, images, colors, and layouts effortlessly using Paplixo's fast and intuitive template editor."
+        />
+
+      </Helmet>
+
       {/* small overlay brand */}
       <div
         style={{
@@ -94,7 +104,7 @@ const EditorPage = () => {
           borderRight: "2px solid #555",
         }}
       >
-        Startup Docs
+        Paplixo
       </div>
 
       <div id="editor" style={{ width: "100%", height: "100%" }} />

@@ -131,7 +131,7 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.json({
         success: true,
-        message: 'StartupDocs Builder API is running...',
+        message: ' Paplixo API is running...',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development'

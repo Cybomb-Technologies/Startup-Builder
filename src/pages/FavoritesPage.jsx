@@ -245,6 +245,7 @@ const FavoriteTemplateCard = ({ favorite, onRemove, index }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
+      
       <Card className="h-full bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-pink-300 hover:shadow-lg transition-all duration-300 overflow-hidden group">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
@@ -415,7 +416,7 @@ const FavoritesPage = () => {
     return (
       <>
         <Helmet>
-          <title>Loading Favorites - StartupDocs Builder</title>
+          <title>Loading Favorites - Paplixo</title>
         </Helmet>
         <div className="min-h-screen bg-gradient-to-br from-pink-50/30 to-purple-50/30 flex items-center justify-center">
           <div className="text-center">
@@ -430,9 +431,13 @@ const FavoritesPage = () => {
   return (
     <>
       <Helmet>
-        <title>My Favorites - StartupDocs Builder</title>
-        <meta name="description" content="Browse and manage your favorite templates for quick access." />
-      </Helmet>
+  <title>My Favorites - Paplixo</title>
+  <meta
+    name="description"
+    content="View and manage your favorite templates on Paplixo. Quickly access the designs you've saved for later."
+  />
+</Helmet>
+
 
       <div className="min-h-screen bg-gradient-to-br from-pink-50/30 to-purple-50/30">
         {/* Header */}

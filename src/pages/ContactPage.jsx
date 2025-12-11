@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
  
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const ContactPage = () => {
@@ -59,8 +60,8 @@ const ContactPage = () => {
   return (
     <>
       <Helmet>
-        <title>Contact Us - StartupDocs Builder</title>
-        <meta name="description" content="Get in touch with StartupDocs Builder. We're here to help with your documentation needs." />
+        <title>Contact Us - Paplixo </title>
+        <meta name="description" content="Get in touch with Paplixo. We're here to help with your documentation needs." />
       </Helmet>
  
       <div className="min-h-screen">
@@ -99,7 +100,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-700">support@startupdocs.com</p>
+                    <p className="text-gray-700">support@cybomb.com</p>
                   </div>
                 </div>
  

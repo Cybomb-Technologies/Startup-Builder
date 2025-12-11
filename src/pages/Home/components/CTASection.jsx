@@ -20,7 +20,7 @@ const CTASection = () => {
             Ready to Simplify Your Documentation?
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            Join thousands of startups already using StartupDocs Builder
+            Join thousands of startups already using Paplixo
           </p>
           <Link to={isAuthenticated ? "/dashboard" : "/login"}>
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6">

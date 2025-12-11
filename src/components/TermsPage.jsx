@@ -8,9 +8,13 @@ const TermsOfService = () => {
   return (
     <>
       <Helmet>
-        <title>Terms of Service - StartupDocs Builder</title>
-        <meta name="description" content="Terms and conditions for using StartupDocs Builder services and templates." />
-      </Helmet>
+  <title>Terms of Service - Paplixo</title>
+  <meta
+    name="description"
+    content="Review Paplixo's Terms of Service to understand usage rules, account guidelines, content rights, and platform policies."
+  />
+</Helmet>
+
 
       <div className="min-h-screen bg-gray-50">
         
@@ -44,7 +48,7 @@ const TermsOfService = () => {
               <div className="prose prose-lg max-w-none">
                 <div className="mb-8 p-6 bg-green-50 rounded-xl border border-green-200">
                   <p className="text-green-800 font-semibold">
-                    Please read these Terms of Service carefully before using StartupDocs Builder. 
+                    Please read these Terms of Service carefully before using Paplixo. 
                     By accessing or using our service, you agree to be bound by these terms.
                   </p>
                 </div>
@@ -58,7 +62,7 @@ const TermsOfService = () => {
                     </h2>
                     <div className="space-y-4 text-gray-700">
                       <p>
-                        By accessing or using StartupDocs Builder ("Service"), you agree to be bound by these 
+                        By accessing or using Paplixo ("Service"), you agree to be bound by these 
                         Terms of Service and all applicable laws and regulations. If you do not agree with any 
                         of these terms, you are prohibited from using or accessing this Service.
                       </p>
@@ -166,7 +170,7 @@ const TermsOfService = () => {
                     <h2 className="text-2xl font-bold mb-6 text-gray-900">5. Intellectual Property</h2>
                     <div className="space-y-4 text-gray-700">
                       <p>
-                        StartupDocs Builder owns all intellectual property rights in the Service, including but not limited to:
+                       Cybomb Technologies pvt Ltd owns all intellectual property rights in the Service, including but not limited to:
                       </p>
                       <ul className="list-disc list-inside space-y-2 ml-4">
                         <li>Document templates and their structure</li>
@@ -207,7 +211,7 @@ const TermsOfService = () => {
                     <h2 className="text-2xl font-bold mb-6 text-gray-900">7. Limitation of Liability</h2>
                     <div className="bg-gray-100 p-6 rounded-lg">
                       <p className="text-gray-700 mb-4">
-                        To the maximum extent permitted by law, StartupDocs Builder shall not be liable for:
+                        To the maximum extent permitted by law, Paplixo shall not be liable for:
                       </p>
                       <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
                         <li>Any indirect, incidental, or consequential damages</li>
@@ -265,7 +269,7 @@ const TermsOfService = () => {
                         <BookOpen className="w-5 h-5 mr-3 mt-1 text-green-600" />
                         <div>
                           <h4 className="font-semibold text-gray-900">Questions about Terms?</h4>
-                          <p className="text-gray-700">legal@startupdocsbuilder.com</p>
+                          <p className="text-gray-700">support@cybomb.com</p>
                         </div>
                       </div>
                       <p className="text-gray-700 text-sm">

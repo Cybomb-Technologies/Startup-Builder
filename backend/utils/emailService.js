@@ -51,7 +51,7 @@ const sendEmail = async (emailOptions) => {
     }
  
     const mailOptions = {
-      from: `"StartupDocs" <${process.env.SMTP_USER}>`,
+      from: `"Paplixo" <${process.env.SMTP_USER}>`,
       to: emailOptions.to,
       subject: emailOptions.subject,
       html: emailOptions.html,
