@@ -104,7 +104,7 @@ const EditorPage = () => {
           borderRight: "2px solid #555",
         }}
       >
-        Startup Docs
+        Paplixo
       </div>
 
       <div id="editor" style={{ width: "100%", height: "100%" }} />

@@ -115,7 +115,7 @@ const CheckoutPage = () => {
     // Handle free plan
     if (plan.planId === 'free') {
       toast({
-        title: "Welcome to Startup Builder! 🎉",
+        title: "Welcome to Paplixo ! ",
         description: "Your free plan has been activated. Start creating now!",
       });
       navigate('/dashboard');

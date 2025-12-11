@@ -31,9 +31,9 @@ async function sendInvoiceEmail(
   const dashboardUrl = `${process.env.CLIENT_URL || "https://pdfworks.com"}/dashboard`;
 
   return transporter.sendMail({
-    from: `"Startup Builder Billing" <${process.env.SMTP_USER}>`,
+    from: `"Paplixo Billing" <${process.env.SMTP_USER}>`,
     to,
-    subject: `Your Startup Builder Invoice – ${transactionId}`,
+    subject: `Your Paplixo Invoice – ${transactionId}`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -210,7 +210,7 @@ async function sendInvoiceEmail(
           </p>
           <p class="muted" style="margin:0; font-size:12px; color:#64748b; line-height:1.6;">
             If you have any questions about your invoice or subscription, reply to this email or contact our support team at
-            <b style="color:#3b82f6;">support@startupbuilder.com</b>. We're here to help!
+            <b style="color:#3b82f6;">support@cybomb.com</b>. We're here to help!
           </p>
         </div>
       </div>
@@ -223,7 +223,7 @@ async function sendInvoiceEmail(
         border-top:1px solid #e2e8f0;
         background:#f8fafc;
       ">
-        <div>© ${currentYear} Startup Builder · Cybomb Technologies Pvt Ltd</div>
+        <div>© ${currentYear} Paplixo · Cybomb Technologies Pvt Ltd</div>
         <div style="margin-top:4px; font-size:10px; color:#cbd5e1;">
           This email was sent automatically. Please do not reply to this address.
         </div>

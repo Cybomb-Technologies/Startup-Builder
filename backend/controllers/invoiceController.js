@@ -109,12 +109,12 @@ async function buildInvoicePdfBuffer(transactionId, userId) {
       doc.fillColor("#ffffff")
         .fontSize(28)
         .font("Helvetica-Bold")
-        .text("Startup Builder", 120, 40);
+        .text("Paplixo", 120, 40);
 
       doc.fontSize(10)
         .font("Helvetica")
         .fillColor("#cbd5e1")
-        .text("Startup Builder Template Platform", 120, 75);
+        .text("Paplixo Template Platform", 120, 75);
 
       doc.fontSize(9)
         .text(
@@ -275,7 +275,7 @@ async function buildInvoicePdfBuffer(transactionId, userId) {
           "INVOICE TERMS\n" +
           "• This is a computer-generated invoice\n" +
           "• All amounts are inclusive of applicable taxes\n" +
-          "• For support, contact: support@startupBuider.com\n" +
+          "• For support, contact: support@cybomb.com\n" +
           "• Invoice ID: " + transactionId + "\n\n",
           termsX, qrY + 25
         );
@@ -288,7 +288,7 @@ async function buildInvoicePdfBuffer(transactionId, userId) {
         .fill();
       
       doc.fillColor("#64748b").fontSize(9)
-        .text("Thank you for choosing Startup Builder!", 0, pageHeight - 30, {
+        .text("Thank you for choosing Paplixo!", 0, pageHeight - 30, {
           align: "center",
           width: pageWidth
         });
