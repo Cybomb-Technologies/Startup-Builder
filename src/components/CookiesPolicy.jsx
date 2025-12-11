@@ -57,9 +57,13 @@ const CookiesPolicy = () => {
   return (
     <>
       <Helmet>
-        <title>Cookies Policy - StartupDocs Builder</title>
-        <meta name="description" content="Learn about how StartupDocs Builder uses cookies and similar technologies to enhance your experience." />
-      </Helmet>
+  <title>Cookie Policy - Paplixo</title>
+  <meta
+    name="description"
+    content="Read Paplixo's Cookie Policy to understand how we use cookies to improve performance, personalize content, and enhance your experience."
+  />
+</Helmet>
+
 
       <div className="min-h-screen bg-gray-50">
         

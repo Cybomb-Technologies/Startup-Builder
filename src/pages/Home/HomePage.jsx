@@ -12,7 +12,7 @@ const HomePage = () => {
   return (
     <>
       <Helmet>
-        <title>StartupDocs Builder - All Your Startup Documents in One Place</title>
+        <title>Paplixo - All Your Official Documents in One Place</title>
         <meta name="description" content="Access, edit, and download 1000+ verified business templates instantly. Simplify compliance and amplify growth for your startup." />
       </Helmet>
 

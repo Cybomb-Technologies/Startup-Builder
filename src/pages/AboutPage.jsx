@@ -15,8 +15,8 @@ const AboutPage = () => {
   return (
     <>
       <Helmet>
-        <title>About Us - StartupDocs Builder</title>
-        <meta name="description" content="Learn about StartupDocs Builder - empowering Indian startups with professional business documentation." />
+        <title>About Us - Paplixo</title>
+        <meta name="description" content="Learn about Paplixo - empowering Indian startups with professional business documentation." />
       </Helmet>
 
       <div className="min-h-screen">

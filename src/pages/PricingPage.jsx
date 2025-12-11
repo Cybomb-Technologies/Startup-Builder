@@ -396,9 +396,13 @@ const PricingPage = () => {
   return (
     <>
       <Helmet>
-        <title>Pricing - PDF Works | Choose Your Plan</title>
-        <meta name="description" content="Choose the perfect plan for your PDF needs. Simple, transparent pricing with no hidden fees. Free plan available." />
-      </Helmet>
+  <title>Pricing – Paplixo</title>
+  <meta
+  name="description"
+  content="Explore Paplixo pricing plans and unlock access to premium editable templates."
+/>
+</Helmet>
+
 
       <div className="min-h-screen bg-white">
         {/* Header Section */}

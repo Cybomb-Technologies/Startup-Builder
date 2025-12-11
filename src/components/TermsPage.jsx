@@ -8,9 +8,13 @@ const TermsOfService = () => {
   return (
     <>
       <Helmet>
-        <title>Terms of Service - StartupDocs Builder</title>
-        <meta name="description" content="Terms and conditions for using StartupDocs Builder services and templates." />
-      </Helmet>
+  <title>Terms of Service - Paplixo</title>
+  <meta
+    name="description"
+    content="Review Paplixo's Terms of Service to understand usage rules, account guidelines, content rights, and platform policies."
+  />
+</Helmet>
+
 
       <div className="min-h-screen bg-gray-50">
         

@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+import { Helmet } from 'react-helmet';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Dashboard = () => {
@@ -728,6 +730,14 @@ const Dashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Helmet>
+  <title>Dashboard - Paplixo</title>
+  <meta
+  name="description"
+  content="Your central workspace on Paplixo to manage templates, edits, downloads, and project activity."
+/>
+</Helmet>
+
       {/* Invoice Modal */}
       <InvoiceModal />
 

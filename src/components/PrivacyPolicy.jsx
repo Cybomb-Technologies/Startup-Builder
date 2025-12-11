@@ -9,9 +9,13 @@ const PrivacyPolicy = () => {
   return (
     <>
       <Helmet>
-        <title>Privacy Policy - StartupDocs Builder</title>
-        <meta name="description" content="Learn how StartupDocs Builder collects, uses, and protects your personal information and data." />
-      </Helmet>
+  <title>Privacy Policy - Paplixo</title>
+  <meta
+    name="description"
+    content="Read Paplixo's Privacy Policy to understand how we collect, use, protect, and manage your data while using our platform."
+  />
+</Helmet>
+
 
       <div className="min-h-screen bg-gray-50">
         
