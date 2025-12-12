@@ -180,7 +180,7 @@ const AdminPage = () => {
   return (
     <>
       <Helmet>
-        <title>Administration Panel - StartupDocs Builder</title>
+        <title>Administration Panel - Paplixo</title>
       </Helmet>
 
       <div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100">

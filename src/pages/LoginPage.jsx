@@ -78,10 +78,10 @@ const LoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>{isSignup ? 'Sign Up' : 'Login'} - StartupDocs Builder</title>
+        <title>{isSignup ? 'Sign Up' : 'Login'} - Paplixo</title>
         <meta
           name="description"
-          content="Access your StartupDocs Builder account to manage your documents."
+          content="Access your Paplixo Builder account to manage your documents."
         />
       </Helmet>
 
@@ -97,7 +97,7 @@ const LoginPage = () => {
               <div className="w-16 h-16 bg-white/20 backdrop-blur-lg rounded-xl flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8" />
               </div>
-              <h1 className="text-3xl font-bold mb-2">StartupDocs Builder</h1>
+              <h1 className="text-3xl font-bold mb-2">Paplixo</h1>
               <p className="text-blue-100">
                 {isSignup ? 'Join us today!' : 'Simplify Compliance. Amplify Growth.'}
               </p>
@@ -205,10 +205,7 @@ const LoginPage = () => {
                 </div>
               )}
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center text-sm text-blue-800">
-                <strong>Note:</strong> Connected to API at{' '}
-                <code className="bg-blue-100 px-1 rounded">{API_BASE_URL}</code>
-              </div>
+            
             </div>
           </div>
         </motion.div>

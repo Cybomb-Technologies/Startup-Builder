@@ -57,6 +57,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
+import Metatags from "../SEO/metatags.jsx";
+
+const metaPropsData = {
+  title:
+    "Free Templates to edit Online - PDF, Word, Excel | paplixo",
+  description:
+    "Discover a vast library of free, customizable templates for PDF, Word, Excel, and more. Edit online with ease at paplixo.",
+  keyword:
+    "free templates, online template editor, customizable templates, PDF templates, Word templates, Excel templates, document templates, template library, edit templates online, paplixo templates",
+  image:
+    "https://res.cloudinary.com/dcfjt8shw/image/upload/v1761288318/wn8m8g8skdpl6iz2rwoa.svg",
+  url: "https://paplixo.com/templates",
+};
+
 // Import the dropdown components
 import { 
   DropdownMenu, 
@@ -145,10 +159,16 @@ const apiService = {
     }
   },
 
-  async getTemplates() {
-    const data = await this.makeRequest('/templates');
-    return data.templates || data.data || data;
-  },
+ async getTemplates() {
+  const data = await this.makeRequest('/templates');
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.templates)) return data.templates;
+  if (Array.isArray(data?.data)) return data.data;
+
+  // fallback
+  return [];
+},
 
   async getCategories() {
     const data = await this.makeRequest('/categories');
@@ -877,7 +897,17 @@ const TemplateLibraryPage = () => {
       setCategories(categoriesData || []);
       setAccessLevels(accessLevelsData || []);
 
-      const enhancedTemplates = (templatesData || []).map(template => {
+     const safeTemplates =
+  Array.isArray(templatesData)
+    ? templatesData
+    : Array.isArray(templatesData?.templates)
+      ? templatesData.templates
+      : Array.isArray(templatesData?.data)
+        ? templatesData.data
+        : [];
+
+const enhancedTemplates = safeTemplates.map(template => {
+
         let fileExtension = 'docx';
 
         if (template.file && template.file.fileName) {
@@ -1432,7 +1462,7 @@ const TemplateLibraryPage = () => {
     return (
       <>
         <Helmet>
-          <title>Loading Templates - StartupDocs Builder</title>
+          <title>Loading Templates - Paplixo</title>
         </Helmet>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center">
           <div className="text-center">
@@ -1450,7 +1480,7 @@ const TemplateLibraryPage = () => {
     return (
       <>
         <Helmet>
-          <title>Error - StartupDocs Builder</title>
+          <title>Error - Paplixo</title>
         </Helmet>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
@@ -1478,11 +1508,11 @@ const TemplateLibraryPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Template Library - StartupDocs Builder</title>
+      <Metatags metaProps={metaPropsData} />
+      {/* <Helmet>
+        <title>Template Library - Paplixo</title>
         <meta name="description" content="Browse professional business document templates with preview images across Accounts, HR, Legal, Business, and Marketing categories." />
-      </Helmet>
-
+      </Helmet> */}
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
         {/* Header */}
         <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-40">

@@ -15,8 +15,8 @@ const AboutPage = () => {
   return (
     <>
       <Helmet>
-        <title>About Us - StartupDocs Builder</title>
-        <meta name="description" content="Learn about StartupDocs Builder - empowering Indian startups with professional business documentation." />
+        <title>About Us - Paplixo</title>
+        <meta name="description" content="Learn about Paplixo - empowering Indian startups with professional business documentation." />
       </Helmet>
 
       <div className="min-h-screen">
@@ -28,7 +28,7 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">About StartupDocs Builder</h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6">About Paplixo</h1>
               <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
                 Simplifying compliance and amplifying growth for Indian startups
               </p>
@@ -47,7 +47,7 @@ const AboutPage = () => {
                 Who We Are
               </h2>
               <p className="text-lg text-gray-700 mb-4">
-                StartupDocs Builder was founded with a simple mission: to make professional business documentation accessible to every startup, SME, and freelancer in India.
+                Paplixo was founded with a simple mission: to make professional business documentation accessible to every startup, SME, and freelancer in India.
               </p>
               <p className="text-lg text-gray-700 mb-4">
                 We understand the challenges new businesses face when dealing with legal documents, HR policies, and compliance requirements. That's why we've created a platform that simplifies the entire process.
@@ -97,7 +97,7 @@ const AboutPage = () => {
               Have questions? We'd love to hear from you.
             </p>
             <div className="space-y-2">
-              <p className="text-lg">Email: support@startupdocs.com</p>
+              <p className="text-lg">Email: support@cybomb.com</p>
               <p className="text-lg">Phone: +91 98765 43210</p>
               <p className="text-lg">Location: Chennai, India</p>
             </div>

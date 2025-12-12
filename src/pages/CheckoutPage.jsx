@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Shield, CreditCard, Building2, Crown, FileText, Loade
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { Helmet } from 'react-helmet';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,7 +14,7 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, token, logout } = useAuth(); // ✅ Added logout to handle invalid tokens
-  
+
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -42,7 +43,7 @@ const CheckoutPage = () => {
 
       if (data.success) {
         setPlan(data.plan);
-        
+
         if (navigationState.billingCycle) {
           setBillingCycle(navigationState.billingCycle);
         }
@@ -114,7 +115,7 @@ const CheckoutPage = () => {
     // Handle free plan
     if (plan.planId === 'free') {
       toast({
-        title: "Welcome to Startup Builder! 🎉",
+        title: "Welcome to Paplixo ! ",
         description: "Your free plan has been activated. Start creating now!",
       });
       navigate('/dashboard');
@@ -154,7 +155,7 @@ const CheckoutPage = () => {
       }
 
       if (data.success) {
-         window.open(data.paymentLink, "_blank");
+        window.open(data.paymentLink, "_blank");
         // window.location.href = data.paymentLink;
       } else {
         throw new Error(data.message || "Failed to create payment order");
@@ -210,8 +211,8 @@ const CheckoutPage = () => {
   // Get features
   const getFeatures = () => {
     if (!plan || !plan.features) return [];
-    
-    return plan.features.map(feature => 
+
+    return plan.features.map(feature =>
       typeof feature === 'string' ? feature : feature.name || feature.text
     );
   };
@@ -221,25 +222,25 @@ const CheckoutPage = () => {
   // Get plan icon and color
   const getPlanIcon = () => {
     if (!plan) return FileText;
-    
+
     const iconMap = {
       'free': FileText,
       'pro': Crown,
       'business': Building2
     };
-    
+
     return iconMap[plan.planId] || FileText;
   };
 
   const getPlanColor = () => {
     if (!plan) return 'from-blue-500 to-cyan-600';
-    
+
     const colorMap = {
       'free': 'from-green-500 to-emerald-600',
       'pro': 'from-blue-500 to-cyan-600',
       'business': 'from-purple-500 to-pink-500'
     };
-    
+
     return colorMap[plan.planId] || 'from-blue-500 to-cyan-600';
   };
 
@@ -266,6 +267,14 @@ const CheckoutPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <Helmet>
+        <title>Checkout - Paplixo | Download & Edit Professional Templates</title>
+        <meta
+          name="description"
+          content="Complete your purchase on Paplixo. Get instant access to professional, editable templates designed for beginners, and startups to launch and grow smarter."
+        />
+      </Helmet>
+
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <motion.div
@@ -322,21 +331,19 @@ const CheckoutPage = () => {
                 <div className="flex items-center justify-end space-x-2">
                   <button
                     onClick={() => setBillingCycle("monthly")}
-                    className={`px-4 py-2 rounded-lg border transition-colors ${
-                      billingCycle === "monthly"
+                    className={`px-4 py-2 rounded-lg border transition-colors ${billingCycle === "monthly"
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     Monthly
                   </button>
                   <button
                     onClick={() => setBillingCycle("annual")}
-                    className={`px-4 py-2 rounded-lg border transition-colors ${
-                      billingCycle === "annual"
+                    className={`px-4 py-2 rounded-lg border transition-colors ${billingCycle === "annual"
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     Annual {plan.annualDiscount && `(${plan.annualDiscount}% off)`}
                   </button>
@@ -351,21 +358,19 @@ const CheckoutPage = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setCurrency("USD")}
-                    className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
-                      currency === "USD"
+                    className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${currency === "USD"
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     USD ($)
                   </button>
                   <button
                     onClick={() => setCurrency("INR")}
-                    className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
-                      currency === "INR"
+                    className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${currency === "INR"
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     INR (₹)
                   </button>
@@ -409,7 +414,7 @@ const CheckoutPage = () => {
                 </span>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                {isFreePlan 
+                {isFreePlan
                   ? 'Your account will be activated immediately with access to all free features.'
                   : 'Your payment information is encrypted and secure. We use industry-standard SSL encryption to protect your data.'
                 }
@@ -436,11 +441,10 @@ const CheckoutPage = () => {
               <Button
                 onClick={handlePayment}
                 disabled={loading}
-                className={`w-full py-3 text-lg font-semibold ${
-                  loading 
-                    ? 'bg-gray-400 cursor-not-allowed' 
+                className={`w-full py-3 text-lg font-semibold ${loading
+                    ? 'bg-gray-400 cursor-not-allowed'
                     : `bg-gradient-to-r ${planColor} hover:opacity-90`
-                }`}
+                  }`}
               >
                 {loading ? (
                   <>

@@ -130,7 +130,7 @@ const HeroSection = () => {
         >
           {/* Main Heading */}
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            All Your Startup Documents in One Place
+            All Your Documents in One Place
           </h1>
           
           {/* Subtitle */}

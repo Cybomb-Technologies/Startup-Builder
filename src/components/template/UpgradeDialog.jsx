@@ -14,7 +14,7 @@ const UpgradeDialog = ({ open, onOpenChange, user, navigate }) => {
         </DialogHeader>
         <div className="py-4 text-center">
           <p className="mb-6">
-            {user ? "Upgrade your plan to unlock this template and many more powerful features." : "Join StartupDocs Builder to start creating and downloading documents."}
+            {user ? "Upgrade your plan to unlock this template and many more powerful features." : "Join Paplixo to start creating and downloading documents."}
           </p>
           <Button onClick={() => navigate(user ? '/pricing' : '/login')} className="bg-gradient-to-r from-blue-600 to-indigo-600">
             {user ? 'Upgrade to Pro' : 'Login or Sign Up'}

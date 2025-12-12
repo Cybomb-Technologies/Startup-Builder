@@ -11,6 +11,7 @@ import {
   FileText
 } from 'lucide-react';
 
+import { Helmet } from 'react-helmet';
 
 const PricingPolicy = () => {
   const policies = [
@@ -84,6 +85,14 @@ const PricingPolicy = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12">
+      <Helmet>
+  <title>Pricing Policy - Paplixo</title>
+  <meta
+    name="description"
+    content="Learn how Paplixo pricing works, including plan details, billing terms, refunds, and template access policies."
+  />
+</Helmet>
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -172,7 +181,7 @@ const PricingPolicy = () => {
           </p>
           <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
             <p className="text-indigo-600 text-xl font-semibold">
-              📩 support@startupdocs.com
+              📩 support@cybomb.com
             </p>
             <p className="text-gray-600 mt-2">
               Our support team typically responds within 24 hours.

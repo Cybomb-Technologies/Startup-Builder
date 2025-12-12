@@ -29,7 +29,7 @@ const Footer = () => {
     <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        {/* 🔹 Newsletter Section (Now ABOVE StartupDocs heading) */}
+        {/* 🔹 Newsletter Section*/}
         <div className="text-center mb-12">
           <h4 className="text-xl font-semibold mb-2">Subscribe to Our Newsletter</h4>
           <p className="text-gray-300 text-sm mb-4">
@@ -65,11 +65,11 @@ const Footer = () => {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold">StartupDocs</span>
+              <span className="text-xl font-bold">Paplixo</span>
             </div>
             <p className="text-gray-300 text-sm">
               Your all-in-one platform for business documentation. Access 1000+ verified templates, 
-              streamline compliance, and focus on what matters most — growing your business.
+              streamline compliance, and focus on what matters most — growing your busines.
             </p>
           </div>
 
@@ -146,7 +146,7 @@ const Footer = () => {
 
         {/* 🔹 Footer Bottom */}
         <div className="border-t border-gray-700 mt-10 pt-6 text-center text-gray-400 text-sm">
-          <p>&copy; 2025 StartupDocs Builder. All rights reserved.</p>
+          <p>&copy; © 2025 Cybomb Technologies Pvt Ltd. All rights reserved.</p>
         </div>
 
         {/* 🔹 Policy Links */}
