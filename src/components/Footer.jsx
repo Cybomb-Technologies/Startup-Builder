@@ -69,7 +69,7 @@ const Footer = () => {
             </div>
             <p className="text-gray-300 text-sm">
               Your all-in-one platform for business documentation. Access 1000+ verified templates, 
-              streamline compliance, and focus on what matters most — growing your business.
+              streamline compliance, and focus on what matters most — growing your busines.
             </p>
           </div>
 

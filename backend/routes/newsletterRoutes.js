@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { subscribe, getSubscribers } = require('../controllers/newsletter/newsletterController'); // Updated path
-const { adminProtect } = require('../middleware/adminauth');
+const { adminProtect } = require('../middleware/adminAuth');
 
 // Public routes
 router.post('/subscribe', subscribe);

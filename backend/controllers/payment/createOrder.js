@@ -95,8 +95,8 @@ const createOrder = async (req, res) => {
         },
         order_note: `Plan: ${plan.name}, Billing: ${billingCycle}, Currency: ${orderCurrency}`,
         order_meta: {
-          return_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/payment/result?order_id={order_id}`,
-          notify_url: `${process.env.API_URL || "http://localhost:5000"}/api/payments/webhook`,
+          return_url: `${process.env.CLIENT_URL}/payment/result?order_id={order_id}`,
+          notify_url: `${process.env.VITE_API_URL}/api/payments/webhook`,
         },
       };
 
