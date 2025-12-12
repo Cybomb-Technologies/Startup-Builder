@@ -159,10 +159,16 @@ const apiService = {
     }
   },
 
-  async getTemplates() {
-    const data = await this.makeRequest('/templates');
-    return data.templates || data.data || data;
-  },
+ async getTemplates() {
+  const data = await this.makeRequest('/templates');
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.templates)) return data.templates;
+  if (Array.isArray(data?.data)) return data.data;
+
+  // fallback
+  return [];
+},
 
   async getCategories() {
     const data = await this.makeRequest('/categories');
@@ -891,7 +897,17 @@ const TemplateLibraryPage = () => {
       setCategories(categoriesData || []);
       setAccessLevels(accessLevelsData || []);
 
-      const enhancedTemplates = (templatesData || []).map(template => {
+     const safeTemplates =
+  Array.isArray(templatesData)
+    ? templatesData
+    : Array.isArray(templatesData?.templates)
+      ? templatesData.templates
+      : Array.isArray(templatesData?.data)
+        ? templatesData.data
+        : [];
+
+const enhancedTemplates = safeTemplates.map(template => {
+
         let fileExtension = 'docx';
 
         if (template.file && template.file.fileName) {
