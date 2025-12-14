@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  Users, 
-  Mail, 
-  Calendar, 
-  RefreshCw, 
-  Filter, 
-  Download, 
+import {
+  Users,
+  Mail,
+  Calendar,
+  RefreshCw,
+  Filter,
+  Download,
   Eye,
   Package,
   DollarSign,
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import * as XLSX from 'xlsx';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const UsersPage = () => {
   const { toast } = useToast();
@@ -69,15 +69,15 @@ const UsersPage = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams();
       if (filters.search) params.append('search', filters.search);
       if (filters.plan !== 'all') params.append('plan', filters.plan);
       if (filters.status !== 'all') params.append('status', filters.status);
-      
+
       const queryString = params.toString();
       const url = `${API_BASE_URL}/api/admin/users${queryString ? `?${queryString}` : ''}`;
-      
+
       const response = await fetch(url, {
         headers: getAuthHeaders(),
       });
@@ -247,7 +247,7 @@ const UsersPage = () => {
             <Download className="w-4 h-4" />
             Export Excel
           </Button>
-          
+
         </div>
       </div>
 
@@ -263,22 +263,22 @@ const UsersPage = () => {
             <Input
               placeholder="Search by name or email..."
               value={filters.search}
-              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="pl-10"
             />
             {filters.search && (
               <button
-                onClick={() => setFilters({...filters, search: ''})}
+                onClick={() => setFilters({ ...filters, search: '' })}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
               >
                 <X className="w-4 h-4 text-gray-400" />
               </button>
             )}
           </div>
-          
+
           <Select
             value={filters.plan}
-            onValueChange={(value) => setFilters({...filters, plan: value})}
+            onValueChange={(value) => setFilters({ ...filters, plan: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Filter by Plan" />
@@ -377,7 +377,7 @@ const UsersPage = () => {
                           </span>
                         </div>
                       </td>
-                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 text-gray-400 mr-2" />
                           {formatDate(user.createdAt)}
@@ -394,11 +394,11 @@ const UsersPage = () => {
                             <Eye className="w-4 h-4" />
                             Preview
                           </Button>
-                          
+
                         </div>
                       </td>
                     </motion.tr>
-                    
+
                     {/* Expanded Row Details */}
                     {expandedRows.has(user._id) && (
                       <tr className="bg-gray-50">
@@ -421,7 +421,7 @@ const UsersPage = () => {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div>
                               <h4 className="font-medium text-gray-700 mb-2">Account Information</h4>
                               <div className="space-y-1">
@@ -441,7 +441,7 @@ const UsersPage = () => {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div>
                               <h4 className="font-medium text-gray-700 mb-2">Quick Actions</h4>
                               <div className="space-y-2">
@@ -478,7 +478,7 @@ const UsersPage = () => {
               Detailed information about the user
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedUser && (
             <div className="space-y-6">
               {/* User Profile Section */}

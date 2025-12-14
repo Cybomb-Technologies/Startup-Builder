@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Mail, Phone, MapPin } from "lucide-react";
-import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const Footer = () => {
   const [email, setEmail] = useState("");
@@ -12,16 +11,28 @@ const Footer = () => {
   const handleSubscribe = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/newsletter/subscribe`, { email });
-      setMessage("✅ Thank you for subscribing!");
-      setEmail("");
+      const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setMessage("✅ Thank you for subscribing!");
+        setEmail("");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.message === "Already subscribed") {
+          setMessage("⚠️ You are already subscribed.");
+        } else {
+          setMessage("❌ Subscription failed. Please try again.");
+        }
+      }
     } catch (error) {
       console.error(error);
-      if (error.response && error.response.data.message === "Already subscribed") {
-        setMessage("⚠️ You are already subscribed.");
-      } else {
-        setMessage("❌ Subscription failed. Please try again.");
-      }
+      setMessage("❌ Subscription failed. Please try again.");
     }
   };
 
@@ -68,7 +79,7 @@ const Footer = () => {
               <span className="text-xl font-bold">Paplixo</span>
             </div>
             <p className="text-gray-300 text-sm">
-              Your all-in-one platform for business documentation. Access 1000+ verified templates, 
+              Your all-in-one platform for business documentation. Access 1000+ verified templates,
               streamline compliance, and focus on what matters most — growing your busines.
             </p>
           </div>
@@ -89,7 +100,7 @@ const Footer = () => {
               <Link to="/contact" className="block text-gray-300 hover:text-white transition-colors">
                 Contact Us
               </Link>
-               
+
             </div>
           </div>
 
@@ -161,8 +172,8 @@ const Footer = () => {
             Cookies Policy
           </Link>
           <Link to="/pricing-policy" className="block text-gray-300 hover:text-white transition-colors">
-                Pricing Policy
-              </Link>
+            Pricing Policy
+          </Link>
         </div>
       </div>
     </footer>

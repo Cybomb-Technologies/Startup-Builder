@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +40,7 @@ const Navbar = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL || ''}/api/users/favorites`, {
+        const response = await fetch(`${API_BASE_URL}/api/users/favorites`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -60,10 +60,10 @@ const Navbar = () => {
     };
 
     fetchFavoritesCount();
-    
+
     // Set up an interval to refresh favorites count periodically
     const intervalId = setInterval(fetchFavoritesCount, 30000); // Refresh every 30 seconds
-    
+
     return () => clearInterval(intervalId);
   }, [user]);
 
@@ -73,7 +73,7 @@ const Navbar = () => {
       // Trigger a refetch of favorites count
       const token = localStorage.getItem('token');
       if (user && token) {
-        fetch(`${API_BASE_URL || ''}/api/users/favorites`, {
+        fetch(`${API_BASE_URL}/api/users/favorites`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -107,15 +107,15 @@ const Navbar = () => {
   // Function to get user initial
   const getUserInitial = () => {
     if (!user) return '';
-    
+
     if (user.name) {
       return user.name.charAt(0).toUpperCase();
     }
-    
+
     if (user.email) {
       return user.email.charAt(0).toUpperCase();
     }
-    
+
     return <User className="w-4 h-4" />;
   };
 
@@ -142,7 +142,7 @@ const Navbar = () => {
             <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               About
             </Link>
-            
+
             {user ? (
               <div className="flex items-center space-x-4">
                 {/* Favorites Button */}
@@ -258,29 +258,29 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0 }}
             className="md:hidden py-4 space-y-4"
           >
-            <Link 
-              to="/templates" 
+            <Link
+              to="/templates"
               className="block text-gray-700 hover:text-blue-600 py-2"
               onClick={() => setIsOpen(false)}
             >
               Templates
             </Link>
-            <Link 
-              to="/pricing" 
+            <Link
+              to="/pricing"
               className="block text-gray-700 hover:text-blue-600 py-2"
               onClick={() => setIsOpen(false)}
             >
               Pricing
             </Link>
-            <Link 
-              to="/about" 
+            <Link
+              to="/about"
               className="block text-gray-700 hover:text-blue-600 py-2"
               onClick={() => setIsOpen(false)}
             >
               About
             </Link>
-            <Link 
-              to="/contact" 
+            <Link
+              to="/contact"
               className="block text-gray-700 hover:text-blue-600 py-2"
               onClick={() => setIsOpen(false)}
             >
@@ -327,7 +327,7 @@ const Navbar = () => {
                       Dashboard
                     </Button>
                   </button>
-                  
+
                   {/* <button
                     onClick={() => handleNavigation('/settings')}
                     className="w-full mb-2"
@@ -337,10 +337,10 @@ const Navbar = () => {
                       Settings
                     </Button>
                   </button> */}
-                  
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={handleLogout}
                   >
                     <LogOut className="w-4 h-4 mr-2" />

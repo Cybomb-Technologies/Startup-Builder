@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const PricingPage = () => {
   const { toast } = useToast();
@@ -61,7 +61,7 @@ const PricingPage = () => {
     try {
       // Refresh user data from auth context
       await refreshUser();
-      
+
       // Fetch updated user plan
       const response = await fetch(`${API_URL}/api/users/current-plan`, {
         headers: {
@@ -160,17 +160,17 @@ const PricingPage = () => {
   // Get user's current active plan ID
   const getUserCurrentPlanId = () => {
     if (!user) return null;
-    
+
     // Priority 1: Check userPlan from API (most accurate)
     if (userPlan && userPlan.planId) {
       return userPlan.planId;
     }
-    
+
     // Priority 2: Check user context
     if (user.planId && user.planId !== 'free') {
       return user.planId;
     }
-    
+
     // Priority 3: Check for most recent successful payment
     const successfulPayments = userPayments.filter(p => p.status === 'success');
     if (successfulPayments.length > 0) {
@@ -179,7 +179,7 @@ const PricingPage = () => {
       const latestPayment = successfulPayments[0];
       return latestPayment.planId;
     }
-    
+
     // Default to free if no paid plan found
     return 'free';
   };
@@ -198,7 +198,7 @@ const PricingPage = () => {
 
   const formatPrice = (inrPrice, isCustom = false) => {
     if (isCustom) return 'Custom';
-    
+
     if (currency === 'USD') {
       const usdPrice = inrPrice / exchangeRate;
       return `$${usdPrice.toFixed(2)}`;
@@ -210,15 +210,15 @@ const PricingPage = () => {
     if (!user) {
       return planId === 'free' ? 'Get Started Free' : 'Subscribe Now';
     }
-    
+
     if (isPlanCurrentPlan(planId)) {
       return 'Current Plan';
     }
-    
+
     if (planId === 'free') {
       return 'Switch to Free';
     }
-    
+
     return 'Upgrade Now';
   };
 
@@ -226,17 +226,17 @@ const PricingPage = () => {
     if (!user) {
       return isPopular ? 'gradient-blue' : 'default';
     }
-    
+
     if (isPlanCurrentPlan(planId)) {
       return 'current-plan';
     }
-    
+
     return isPopular ? 'gradient-blue' : 'default';
   };
 
   const handleSubscribe = async (planName, planId) => {
     if (isNavigating) return;
-    
+
     // Prevent action if user is already subscribed to this plan
     if (user && isPlanCurrentPlan(planId)) {
       toast({
@@ -246,9 +246,9 @@ const PricingPage = () => {
       });
       return;
     }
-    
+
     setIsNavigating(true);
-    
+
     try {
       // For free plan, redirect to checkout page
       if (planId === 'free') {
@@ -263,8 +263,8 @@ const PricingPage = () => {
         }
 
         // Navigate to checkout page for free plan
-        navigate(`/checkout/${planId}`, { 
-          state: { 
+        navigate(`/checkout/${planId}`, {
+          state: {
             billingCycle: isYearly ? 'annual' : 'monthly',
             currency,
             exchangeRate,
@@ -277,8 +277,8 @@ const PricingPage = () => {
 
       // For enterprise plan, redirect to checkout with contact form
       if (planId === 'enterprise') {
-        navigate(`/checkout/${planId}`, { 
-          state: { 
+        navigate(`/checkout/${planId}`, {
+          state: {
             billingCycle: isYearly ? 'annual' : 'monthly',
             currency,
             exchangeRate,
@@ -300,8 +300,8 @@ const PricingPage = () => {
       }
 
       // For paid plans, navigate to checkout
-      navigate(`/checkout/${planId}`, { 
-        state: { 
+      navigate(`/checkout/${planId}`, {
+        state: {
           billingCycle: isYearly ? 'annual' : 'monthly',
           currency,
           exchangeRate,
@@ -396,12 +396,12 @@ const PricingPage = () => {
   return (
     <>
       <Helmet>
-  <title>Pricing – Paplixo</title>
-  <meta
-  name="description"
-  content="Explore Paplixo pricing plans and unlock access to premium editable templates."
-/>
-</Helmet>
+        <title>Pricing – Paplixo</title>
+        <meta
+          name="description"
+          content="Explore Paplixo pricing plans and unlock access to premium editable templates."
+        />
+      </Helmet>
 
 
       <div className="min-h-screen bg-white">
@@ -531,7 +531,7 @@ const PricingPage = () => {
               const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
               const originalPrice = isYearly ? plan.monthlyPrice * 12 : null;
               const isCurrentPlan = user && isPlanCurrentPlan(plan.planId);
-              
+
               return (
                 <div key={plan._id} className="relative">
                   {/* Most Popular Badge */}
@@ -573,23 +573,21 @@ const PricingPage = () => {
                       </div>
                     </div>
                   )} */}
-                  
+
                   {/* Card Content */}
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`bg-white rounded-2xl shadow-lg flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-200 h-full ${
-                      plan.popular && !isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 
-                      isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
-                    }`}
+                    className={`bg-white rounded-2xl shadow-lg flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-200 h-full ${plan.popular && !isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' :
+                        isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
+                      }`}
                   >
                     <div className="p-8 flex flex-col flex-grow">
                       {/* Header section */}
                       <div className="text-center mb-6">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 mx-auto ${
-                          isCurrentPlan ? 'opacity-100' : ''
-                        }`}>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4 mx-auto ${isCurrentPlan ? 'opacity-100' : ''
+                          }`}>
                           <Icon className="h-6 w-6 text-white" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
@@ -636,17 +634,16 @@ const PricingPage = () => {
                         <Button
                           onClick={() => handleSubscribe(plan.name, plan.planId)}
                           disabled={isNavigating || isCurrentPlan || refreshingPlan}
-                          className={`w-full ${
-                            isCurrentPlan
+                          className={`w-full ${isCurrentPlan
                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                               : plan.popular
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                              : isFreePlan
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                              : isEnterprisePlan
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                              : 'bg-gray-900 hover:bg-gray-800'
-                          } ${(isNavigating || isCurrentPlan || refreshingPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
+                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                                : isFreePlan
+                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                                  : isEnterprisePlan
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                                    : 'bg-gray-900 hover:bg-gray-800'
+                            } ${(isNavigating || isCurrentPlan || refreshingPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
                         >
                           {isNavigating || refreshingPlan ? (
                             <div className="flex items-center gap-2">
@@ -731,7 +728,7 @@ const PricingPage = () => {
                     <h3 className="font-semibold text-gray-900 text-sm">{faq.question}</h3>
                     <span className={`transform transition-transform ${expandedFaq === index ? 'rotate-180' : ''}`}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </span>
                   </div>
@@ -760,14 +757,14 @@ const PricingPage = () => {
               Start with our free plan today. No credit card required. Upgrade anytime to unlock powerful PDF features.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
+              <Button
                 onClick={() => handleSubscribe('Free', 'free')}
                 disabled={isNavigating || (user && isPlanCurrentPlan('free'))}
                 className={`${(user && isPlanCurrentPlan('free')) ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white px-6 py-2 font-semibold rounded-full disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isNavigating ? 'Redirecting...' : (user && isPlanCurrentPlan('free')) ? 'Current Plan ✓' : 'Start Free Plan'}
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   const proPlan = plans.find(p => p.planId === 'pro');
                   if (proPlan) handleSubscribe(proPlan.name, proPlan.planId);

@@ -4,12 +4,12 @@ import { ChevronLeft, ChevronRight, X, Download, Image as ImageIcon } from 'luci
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
-const TemplateImageCarousel = ({ 
-  images, 
-  isOpen, 
-  onClose, 
+const TemplateImageCarousel = ({
+  images,
+  isOpen,
+  onClose,
   templateName,
-  onDownload 
+  onDownload
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState({});
@@ -33,13 +33,13 @@ const TemplateImageCarousel = ({
   }, [isOpen]);
 
   const nextImage = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === images.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? images.length - 1 : prevIndex - 1
     );
   };
@@ -75,17 +75,17 @@ const TemplateImageCarousel = ({
     console.log(`✅ Successfully loaded image ${index}:`, images[index]?.url);
     setImageLoadErrors(prev => ({ ...prev, [index]: false }));
   };
-  const API_BASE_URL = import.meta.env.VITE_API_URL;
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
   // Ensure URLs are absolute
   const getImageUrl = (image) => {
     if (!image || !image.url) return null;
-    
+
     if (image.url.startsWith('http')) {
       return image.url;
     } else {
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? window.location.origin 
+      const baseURL = process.env.NODE_ENV === 'production'
+        ? 'https://api.paplixo.com'
         : `${API_BASE_URL}`;
       return `${baseURL}${image.url}`;
     }
@@ -103,30 +103,30 @@ const TemplateImageCarousel = ({
       <div className="relative max-w-6xl max-h-full w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black bg-opacity-50 text-white">
-  <div className="flex items-center gap-4">
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={onClose}
-      className="text-white hover:bg-white/20"
-    >
-      <X className="w-5 h-5" />
-    </Button>
-  </div>
-  
-  <div className="flex items-center gap-2">
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleDownload}
-      className="text-black border-white hover:bg-white hover:text-black"
-      disabled={hasLoadError}
-    >
-      <Download className="w-4 h-4 mr-1" />
-      Download
-    </Button>
-  </div>
-</div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="text-black border-white hover:bg-white hover:text-black"
+              disabled={hasLoadError}
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Download
+            </Button>
+          </div>
+        </div>
 
         {/* Main Image */}
         <div className="flex-1 relative flex items-center justify-center">
@@ -188,18 +188,17 @@ const TemplateImageCarousel = ({
               {images.map((image, index) => {
                 const thumbnailUrl = getImageUrl(image);
                 const hasThumbnailError = imageLoadErrors[index];
-                
+
                 return (
                   <button
                     key={index}
                     onClick={() => goToImage(index)}
-                    className={`flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition-all ${
-                      index === currentIndex 
-                        ? 'border-blue-500 scale-110' 
-                        : hasThumbnailError 
-                          ? 'border-red-500' 
-                          : 'border-transparent hover:border-white'
-                    }`}
+                    className={`flex-shrink-0 w-16 h-16 border-2 rounded overflow-hidden transition-all ${index === currentIndex
+                      ? 'border-blue-500 scale-110'
+                      : hasThumbnailError
+                        ? 'border-red-500'
+                        : 'border-transparent hover:border-white'
+                      }`}
                   >
                     {hasThumbnailError || !thumbnailUrl ? (
                       <div className="w-full h-full bg-red-900 flex items-center justify-center">

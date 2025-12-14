@@ -5,7 +5,7 @@ import { Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const HeroSection = () => {
   const { isAuthenticated } = useAuth();
@@ -20,7 +20,7 @@ const HeroSection = () => {
   // Sample search suggestions
   const searchSuggestions = [
     "Business Plan",
-    "Employment Contract", 
+    "Employment Contract",
     "Invoice Template",
     "NDA Agreement",
     "Marketing Plan",
@@ -32,7 +32,7 @@ const HeroSection = () => {
   // Typing animation effect
   useEffect(() => {
     const currentSuggestion = searchSuggestions[currentSuggestionIndex];
-    
+
     if (!isDeleting && currentIndex < currentSuggestion.length) {
       // Typing forward
       const timeout = setTimeout(() => {
@@ -57,7 +57,7 @@ const HeroSection = () => {
       // Move to next suggestion after deleting
       const timeout = setTimeout(() => {
         setIsDeleting(false);
-        setCurrentSuggestionIndex((prev) => 
+        setCurrentSuggestionIndex((prev) =>
           prev === searchSuggestions.length - 1 ? 0 : prev + 1
         );
       }, 500); // Pause before next suggestion
@@ -70,7 +70,7 @@ const HeroSection = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/categories`);
-        
+
         if (response.ok) {
           const data = await response.json();
           const categoriesData = data.categories || data.data || data;
@@ -120,7 +120,7 @@ const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 text-gray-900 py-16 md:py-24">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwNzVGRiIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
-      
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -132,7 +132,7 @@ const HeroSection = () => {
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             All Your Documents in One Place
           </h1>
-          
+
           {/* Subtitle */}
           <p className="text-xl md:text-2xl mb-8 text-gray-700 max-w-3xl mx-auto">
             Access, edit, and download 1000+ verified business templates instantly.
@@ -146,12 +146,12 @@ const HeroSection = () => {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            
+
             {isAuthenticated ? (
               <Link to="/dashboard">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-600 hover:text-white text-lg px-8 py-6 transition-all duration-300"
                 >
                   Go to Dashboard
@@ -160,9 +160,9 @@ const HeroSection = () => {
               </Link>
             ) : (
               <Link to="/login">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="border-2 border-blue-600 text-blue-600 bg-transparent hover:bg-blue-600 hover:text-white text-lg px-8 py-6 transition-all duration-300"
                 >
                   Start Free
@@ -211,7 +211,7 @@ const HeroSection = () => {
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Popular Categories
             </h3>
-            
+
             {loading ? (
               <div className="flex justify-center gap-4 flex-wrap">
                 {[...Array(6)].map((_, index) => (
@@ -239,7 +239,7 @@ const HeroSection = () => {
                 ))}
               </div>
             )}
-            
+
             {categories.length > 8 && (
               <motion.div
                 initial={{ opacity: 0 }}

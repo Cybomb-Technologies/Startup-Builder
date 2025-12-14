@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const SubCategories = () => {
   const { toast } = useToast();
@@ -30,7 +30,7 @@ const SubCategories = () => {
     try {
       const userData = JSON.parse(adminUser);
       const token = userData.token;
-      
+
       if (!token) {
         console.error('❌ No token found in admin session');
         return {};
@@ -54,12 +54,12 @@ const SubCategories = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load categories
       const categoriesResponse = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         headers: getAuthHeaders()
       });
-      
+
       if (categoriesResponse.ok) {
         const categoriesData = await categoriesResponse.json();
         setCategories(categoriesData.categories || []);
@@ -72,7 +72,7 @@ const SubCategories = () => {
       const subCategoriesResponse = await fetch(`${API_BASE_URL}/api/admin/subcategories`, {
         headers: getAuthHeaders()
       });
-      
+
       if (subCategoriesResponse.ok) {
         const subCategoriesData = await subCategoriesResponse.json();
         setSubCategories(subCategoriesData.subCategories || []);
@@ -95,7 +95,7 @@ const SubCategories = () => {
   const handleCreateSubCategory = async () => {
     // 🎯 FIX: Better validation with detailed logging
     console.log('📤 Creating subcategory with data:', newSubCategory);
-    
+
     if (!newSubCategory.name.trim()) {
       toast({
         title: 'Validation Error',
@@ -132,7 +132,7 @@ const SubCategories = () => {
       };
 
       console.log('📤 Sending request body:', requestBody);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/admin/subcategories`, {
         method: 'POST',
         headers,
@@ -140,7 +140,7 @@ const SubCategories = () => {
       });
 
       console.log('📡 Create subcategory response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         setSubCategories(prev => [...prev, data.subCategory]);
@@ -181,7 +181,7 @@ const SubCategories = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setSubCategories(prev => prev.map(sub => 
+        setSubCategories(prev => prev.map(sub =>
           sub._id === id ? data.subCategory : sub
         ));
         setEditingId(null);
@@ -298,7 +298,7 @@ const SubCategories = () => {
               <p className="text-red-500 text-xs mt-1">Please select a category</p>
             )}
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               SubCategory Name *
@@ -311,8 +311,8 @@ const SubCategories = () => {
                 placeholder="Enter subcategory name"
                 className="flex-1"
               />
-              <Button 
-                onClick={handleCreateSubCategory} 
+              <Button
+                onClick={handleCreateSubCategory}
                 disabled={!newSubCategory.name.trim() || !newSubCategory.categoryId}
               >
                 <Plus className="w-4 h-4 mr-1" />
@@ -324,7 +324,7 @@ const SubCategories = () => {
             )}
           </div>
         </div>
-        
+
         {/* Debug info */}
         <div className="mt-3 p-2 bg-blue-50 rounded text-xs">
           <p><strong>Debug:</strong> Selected Category ID: {newSubCategory.categoryId || 'None'}</p>

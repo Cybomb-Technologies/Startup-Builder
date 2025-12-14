@@ -6,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { getAuthHeaders, validateAdminSession, adminLogout } from '@/utils/adminAuth';
 import { Input } from '@/components/ui/input';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const Newsletter = () => {
   const { toast } = useToast();
@@ -58,7 +58,7 @@ const Newsletter = () => {
     filtered = filtered.sort((a, b) => {
       const dateA = new Date(a.subscribedAt || 0);
       const dateB = new Date(b.subscribedAt || 0);
-      
+
       return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
@@ -103,11 +103,11 @@ const Newsletter = () => {
 
   const exportToCSV = () => {
     setExportLoading(true);
-    
+
     try {
       // Prepare data for CSV
       const dataToExport = filteredSubscribers.length > 0 ? filteredSubscribers : newsletterSubscribers;
-      
+
       if (dataToExport.length === 0) {
         toast({
           title: 'No Data',
@@ -119,7 +119,7 @@ const Newsletter = () => {
 
       // Create CSV headers
       const headers = ['Email', 'Subscription Date', 'Status'];
-      
+
       // Create CSV content
       const csvContent = [
         headers.join(','),
@@ -134,15 +134,15 @@ const Newsletter = () => {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: 'Export Successful',
         description: `Exported ${dataToExport.length} subscribers to CSV`,
@@ -162,7 +162,7 @@ const Newsletter = () => {
 
   const exportAllToCSV = () => {
     setExportLoading(true);
-    
+
     try {
       if (newsletterSubscribers.length === 0) {
         toast({
@@ -175,7 +175,7 @@ const Newsletter = () => {
 
       // Create CSV headers with additional fields
       const headers = ['Email', 'Subscription Date', 'Subscription Time', 'Status'];
-      
+
       // Create CSV content
       const csvContent = [
         headers.join(','),
@@ -191,15 +191,15 @@ const Newsletter = () => {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `all-newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: 'Export Successful',
         description: `Exported all ${newsletterSubscribers.length} subscribers to CSV`,
@@ -276,7 +276,7 @@ const Newsletter = () => {
               <option value="oldest">Oldest First</option>
             </select>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             <div className="flex gap-2">
               <Button
@@ -287,7 +287,7 @@ const Newsletter = () => {
                 <Filter className="w-4 h-4" />
                 Bulk Actions
               </Button>
-              
+
               {/* Export Buttons */}
               <div className="relative group">
                 <Button
@@ -302,7 +302,7 @@ const Newsletter = () => {
                   )}
                   Export CSV
                 </Button>
-                
+
                 {/* Dropdown for export options */}
                 <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                   <button
@@ -324,7 +324,7 @@ const Newsletter = () => {
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
       </div>
@@ -365,7 +365,7 @@ const Newsletter = () => {
                 {searchTerm ? 'No subscribers found' : 'No subscribers yet'}
               </h3>
               <p className="text-gray-500 max-w-sm mx-auto">
-                {searchTerm 
+                {searchTerm
                   ? `No subscribers match "${searchTerm}". Try a different search term.`
                   : 'Subscribers will appear here once they sign up for your newsletter.'
                 }

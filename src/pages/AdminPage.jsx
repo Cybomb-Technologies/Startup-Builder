@@ -18,7 +18,7 @@ import GlobalSearch from './admin/components/GlobalSearch';
 import AdminPricingManager from './admin/AdminPricingManager';
 import PaymentsPage from './admin/Payments';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const AdminPage = () => {
   const { user } = useAuth();
@@ -48,7 +48,7 @@ const AdminPage = () => {
     try {
       const userData = JSON.parse(adminUser);
       const token = userData.token;
-      
+
       if (!token) {
         console.error('❌ No token found in admin session');
         return {};
@@ -92,12 +92,12 @@ const AdminPage = () => {
       setLoading(true);
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) return;
-      
+
       // Fetch users data
       const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers
       });
-      
+
       // Fetch templates data
       const templatesResponse = await fetch(`${API_BASE_URL}/api/admin/templates`, {
         headers
@@ -207,7 +207,7 @@ const AdminPage = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <div className="flex items-center space-x-2 text-sm text-slate-500 bg-white px-3 py-2 rounded-lg border border-slate-200">
                   <BarChart3 className="w-4 h-4" />

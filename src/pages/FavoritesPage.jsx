@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { 
+import {
   Heart,
   Star,
   Download,
@@ -29,25 +29,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger 
+  TooltipTrigger
 } from "@/components/ui/tooltip";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 // API service for favorites
 const apiService = {
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? '/api' 
+  baseURL: (process.env.NODE_ENV === 'production')
+    ? 'https://api.paplixo.com/api'
     : `${API_BASE_URL}/api`,
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = localStorage.getItem('token');
-    
+
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ const apiService = {
 
   async downloadTemplate(templateId) {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       throw new Error('Please login to download templates');
     }
@@ -149,7 +149,7 @@ const apiService = {
 
       const contentDisposition = response.headers.get('content-disposition');
       let filename = `template-${templateId}`;
-      
+
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
         if (filenameMatch) filename = filenameMatch[1];
@@ -164,7 +164,7 @@ const apiService = {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       return true;
     } catch (error) {
       console.error('❌ Download error:', error);
@@ -183,7 +183,7 @@ const AccessLevelBadge = ({ accessLevel }) => {
       'enterprise': 'bg-green-500/20 text-green-700 border-green-300',
       'premium': 'bg-yellow-500/20 text-yellow-700 border-yellow-300'
     };
-    
+
     const levelName = accessLevel?.name?.toLowerCase() || 'free';
     return colorMap[levelName] || 'bg-gray-500/20 text-gray-700 border-gray-300';
   };
@@ -245,7 +245,7 @@ const FavoriteTemplateCard = ({ favorite, onRemove, index }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      
+
       <Card className="h-full bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-pink-300 hover:shadow-lg transition-all duration-300 overflow-hidden group">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
@@ -307,7 +307,7 @@ const FavoriteTemplateCard = ({ favorite, onRemove, index }) => {
               <Edit className="w-4 h-4 mr-1" />
               Edit
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -388,14 +388,14 @@ const FavoritesPage = () => {
   const filteredFavorites = favorites.filter(favorite => {
     const template = favorite.template;
     if (!template) return false;
-    
+
     // Search filter
-    const matchesSearch = searchQuery === '' || 
-      template.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = searchQuery === '' ||
+      template.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Tab filter
-    const matchesTab = activeTab === 'all' || 
+    const matchesTab = activeTab === 'all' ||
       (activeTab === 'free' && template.accessLevel?.name?.toLowerCase() === 'free') ||
       (activeTab === 'premium' && template.accessLevel?.name?.toLowerCase() !== 'free');
 
@@ -431,12 +431,12 @@ const FavoritesPage = () => {
   return (
     <>
       <Helmet>
-  <title>My Favorites - Paplixo</title>
-  <meta
-    name="description"
-    content="View and manage your favorite templates on Paplixo. Quickly access the designs you've saved for later."
-  />
-</Helmet>
+        <title>My Favorites - Paplixo</title>
+        <meta
+          name="description"
+          content="View and manage your favorite templates on Paplixo. Quickly access the designs you've saved for later."
+        />
+      </Helmet>
 
 
       <div className="min-h-screen bg-gradient-to-br from-pink-50/30 to-purple-50/30">
@@ -452,15 +452,15 @@ const FavoritesPage = () => {
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">My Favorites</h1>
                     <p className="text-gray-600 text-sm">
-                      {stats.total} saved template{stats.total !== 1 ? 's' : ''} • 
+                      {stats.total} saved template{stats.total !== 1 ? 's' : ''} •
                       {stats.free} free • {stats.premium} premium
                     </p>
                   </div>
                 </div>
               </div>
-              
-              <Button 
-                onClick={() => navigate('/templates')} 
+
+              <Button
+                onClick={() => navigate('/templates')}
                 variant="outline"
               >
                 <Heart className="w-4 h-4 mr-2" fill="currentColor" />
@@ -572,7 +572,7 @@ const FavoritesPage = () => {
                   Showing {filteredFavorites.length} of {stats.total} favorite{stats.total !== 1 ? 's' : ''}
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredFavorites.map((favorite, index) => (
                   <FavoriteTemplateCard
@@ -597,7 +597,7 @@ const FavoritesPage = () => {
                 {searchQuery || activeTab !== 'all' ? 'No matching favorites' : 'No favorites yet'}
               </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                {searchQuery || activeTab !== 'all' 
+                {searchQuery || activeTab !== 'all'
                   ? 'Try adjusting your search or filters'
                   : 'Start adding templates to your favorites for quick access. Click the heart icon on any template.'}
               </p>
