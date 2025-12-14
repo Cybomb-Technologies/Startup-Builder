@@ -7,7 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const CheckoutPage = () => {
   const { planId } = useParams();

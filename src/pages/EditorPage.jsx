@@ -1,10 +1,10 @@
 // frontend/src/pages/EditorPage.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+
 import { Helmet } from 'react-helmet';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const EditorPage = () => {
   const { id } = useParams();
@@ -19,12 +19,18 @@ const EditorPage = () => {
       return;
     }
 
-    axios
-      .get(`${API_BASE_URL}/api/editor/${id}/config`, {
-        headers: { Authorization: `Bearer ${token}` }
+    fetch(`${API_BASE_URL}/api/editor/${id}/config`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw { response: { data: errorData }, message: res.statusText };
+        }
+        return res.json();
       })
-      .then((res) => {
-        setEditorConfig(res.data);
+      .then((data) => {
+        setEditorConfig(data);
       })
       .catch((err) => {
         console.error("CONFIG LOAD ERROR:", err?.response?.data || err.message || err);

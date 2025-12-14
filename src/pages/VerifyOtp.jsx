@@ -1,30 +1,30 @@
 // VerifyOTP.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
- 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
- 
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
+
 export default function VerifyOTP() {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [msg, setMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
- 
+
   const email = location.state?.email;
- 
+
   // Handle OTP input change
   const handleOtpChange = (element, index) => {
     if (isNaN(element.value)) return false;
- 
+
     setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
- 
+
     // Focus next input
     if (element.nextSibling && element.value !== '') {
       element.nextSibling.focus();
     }
   };
- 
+
   // Handle key events for OTP inputs
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace') {
@@ -33,19 +33,19 @@ export default function VerifyOTP() {
       }
     }
   };
- 
+
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-   
+
     const otpString = otp.join('');
     if (otpString.length !== 6) {
       setMsg('Please enter a valid 6-digit OTP');
       return;
     }
- 
+
     setIsLoading(true);
     setMsg('');
- 
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/verify-otp`, {
         method: 'POST',
@@ -54,16 +54,16 @@ export default function VerifyOTP() {
         },
         body: JSON.stringify({ email, otp: otpString }),
       });
- 
+
       const data = await response.json();
       console.log('OTP verification response:', data);
- 
+
       if (!response.ok) {
         throw new Error(data.message || 'OTP verification failed');
       }
- 
+
       setMsg('OTP verified successfully! Redirecting to reset password...');
-     
+
       // Navigate to reset password page
       setTimeout(() => {
         navigate('/reset-password', {
@@ -73,7 +73,7 @@ export default function VerifyOTP() {
           }
         });
       }, 1500);
- 
+
     } catch (err) {
       console.error('OTP verification error:', err);
       setMsg(err.message || 'Failed to verify OTP. Please try again.');
@@ -81,16 +81,16 @@ export default function VerifyOTP() {
       setIsLoading(false);
     }
   };
- 
+
   const handleResendOtp = async () => {
     if (!email) {
       setMsg('Email not found. Please go back and try again.');
       return;
     }
- 
+
     setIsLoading(true);
     setMsg('');
- 
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/forgot-password`, {
         method: 'POST',
@@ -99,13 +99,13 @@ export default function VerifyOTP() {
         },
         body: JSON.stringify({ email }),
       });
- 
+
       const data = await response.json();
- 
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to resend OTP');
       }
- 
+
       setMsg('New OTP has been sent to your email.');
     } catch (err) {
       setMsg(err.message || 'Failed to resend OTP. Please try again.');
@@ -113,7 +113,7 @@ export default function VerifyOTP() {
       setIsLoading(false);
     }
   };
- 
+
   if (!email) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
@@ -130,7 +130,7 @@ export default function VerifyOTP() {
       </div>
     );
   }
- 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
       <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md">
@@ -139,7 +139,7 @@ export default function VerifyOTP() {
           Enter the 6-digit OTP sent to<br />
           <span className="font-medium">{email}</span>
         </p>
-       
+
         <form onSubmit={handleVerifyOtp} className="space-y-6">
           <div className="flex justify-center space-x-2">
             {otp.map((data, index) => (
@@ -155,7 +155,7 @@ export default function VerifyOTP() {
               />
             ))}
           </div>
-         
+
           <button
             type="submit"
             disabled={isLoading}
@@ -174,15 +174,14 @@ export default function VerifyOTP() {
             )}
           </button>
         </form>
-       
+
         {msg && (
-          <div className={`mt-4 p-3 rounded-lg text-center text-sm ${
-            msg.includes('success') || msg.includes('sent') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
+          <div className={`mt-4 p-3 rounded-lg text-center text-sm ${msg.includes('success') || msg.includes('sent') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
             {msg}
           </div>
         )}
-       
+
         <div className="text-center mt-6 space-y-3">
           <button
             onClick={handleResendOtp}
@@ -202,4 +201,3 @@ export default function VerifyOTP() {
     </div>
   );
 }
- 

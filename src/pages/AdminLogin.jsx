@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 // Temporary basic components (keep these as is)
 const TemporaryButton = ({ children, onClick, disabled, className = '', type = 'button' }) => (
-  <button 
+  <button
     type={type}
-    onClick={onClick} 
+    onClick={onClick}
     disabled={disabled}
     className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors ${className}`}
   >
@@ -56,8 +56,8 @@ const AdminLoginPage = () => {
 
     try {
       console.log('🔐 Attempting admin login...');
-      const url =`${API_BASE_URL}/api/admin/login`;
-      
+      const url = `${API_BASE_URL}/api/admin/login`;
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -82,13 +82,13 @@ const AdminLoginPage = () => {
           loginTime: new Date().toISOString(),
           token: data.token  // ✅ Store token here like your reference code
         }));
-        
+
         console.log('✅ Login successful, session saved');
         console.log('🔄 Redirecting to admin dashboard...');
-        
+
         // 🎯 Use the same redirect method as your reference code
         navigate('/admin/dashboard');
-        
+
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
         console.error('❌ Login failed:', data.message);
@@ -151,8 +151,8 @@ const AdminLoginPage = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={isLoading}
             className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
           >
@@ -202,7 +202,7 @@ const AdminLoginPage = () => {
         </div> */}
 
         <div className="mt-4 text-center">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="text-blue-600 hover:text-blue-800 text-sm transition-colors"
           >

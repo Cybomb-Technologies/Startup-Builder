@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FileText, 
-  Plus, 
-  FolderOpen, 
-  Download, 
-  Clock, 
-  Edit, 
-  Share, 
+import {
+  FileText,
+  Plus,
+  FolderOpen,
+  Download,
+  Clock,
+  Edit,
+  Share,
   RefreshCw,
   CreditCard,
   CheckCircle,
@@ -36,7 +36,7 @@ import { Button } from '@/components/ui/button';
 
 import { Helmet } from 'react-helmet';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
@@ -61,7 +61,7 @@ const Dashboard = () => {
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
   const [loadingPayments, setLoadingPayments] = useState(false);
-  
+
   // Invoice View Modal State
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -81,11 +81,11 @@ const Dashboard = () => {
   // Fetch user payment history
   const fetchPaymentHistory = async () => {
     if (!isAuthenticated) return;
-    
+
     try {
       setLoadingPayments(true);
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(`${API_BASE_URL}/api/payments/user-payments`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -107,13 +107,13 @@ const Dashboard = () => {
   // Calculate breakdown of amount with tax included
   const calculateAmountBreakdown = (totalAmount) => {
     const total = parseFloat(totalAmount) || 0;
-    
+
     // Calculate base amount (total / 1.18)
     const baseAmount = total / (1 + TAX_RATE);
-    
+
     // Calculate tax amount (18% of base amount)
     const taxAmount = baseAmount * TAX_RATE;
-    
+
     return {
       baseAmount: parseFloat(baseAmount.toFixed(2)),     // 0.85 for 1.00 total
       taxAmount: parseFloat(taxAmount.toFixed(2)),       // 0.15 for 1.00 total
@@ -126,10 +126,10 @@ const Dashboard = () => {
     try {
       setLoadingInvoice(true);
       setSelectedInvoice(payment);
-      
+
       // Calculate breakdown of amounts
       const breakdown = calculateAmountBreakdown(payment.amount);
-      
+
       // Create invoice details with proper spacing
       const invoiceData = {
         invoiceNumber: payment.transactionId,
@@ -169,7 +169,7 @@ const Dashboard = () => {
         taxRate: TAX_RATE * 100, // 18%
         totalAmount: breakdown.total
       };
-      
+
       setInvoiceDetails(invoiceData);
       setShowInvoiceModal(true);
     } catch (error) {
@@ -184,7 +184,7 @@ const Dashboard = () => {
   const handleDownloadInvoice = async (transactionId) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         alert('Please login again to download invoice');
         navigate('/login');
@@ -195,14 +195,14 @@ const Dashboard = () => {
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = `${API_BASE_URL}/api/payments/invoice/${transactionId}?token=${encodeURIComponent(token)}`;
-      
+
       document.body.appendChild(iframe);
-      
+
       // Remove iframe after download
       setTimeout(() => {
         document.body.removeChild(iframe);
       }, 5000);
-      
+
     } catch (error) {
       console.error('Error downloading invoice:', error);
       alert('Failed to download invoice. Please try again.');
@@ -299,7 +299,7 @@ const Dashboard = () => {
 
     window.addEventListener('templateDownloaded', handleTemplateAction);
     window.addEventListener('templateEdited', handleTemplateAction);
-    
+
     return () => {
       window.removeEventListener('templateDownloaded', handleTemplateAction);
       window.removeEventListener('templateEdited', handleTemplateAction);
@@ -311,7 +311,7 @@ const Dashboard = () => {
     try {
       setCreatingDocument(true);
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         alert('Please log in to create a new document');
         navigate('/login');
@@ -331,7 +331,7 @@ const Dashboard = () => {
         navigate(`/editor/userdoc/${data.documentId}`);
       } else {
         const errorData = await response.json();
-        
+
         if (response.status === 401) {
           alert('Session expired. Please log in again.');
           localStorage.removeItem('token');
@@ -441,9 +441,9 @@ const Dashboard = () => {
       pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
       failed: { color: 'bg-red-100 text-red-800', text: 'Failed' }
     };
-    
+
     const config = statusConfig[status] || statusConfig.pending;
-    
+
     return (
       <span className={`px-2 py-1 text-xs rounded-full ${config.color}`}>
         {config.text}
@@ -499,7 +499,7 @@ const Dashboard = () => {
                   <p className="text-sm text-gray-500">Tax ID: {invoiceDetails.company.taxId}</p>
                 )}
               </div>
-              
+
               {/* Invoice Title - Right Column */}
               <div className="text-right space-y-4">
                 <h1 className="text-3xl font-bold text-gray-900">TAX INVOICE</h1>
@@ -531,7 +531,7 @@ const Dashboard = () => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Invoice Info Section */}
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-900 text-lg border-b pb-2">Invoice Information</h4>
@@ -618,7 +618,7 @@ const Dashboard = () => {
                       {formatCurrency(invoiceDetails.totalAmount, invoiceDetails.currency)}
                     </span>
                   </div>
-                  
+
                   {/* Breakdown for clarity */}
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs">
                     <p className="text-gray-600 font-medium mb-1">Amount Breakdown:</p>
@@ -717,7 +717,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to access dashboard</h2>
-          <button 
+          <button
             onClick={() => navigate('/login')}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -731,12 +731,12 @@ const Dashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Helmet>
-  <title>Dashboard - Paplixo</title>
-  <meta
-  name="description"
-  content="Your central workspace on Paplixo to manage templates, edits, downloads, and project activity."
-/>
-</Helmet>
+        <title>Dashboard - Paplixo</title>
+        <meta
+          name="description"
+          content="Your central workspace on Paplixo to manage templates, edits, downloads, and project activity."
+        />
+      </Helmet>
 
       {/* Invoice Modal */}
       <InvoiceModal />
@@ -810,13 +810,12 @@ const Dashboard = () => {
         {/* Subscription Status Card */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center">
-            <div className={`p-3 rounded-lg mr-4 ${
-              billingData.subscriptionStatus === 'active' 
-                ? 'bg-green-50' 
-                : billingData.subscriptionStatus === 'expired'
+            <div className={`p-3 rounded-lg mr-4 ${billingData.subscriptionStatus === 'active'
+              ? 'bg-green-50'
+              : billingData.subscriptionStatus === 'expired'
                 ? 'bg-red-50'
                 : 'bg-yellow-50'
-            }`}>
+              }`}>
               {billingData.subscriptionStatus === 'active' ? (
                 <CheckCircle className="w-6 h-6 text-green-600" />
               ) : billingData.subscriptionStatus === 'expired' ? (
@@ -827,13 +826,12 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Status</p>
-              <p className={`text-2xl font-bold capitalize ${
-                billingData.subscriptionStatus === 'active' 
-                  ? 'text-green-600' 
-                  : billingData.subscriptionStatus === 'expired'
+              <p className={`text-2xl font-bold capitalize ${billingData.subscriptionStatus === 'active'
+                ? 'text-green-600'
+                : billingData.subscriptionStatus === 'expired'
                   ? 'text-red-600'
                   : 'text-yellow-600'
-              }`}>
+                }`}>
                 {billingData.subscriptionStatus || 'Inactive'}
               </p>
             </div>
@@ -854,7 +852,7 @@ const Dashboard = () => {
               <ArrowRight className={`w-4 h-4 ml-1 transition-transform ${showPaymentHistory ? 'rotate-90' : ''}`} />
             </button>
           </div>
-          
+
           {showPaymentHistory && (
             <div className="mt-4">
               {loadingPayments ? (
@@ -876,7 +874,7 @@ const Dashboard = () => {
                   {paymentHistory.slice(0, 5).map((payment) => {
                     // Calculate breakdown for display
                     const breakdown = calculateAmountBreakdown(payment.amount);
-                    
+
                     return (
                       <div key={payment._id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div>
@@ -910,7 +908,7 @@ const Dashboard = () => {
                               {payment.billingCycle} • {payment.paymentMethod || 'Card'}
                             </p>
                             <div className="text-xs text-gray-400 mt-1">
-                              Base: {formatCurrency(breakdown.baseAmount, payment.currency)} + 
+                              Base: {formatCurrency(breakdown.baseAmount, payment.currency)} +
                               Tax: {formatCurrency(breakdown.taxAmount, payment.currency)}
                             </div>
                           </div>
@@ -936,7 +934,7 @@ const Dashboard = () => {
                       </div>
                     );
                   })}
-                  
+
                   {paymentHistory.length > 5 && (
                     <div className="text-center pt-4">
                       <button
@@ -954,7 +952,7 @@ const Dashboard = () => {
                   <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">No payment history found</p>
                   <p className="text-sm text-gray-400 mt-1">Upgrade your plan to see payment history</p>
-                  <button 
+                  <button
                     onClick={() => navigate('/pricing')}
                     className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
@@ -975,7 +973,7 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={handleNewDocument}
                 disabled={creatingDocument}
                 className="w-full flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -989,14 +987,14 @@ const Dashboard = () => {
                   {creatingDocument ? 'Creating...' : 'New Document'}
                 </span>
               </button>
-              <button 
+              <button
                 onClick={handleBrowseTemplates}
                 className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <FolderOpen className="w-5 h-5 text-gray-600 mr-3" />
                 <span className="font-medium text-gray-700">Browse Templates</span>
               </button>
-              
+
             </div>
           </div>
 
@@ -1004,40 +1002,39 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900">Billing Summary</h2>
-              
+
             </div>
-            
+
             <div className="space-y-4">
               {/* Plan ID */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Plan ID:</span>
                 <span className="font-semibold font-mono text-sm">{billingData.planId || 'free'}</span>
               </div>
-              
+
               {/* Current Plan */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Plan:</span>
                 <span className="font-semibold">{billingData.planName}</span>
               </div>
-              
+
               {/* Billing Cycle */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Billing:</span>
                 <span className="font-semibold capitalize">{billingData.billingCycle}</span>
               </div>
-              
+
               {/* Status */}
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Status:</span>
-                <span className={`font-semibold capitalize ${
-                  billingData.subscriptionStatus === 'active' 
-                    ? 'text-green-600' 
-                    : 'text-gray-600'
-                }`}>
+                <span className={`font-semibold capitalize ${billingData.subscriptionStatus === 'active'
+                  ? 'text-green-600'
+                  : 'text-gray-600'
+                  }`}>
                   {billingData.subscriptionStatus || 'Inactive'}
                 </span>
               </div>
-              
+
               {/* Expiry/Renewal Date */}
               {billingData.planExpiry && (
                 <div className="flex justify-between items-center">
@@ -1049,33 +1046,33 @@ const Dashboard = () => {
                   </span>
                 </div>
               )}
-              
+
               {/* Total Spent (with tax included) */}
               {billingData.totalSpent > 0 && (
-    <div className="pt-4 border-t">
-        <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-600">Total Spent:</span>
-            <span className="font-semibold">
-                {/* *** MODIFIED HERE *** Pass 'INR' as the second argument to formatCurrency
+                <div className="pt-4 border-t">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-600">Total Spent:</span>
+                    <span className="font-semibold">
+                      {/* *** MODIFIED HERE *** Pass 'INR' as the second argument to formatCurrency
                 */}
-                {formatCurrency(billingData.totalSpent, 'INR')} 
-            </span>
-        </div>
-        <div className="text-xs text-gray-500">
-            <div className="flex justify-between">
-                <span>Base Amount:</span>
-                {/* *** MODIFIED HERE *** */}
-                <span>{formatCurrency(billingData.totalSpent / (1 + TAX_RATE), 'INR')}</span>
-            </div>
-            <div className="flex justify-between">
-                <span>GST ({TAX_RATE * 100}%):</span>
-                {/* *** MODIFIED HERE *** */}
-                <span>{formatCurrency(billingData.totalSpent * TAX_RATE / (1 + TAX_RATE), 'INR')}</span>
-            </div>
-        </div>
-    </div>
-)}
-              
+                      {formatCurrency(billingData.totalSpent, 'INR')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <div className="flex justify-between">
+                      <span>Base Amount:</span>
+                      {/* *** MODIFIED HERE *** */}
+                      <span>{formatCurrency(billingData.totalSpent / (1 + TAX_RATE), 'INR')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>GST ({TAX_RATE * 100}%):</span>
+                      {/* *** MODIFIED HERE *** */}
+                      <span>{formatCurrency(billingData.totalSpent * TAX_RATE / (1 + TAX_RATE), 'INR')}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -1087,7 +1084,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">Recent Templates</h2>
               {recentTemplates.length > 0 && (
-                <button 
+                <button
                   onClick={handleBrowseTemplates}
                   className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                 >
@@ -1095,7 +1092,7 @@ const Dashboard = () => {
                 </button>
               )}
             </div>
-            
+
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((item) => (
@@ -1134,7 +1131,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleEditTemplate(template._id)}
                         className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
                       >
@@ -1154,7 +1151,7 @@ const Dashboard = () => {
                 <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">No templates yet</p>
                 <p className="text-sm text-gray-400 mt-1">Edit a template online to see it here</p>
-                <button 
+                <button
                   onClick={handleBrowseTemplates}
                   className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
@@ -1181,7 +1178,7 @@ const Dashboard = () => {
                 </Button>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {getPlanFeatures().map((feature, index) => (
                 <div

@@ -8,18 +8,18 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 // API service - same as in TemplateLibraryPage
 const apiService = {
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? '/api' 
+  baseURL: (process.env.NODE_ENV === 'production')
+    ? 'https://api.paplixo.com/api'
     : `${API_BASE_URL}/api`,
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = localStorage.getItem('token');
-    
+
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -173,7 +173,7 @@ const apiService = {
 // File Extension Badge component
 const FileExtensionBadge = ({ format }) => {
   const formatLower = format?.toLowerCase() || 'file';
-  
+
   const getExtensionColor = (ext) => {
     const colorMap = {
       'docx': 'bg-blue-500/20 text-blue-700 border-blue-300',
@@ -187,7 +187,7 @@ const FileExtensionBadge = ({ format }) => {
       'txt': 'bg-gray-500/20 text-gray-700 border-gray-300',
       'rtf': 'bg-gray-500/20 text-gray-700 border-gray-300',
     };
-    
+
     return colorMap[ext] || 'bg-gray-500/20 text-gray-700 border-gray-300';
   };
 
@@ -208,14 +208,14 @@ const AccessLevelBadge = ({ accessLevel, userPlan }) => {
       'enterprise': 'bg-green-500/20 text-green-700 border-green-300',
       'premium': 'bg-yellow-500/20 text-yellow-700 border-yellow-300'
     };
-    
+
     const levelName = accessLevel?.name?.toLowerCase() || 'free';
     return colorMap[levelName] || 'bg-gray-500/20 text-gray-700 border-gray-300';
   };
 
   const canAccessTemplate = (templateLevel, userPlanId) => {
     if (!userPlanId || templateLevel === 'free') return true;
-    
+
     const accessHierarchy = {
       'free': ['free'],
       'pro': ['free', 'pro'],
@@ -259,7 +259,7 @@ const TemplatesSection = () => {
   useEffect(() => {
     const loadUserPlanDetails = async () => {
       if (!isAuthenticated) return;
-      
+
       try {
         console.log('🔄 Loading user plan details...');
         const planDetails = await apiService.getUserPlanDetails();
@@ -301,7 +301,7 @@ const TemplatesSection = () => {
         console.log('🔄 Loading categories...');
         const categoriesData = await apiService.getCategories();
         const categoriesList = categoriesData || [];
-        
+
         if (!categoriesList || categoriesList.length === 0) {
           throw new Error('No categories found');
         }
@@ -312,7 +312,7 @@ const TemplatesSection = () => {
         console.log('🔄 Loading templates...');
         const templatesData = await apiService.getTemplates();
         const allTemplates = templatesData || [];
-        
+
         // Enhance templates with file extension
         const enhancedTemplates = allTemplates.map(template => {
           let fileExtension = 'docx';
@@ -342,19 +342,19 @@ const TemplatesSection = () => {
 
         // Group templates by category
         const templatesByCategory = {};
-        
+
         for (const category of categoriesList.slice(0, 5)) {
-          const categoryTemplates = enhancedTemplates.filter(template => 
-            template.category?._id === category._id || 
+          const categoryTemplates = enhancedTemplates.filter(template =>
+            template.category?._id === category._id ||
             template.category === category._id
           );
-          
+
           templatesByCategory[category._id] = categoryTemplates.slice(0, 5);
         }
-        
+
         setTemplates(templatesByCategory);
         console.log(`✅ Loaded ${enhancedTemplates.length} templates across categories`);
-        
+
       } catch (error) {
         console.error('❌ Error fetching data:', error);
         toast({
@@ -406,16 +406,16 @@ const TemplatesSection = () => {
 
   const getTemplateImage = (template) => {
     // Try different possible image URL fields
-    const imageUrl = template.imageUrls?.[0]?.url || 
-                    template.images?.[0]?.url || 
-                    template.previewImages?.[0] || 
-                    template.image ||
-                    template.thumbnail;
-    
+    const imageUrl = template.imageUrls?.[0]?.url ||
+      template.images?.[0]?.url ||
+      template.previewImages?.[0] ||
+      template.image ||
+      template.thumbnail;
+
     if (imageUrl && typeof imageUrl === 'string') {
       return imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`;
     }
-    
+
     // Return a generic placeholder if no image available
     return 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=500&h=400&fit=crop';
   };
@@ -423,7 +423,7 @@ const TemplatesSection = () => {
   const toggleFavorite = async (template, e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -447,7 +447,7 @@ const TemplatesSection = () => {
     try {
       const templateId = template._id;
       const isCurrentlyFavorite = favorites.has(templateId);
-      
+
       if (isCurrentlyFavorite) {
         await apiService.removeFromFavorites(templateId);
         setFavorites(prev => {
@@ -455,7 +455,7 @@ const TemplatesSection = () => {
           newFavorites.delete(templateId);
           return newFavorites;
         });
-        
+
         toast({
           title: "Removed from Favorites",
           description: "Template removed from your favorites"
@@ -481,7 +481,7 @@ const TemplatesSection = () => {
   const handleEdit = (template, e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -510,7 +510,7 @@ const TemplatesSection = () => {
   const handlePreview = (template, e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -631,7 +631,7 @@ const TemplatesSection = () => {
                 <h3 className="text-2xl font-bold text-gray-900">
                   {category.name}
                 </h3>
-                
+
                 {/* More Button */}
                 <Link to={`/templates?category=${category._id}`}>
                   <Button variant="outline" className="flex items-center gap-2">
@@ -655,9 +655,8 @@ const TemplatesSection = () => {
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: templateIndex * 0.1 }}
-                        className={`group relative bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border overflow-hidden cursor-pointer ${
-                          !hasAccess ? 'border-yellow-300' : 'border-gray-100'
-                        }`}
+                        className={`group relative bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border overflow-hidden cursor-pointer ${!hasAccess ? 'border-yellow-300' : 'border-gray-100'
+                          }`}
                         onMouseEnter={() => setHoveredTemplate(template._id)}
                         onMouseLeave={() => setHoveredTemplate(null)}
                       >
@@ -668,7 +667,7 @@ const TemplatesSection = () => {
                             alt={template.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          
+
                           {/* Premium Badge if no access */}
                           {!hasAccess && (
                             <div className="absolute top-4 right-4">
@@ -678,11 +677,10 @@ const TemplatesSection = () => {
                               </div>
                             </div>
                           )}
-                          
+
                           {/* Template Name Overlay */}
-                          <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-all duration-300 ${
-                            hoveredTemplate === template._id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                          }`}>
+                          <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-all duration-300 ${hoveredTemplate === template._id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            }`}>
                             <h4 className="font-semibold text-white text-lg line-clamp-2 text-center">
                               {template.name}
                               {!hasAccess && (
@@ -690,7 +688,7 @@ const TemplatesSection = () => {
                               )}
                             </h4>
                           </div>
-                          
+
                           {/* Hover Actions */}
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300">
                             <TooltipProvider>
@@ -702,15 +700,15 @@ const TemplatesSection = () => {
                                     className="absolute top-4 right-4 p-2 rounded-full bg-white text-gray-600 hover:bg-red-50 hover:text-red-500 shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={!isAuthenticated || !hasAccess}
                                   >
-                                    <Heart 
-                                      className={`w-5 h-5 ${isFavorite ? 'fill-current text-red-500' : ''}`} 
+                                    <Heart
+                                      className={`w-5 h-5 ${isFavorite ? 'fill-current text-red-500' : ''}`}
                                     />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  {!isAuthenticated ? 'Login to add favorites' : 
-                                   !hasAccess ? 'Upgrade plan to add to favorites' :
-                                   isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                  {!isAuthenticated ? 'Login to add favorites' :
+                                    !hasAccess ? 'Upgrade plan to add to favorites' :
+                                      isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                                 </TooltipContent>
                               </Tooltip>
 
@@ -762,7 +760,7 @@ const TemplatesSection = () => {
                               {template.downloadCount || 0} downloads
                             </span> */}
                           </div>
-                          
+
                           {!hasAccess && isAuthenticated && (
                             <div className="mt-2 p-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
                               <p className="text-xs text-yellow-800 flex items-center gap-1">
@@ -794,15 +792,15 @@ const TemplatesSection = () => {
           className="text-center mt-12"
         >
           <Link to="/templates">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-6 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Browse All Templates
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-          
+
           {!isAuthenticated && (
             <p className="text-sm text-gray-500 mt-4">
               Sign in to access premium templates and features

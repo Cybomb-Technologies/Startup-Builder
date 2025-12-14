@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
- 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -20,11 +20,11 @@ const ContactPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
- 
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/contact/submit`, {
         method: 'POST',
@@ -33,9 +33,9 @@ const ContactPage = () => {
         },
         body: JSON.stringify(formData),
       });
- 
+
       const result = await response.json();
- 
+
       if (result.success) {
         toast({
           title: "Message Sent!",
@@ -56,17 +56,17 @@ const ContactPage = () => {
       setIsSubmitting(false);
     }
   };
- 
+
   return (
     <>
       <Helmet>
         <title>Contact Us - Paplixo </title>
         <meta name="description" content="Get in touch with Paplixo. We're here to help with your documentation needs." />
       </Helmet>
- 
+
       <div className="min-h-screen">
-        
- 
+
+
         <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
@@ -80,7 +80,7 @@ const ContactPage = () => {
             </motion.div>
           </div>
         </div>
- 
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Information Section */}
@@ -92,7 +92,7 @@ const ContactPage = () => {
               <p className="text-lg text-gray-700 mb-8">
                 Have a question about our templates or need assistance? Fill out the form and we'll respond as soon as possible.
               </p>
- 
+
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -103,7 +103,7 @@ const ContactPage = () => {
                     <p className="text-gray-700">support@cybomb.com</p>
                   </div>
                 </div>
- 
+
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Phone className="w-6 h-6 text-white" />
@@ -113,7 +113,7 @@ const ContactPage = () => {
                     <p className="text-gray-700">+91 98765 43210</p>
                   </div>
                 </div>
- 
+
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-6 h-6 text-white" />
@@ -125,7 +125,7 @@ const ContactPage = () => {
                 </div>
               </div>
             </motion.div>
- 
+
             {/* Contact Form Section */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -144,7 +144,7 @@ const ContactPage = () => {
                       disabled={isSubmitting}
                     />
                   </div>
- 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <Input
@@ -156,7 +156,7 @@ const ContactPage = () => {
                       disabled={isSubmitting}
                     />
                   </div>
- 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
                     <Input
@@ -168,7 +168,7 @@ const ContactPage = () => {
                       disabled={isSubmitting}
                     />
                   </div>
- 
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                     <Textarea
@@ -180,7 +180,7 @@ const ContactPage = () => {
                       disabled={isSubmitting}
                     />
                   </div>
- 
+
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg py-6"
@@ -194,12 +194,11 @@ const ContactPage = () => {
             </motion.div>
           </div>
         </div>
- 
-       
+
+
       </div>
     </>
   );
 };
- 
+
 export default ContactPage;
- 

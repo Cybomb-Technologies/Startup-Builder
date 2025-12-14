@@ -1,9 +1,9 @@
 // src/pages/admin/components/AdminSidebar.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Users, 
-  Mail, 
+import {
+  FileText,
+  Users,
+  Mail,
   BarChart,
   FolderOpen,
   FolderTree,
@@ -20,12 +20,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const AdminSidebar = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Get admin data from localStorage
   const adminData = JSON.parse(localStorage.getItem('adminUser') || '{}');
 
@@ -55,7 +55,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
     try {
       setRefreshing(true);
       const headers = getAuthHeaders();
-      
+
       // Fetch users count
       try {
         const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, { headers });
@@ -245,7 +245,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       badge: null,
       count: 0
     },
-    
+
     // {
     //   type: 'divider',
     //   label: 'Settings'
@@ -321,7 +321,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
             <Shield className="w-3 h-3" />
             <span>Administrator Access</span>
           </div>
-          
+
         </div>
       </div>
 
@@ -352,52 +352,46 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
               <button
                 key={item.path}
                 onClick={() => setActiveTab(item.path)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 group relative ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 group relative ${isActive
                     ? 'bg-blue-600/20 text-white border-l-4 border-blue-400 shadow-lg shadow-blue-500/10'
                     : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-l-4 hover:border-gray-500'
-                }`}
+                  }`}
               >
                 {/* Active indicator */}
                 {isActive && (
                   <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-400 rounded-r-full" />
                 )}
-                
-                <div className={`p-2 rounded-lg transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-blue-500/20 text-blue-300' 
+
+                <div className={`p-2 rounded-lg transition-all duration-200 ${isActive
+                    ? 'bg-blue-500/20 text-blue-300'
                     : 'bg-gray-700/50 text-gray-400 group-hover:bg-gray-600/50 group-hover:text-gray-300'
-                }`}>
+                  }`}>
                   <Icon className="w-4 h-4 flex-shrink-0" />
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className={`font-medium block text-sm transition-all ${
-                      isActive ? 'text-white' : 'text-gray-200 group-hover:text-white'
-                    }`}>
+                    <span className={`font-medium block text-sm transition-all ${isActive ? 'text-white' : 'text-gray-200 group-hover:text-white'
+                      }`}>
                       {item.name}
                     </span>
                     {item.badge && (
-                      <span className={`text-xs px-2 py-1 rounded-full min-w-8 text-center ${
-                        isActive 
-                          ? 'bg-blue-500 text-white' 
+                      <span className={`text-xs px-2 py-1 rounded-full min-w-8 text-center ${isActive
+                          ? 'bg-blue-500 text-white'
                           : 'bg-gray-700 text-gray-300 group-hover:bg-gray-600'
-                      }`}>
+                        }`}>
                         {item.badge}
                       </span>
                     )}
                   </div>
-                  <span className={`text-xs block mt-0.5 transition-all ${
-                    isActive ? 'text-blue-200' : 'text-gray-500 group-hover:text-gray-400'
-                  }`}>
+                  <span className={`text-xs block mt-0.5 transition-all ${isActive ? 'text-blue-200' : 'text-gray-500 group-hover:text-gray-400'
+                    }`}>
                     {item.description}
                   </span>
                 </div>
-                
-                <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
-                  isActive ? 'text-blue-300 rotate-90' : 'text-gray-500 group-hover:text-gray-400'
-                }`} />
+
+                <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isActive ? 'text-blue-300 rotate-90' : 'text-gray-500 group-hover:text-gray-400'
+                  }`} />
               </button>
             );
           })}
@@ -424,7 +418,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Logout Button */}
         <button
           onClick={handleLogout}
