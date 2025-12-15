@@ -580,7 +580,7 @@ const PricingPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className={`bg-white rounded-2xl shadow-lg flex flex-col hover:shadow-xl transition-all duration-300 border border-gray-200 h-full ${plan.popular && !isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' :
-                        isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
+                      isCurrentPlan ? 'ring-2 ring-blue-500 mt-8' : 'mt-8'
                       }`}
                   >
                     <div className="p-8 flex flex-col flex-grow">
@@ -635,14 +635,14 @@ const PricingPage = () => {
                           onClick={() => handleSubscribe(plan.name, plan.planId)}
                           disabled={isNavigating || isCurrentPlan || refreshingPlan}
                           className={`w-full ${isCurrentPlan
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                            : plan.popular
                               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                              : plan.popular
+                              : isFreePlan
                                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                                : isFreePlan
+                                : isEnterprisePlan
                                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                                  : isEnterprisePlan
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                                    : 'bg-gray-900 hover:bg-gray-800'
+                                  : 'bg-gray-900 hover:bg-gray-800'
                             } ${(isNavigating || isCurrentPlan || refreshingPlan) ? 'opacity-90 cursor-not-allowed' : ''}`}
                         >
                           {isNavigating || refreshingPlan ? (

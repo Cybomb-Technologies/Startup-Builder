@@ -555,8 +555,8 @@ const ContactSubmissions = () => {
                       size="sm"
                       onClick={() => handleMarkAsRead(submission._id, submission.read)}
                       className={`border ${!submission.read
-                          ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200'
-                          : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200'
+                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
                       {submission.read ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

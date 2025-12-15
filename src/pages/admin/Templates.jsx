@@ -1356,9 +1356,9 @@ const Templates = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelName(selectedTemplate.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
-                      getAccessLevelName(selectedTemplate.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
-                        getAccessLevelName(selectedTemplate.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
-                          "bg-gray-100 text-gray-800"
+                    getAccessLevelName(selectedTemplate.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
+                      getAccessLevelName(selectedTemplate.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
+                        "bg-gray-100 text-gray-800"
                     }`}>
                     {getAccessLevelName(selectedTemplate.accessLevel)}
                   </span>
@@ -1717,9 +1717,9 @@ const Templates = () => {
                   </td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelName(template.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
-                        getAccessLevelName(template.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
-                          getAccessLevelName(template.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
-                            "bg-gray-100 text-gray-800"
+                      getAccessLevelName(template.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
+                        getAccessLevelName(template.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
+                          "bg-gray-100 text-gray-800"
                       }`}>
                       {getAccessLevelName(template.accessLevel)}
                     </span>

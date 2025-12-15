@@ -11,11 +11,11 @@ const UserDocument = require("../models/UserDocument");
 const User = require("../models/User");
 
 // --- ENV ---
-const APP_BASE_URL     = process.env.APP_BASE_URL     || "http://localhost:5000";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://api.paplixo.com";
 const APP_INTERNAL_URL = process.env.APP_INTERNAL_URL || "http://host.docker.internal:5000";
-const DS_PUBLIC_URL    = process.env.DS_PUBLIC_URL    || "http://localhost:8081";
-const DS_JWT_SECRET    = process.env.DOCUMENT_SERVER_JWT_SECRET;
-const APP_JWT_SECRET   = process.env.JWT_SECRET;
+const DS_PUBLIC_URL = process.env.DS_PUBLIC_URL || "http://localhost:8081";
+const DS_JWT_SECRET = process.env.DOCUMENT_SERVER_JWT_SECRET;
+const APP_JWT_SECRET = process.env.JWT_SECRET;
 
 // --- GridFS Bucket ---
 let bucket;
