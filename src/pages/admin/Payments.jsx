@@ -691,8 +691,8 @@ const PaymentsPage = () => {
             onClick={exportToExcel}
             disabled={isExporting || payments.length === 0}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isExporting || payments.length === 0
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white'
               }`}
           >
             {isExporting ? (
@@ -1152,8 +1152,8 @@ const PaymentsPage = () => {
                   onClick={handleUpdateStatus}
                   disabled={!newStatus}
                   className={`px-4 py-2 rounded-lg transition-colors ${!newStatus
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                 >
                   Update Status

@@ -1,9 +1,9 @@
 // ResetPassword.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
- 
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
- 
+
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -11,35 +11,35 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
- 
+
   const { email, resetToken } = location.state || {};
- 
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
-   
+
     if (!newPassword || !confirmPassword) {
       setMsg('Please fill in all fields');
       return;
     }
- 
+
     if (newPassword.length < 6) {
       setMsg('Password must be at least 6 characters long');
       return;
     }
- 
+
     if (newPassword !== confirmPassword) {
       setMsg('Passwords do not match');
       return;
     }
- 
+
     if (!resetToken) {
       setMsg('Invalid reset token. Please start the process again.');
       return;
     }
- 
+
     setIsLoading(true);
     setMsg('');
- 
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/reset-password`, {
         method: 'POST',
@@ -51,20 +51,20 @@ export default function ResetPassword() {
           newPassword
         }),
       });
- 
+
       const data = await response.json();
       console.log('Reset password response:', data);
- 
+
       if (!response.ok) {
         throw new Error(data.message || 'Password reset failed');
       }
- 
+
       setMsg('Password reset successfully! Redirecting to login...');
-     
+
       setTimeout(() => {
         navigate('/login');
       }, 2000);
- 
+
     } catch (err) {
       console.error('Reset password error:', err);
       setMsg(err.message || 'Failed to reset password. Please try again.');
@@ -72,7 +72,7 @@ export default function ResetPassword() {
       setIsLoading(false);
     }
   };
- 
+
   if (!email || !resetToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
@@ -89,7 +89,7 @@ export default function ResetPassword() {
       </div>
     );
   }
- 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-4">
       <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md">
@@ -98,7 +98,7 @@ export default function ResetPassword() {
           Setting new password for<br />
           <span className="font-medium">{email}</span>
         </p>
-       
+
         <form onSubmit={handleResetPassword} className="space-y-5">
           <div>
             <label className="block text-gray-600 font-medium mb-2">New Password</label>
@@ -112,7 +112,7 @@ export default function ResetPassword() {
               placeholder="Enter new password (min. 6 characters)"
             />
           </div>
-         
+
           <div>
             <label className="block text-gray-600 font-medium mb-2">Confirm Password</label>
             <input
@@ -125,7 +125,7 @@ export default function ResetPassword() {
               placeholder="Confirm your new password"
             />
           </div>
-         
+
           <button
             type="submit"
             disabled={isLoading}
@@ -144,15 +144,14 @@ export default function ResetPassword() {
             )}
           </button>
         </form>
-       
+
         {msg && (
-          <div className={`mt-4 p-3 rounded-lg text-center text-sm ${
-            msg.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
+          <div className={`mt-4 p-3 rounded-lg text-center text-sm ${msg.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
             {msg}
           </div>
         )}
-       
+
         <div className="text-center mt-4">
           <button
             onClick={() => navigate('/login')}
@@ -165,4 +164,3 @@ export default function ResetPassword() {
     </div>
   );
 }
- 

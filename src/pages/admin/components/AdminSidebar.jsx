@@ -353,8 +353,8 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
                 key={item.path}
                 onClick={() => setActiveTab(item.path)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-200 group relative ${isActive
-                    ? 'bg-blue-600/20 text-white border-l-4 border-blue-400 shadow-lg shadow-blue-500/10'
-                    : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-l-4 hover:border-gray-500'
+                  ? 'bg-blue-600/20 text-white border-l-4 border-blue-400 shadow-lg shadow-blue-500/10'
+                  : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-l-4 hover:border-gray-500'
                   }`}
               >
                 {/* Active indicator */}
@@ -363,8 +363,8 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
                 )}
 
                 <div className={`p-2 rounded-lg transition-all duration-200 ${isActive
-                    ? 'bg-blue-500/20 text-blue-300'
-                    : 'bg-gray-700/50 text-gray-400 group-hover:bg-gray-600/50 group-hover:text-gray-300'
+                  ? 'bg-blue-500/20 text-blue-300'
+                  : 'bg-gray-700/50 text-gray-400 group-hover:bg-gray-600/50 group-hover:text-gray-300'
                   }`}>
                   <Icon className="w-4 h-4 flex-shrink-0" />
                 </div>
@@ -377,8 +377,8 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
                     </span>
                     {item.badge && (
                       <span className={`text-xs px-2 py-1 rounded-full min-w-8 text-center ${isActive
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-700 text-gray-300 group-hover:bg-gray-600'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-700 text-gray-300 group-hover:bg-gray-600'
                         }`}>
                         {item.badge}
                       </span>
