@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Users, 
-  RefreshCw, 
-  Eye, 
-  CheckCircle, 
-  XCircle, 
+import {
+  DollarSign,
+  TrendingUp,
+  Users,
+  RefreshCw,
+  Eye,
+  CheckCircle,
+  XCircle,
   Clock,
   Filter,
   MoreVertical,
@@ -26,7 +26,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import * as XLSX from "xlsx"; // Import XLSX library
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const PaymentsPage = () => {
   const { toast } = useToast();
@@ -69,13 +69,13 @@ const PaymentsPage = () => {
   // ✅ Calculate amount breakdown with tax
   const calculateAmountBreakdown = (totalAmount) => {
     const total = parseFloat(totalAmount) || 0;
-    
+
     // Calculate base amount (total / 1.18)
     const baseAmount = total / (1 + TAX_RATE);
-    
+
     // Calculate tax amount (18% of base amount)
     const taxAmount = baseAmount * TAX_RATE;
-    
+
     return {
       baseAmount: parseFloat(baseAmount.toFixed(2)),     // 0.85 for 1.00 total
       taxAmount: parseFloat(taxAmount.toFixed(2)),       // 0.15 for 1.00 total
@@ -87,7 +87,7 @@ const PaymentsPage = () => {
   const loadPayments = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value) queryParams.append(key, value);
@@ -108,7 +108,7 @@ const PaymentsPage = () => {
           totalPages: data.totalPages,
           total: data.total
         });
-        
+
         if (data.stats) {
           setStats(data.stats);
         }
@@ -170,10 +170,10 @@ const PaymentsPage = () => {
   const exportToExcel = async () => {
     try {
       setIsExporting(true);
-      
+
       // If we're filtering, we need to fetch all data without pagination
       let allPayments = [];
-      
+
       // If filters are applied, fetch all matching data
       if (filters.status || filters.planId || filters.search) {
         const queryParams = new URLSearchParams({
@@ -181,7 +181,7 @@ const PaymentsPage = () => {
           page: 1,
           limit: 10000, // Large number to get all data
         });
-        
+
         const response = await fetch(
           `${API_BASE_URL}/api/admin/payments?${queryParams}`,
           {
@@ -204,7 +204,7 @@ const PaymentsPage = () => {
       // Prepare data for Excel
       const excelData = allPayments.map(payment => {
         const breakdown = calculateAmountBreakdown(payment.amount);
-        
+
         return {
           'Transaction ID': payment.transactionId || 'N/A',
           'User Name': payment.user?.username || 'N/A',
@@ -231,10 +231,10 @@ const PaymentsPage = () => {
 
       // Create a new workbook
       const wb = XLSX.utils.book_new();
-      
+
       // Create a worksheet
       const ws = XLSX.utils.json_to_sheet(excelData);
-      
+
       // Set column widths
       const colWidths = [
         { wch: 20 }, // Transaction ID
@@ -264,22 +264,22 @@ const PaymentsPage = () => {
         { wch: 20 }, // Refund Date
       ];
       ws['!cols'] = colWidths;
-      
+
       // Add the worksheet to the workbook
       XLSX.utils.book_append_sheet(wb, ws, "Payments");
-      
+
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
       const filename = `payments-export-${timestamp}.xlsx`;
-      
+
       // Write the workbook and trigger download
       XLSX.writeFile(wb, filename);
-      
+
       toast({
         title: "Export Successful",
         description: `Exported ${excelData.length} payment records to ${filename}`,
       });
-      
+
     } catch (error) {
       console.error("Error exporting to Excel:", error);
       toast({
@@ -345,14 +345,14 @@ const PaymentsPage = () => {
           title: "Success",
           description: data.message,
         });
-        
+
         // Update local state
-        setPayments(prev => prev.map(p => 
-          p.id === selectedPayment.id 
+        setPayments(prev => prev.map(p =>
+          p.id === selectedPayment.id
             ? { ...p, status: newStatus }
             : p
         ));
-        
+
         setIsUpdateStatusOpen(false);
         setNewStatus('');
       } else {
@@ -427,7 +427,7 @@ const PaymentsPage = () => {
   // ✅ Generate invoice data
   const generateInvoiceData = (payment) => {
     const breakdown = calculateAmountBreakdown(payment.amount);
-    
+
     return {
       invoiceNumber: payment.transactionId,
       date: payment.paidAt || payment.createdAt,
@@ -486,7 +486,7 @@ const PaymentsPage = () => {
                 ✕
               </button>
             </div>
-            
+
             {/* Invoice Header */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               {/* Company Info */}
@@ -501,7 +501,7 @@ const PaymentsPage = () => {
                 <p className="text-sm text-gray-600">{invoiceData.company.website}</p>
                 <p className="text-sm text-gray-500">GSTIN: {invoiceData.company.gstin}</p>
               </div>
-              
+
               {/* Invoice Info */}
               <div className="text-right space-y-2">
                 <h2 className="text-2xl font-bold">TAX INVOICE</h2>
@@ -580,7 +580,7 @@ const PaymentsPage = () => {
                     {formatCurrency(invoiceData.totalAmount, invoiceData.currency)}
                   </span>
                 </div>
-                
+
                 {/* Breakdown */}
                 <div className="mt-4 p-3 bg-blue-50 rounded text-xs">
                   <p className="font-medium mb-2">Amount Breakdown:</p>
@@ -685,16 +685,15 @@ const PaymentsPage = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          
+
           {/* Export Button */}
           <button
             onClick={exportToExcel}
             disabled={isExporting || payments.length === 0}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              isExporting || payments.length === 0
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isExporting || payments.length === 0
+              ? 'bg-gray-300 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
           >
             {isExporting ? (
               <>
@@ -760,7 +759,7 @@ const PaymentsPage = () => {
               {payments.filter(p => p.status === 'success' && p.autoRenewal).length}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              
+
             </p>
           </div>
 
@@ -853,8 +852,8 @@ const PaymentsPage = () => {
               Page {pagination.currentPage} of {pagination.totalPages}
             </p>
           </div>
-          </div>
-        
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -877,7 +876,7 @@ const PaymentsPage = () => {
               ) : (
                 payments.map((payment) => {
                   const breakdown = calculateAmountBreakdown(payment.amount);
-                  
+
                   return (
                     <tr key={payment.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -907,7 +906,7 @@ const PaymentsPage = () => {
                             {formatCurrency(payment.amount, payment.currency)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Base: {formatCurrency(breakdown.baseAmount, payment.currency)} + 
+                            Base: {formatCurrency(breakdown.baseAmount, payment.currency)} +
                             Tax: {formatCurrency(breakdown.taxAmount, payment.currency)}
                           </div>
                         </div>
@@ -920,8 +919,8 @@ const PaymentsPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex items-center ">
-                          
-                          
+
+
                           <button
                             onClick={() => handleViewDetails(payment.id)}
                             className="p-1 hover:bg-gray-100 rounded transition-colors"
@@ -929,8 +928,8 @@ const PaymentsPage = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-                          
-                          
+
+
                         </div>
                       </td>
                     </tr>
@@ -951,23 +950,21 @@ const PaymentsPage = () => {
               <button
                 onClick={() => handleFilterChange('page', Math.max(1, filters.page - 1))}
                 disabled={filters.page <= 1}
-                className={`px-3 py-1 border border-gray-300 rounded ${
-                  filters.page <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
-                }`}
+                className={`px-3 py-1 border border-gray-300 rounded ${filters.page <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                  }`}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              
+
               <span className="px-3 py-1 text-sm">
                 Page {filters.page} of {pagination.totalPages}
               </span>
-              
+
               <button
                 onClick={() => handleFilterChange('page', Math.min(pagination.totalPages, filters.page + 1))}
                 disabled={filters.page >= pagination.totalPages}
-                className={`px-3 py-1 border border-gray-300 rounded ${
-                  filters.page >= pagination.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
-                }`}
+                className={`px-3 py-1 border border-gray-300 rounded ${filters.page >= pagination.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                  }`}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -990,27 +987,27 @@ const PaymentsPage = () => {
                   ✕
                 </button>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Transaction Info */}
                 {/* Transaction Info */}
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-  <div className="sm:col-span-2">
-    <h4 className="text-sm font-medium text-gray-500">Transaction ID</h4>
-    <p className="font-mono">{selectedPayment.transactionId}</p>
-  </div>
-  <div>
-    <h4 className="text-sm font-medium text-gray-500">Payment Method</h4>
-    <p className="flex items-center gap-2">
-      <CreditCard className="w-4 h-4" />
-      {selectedPayment.paymentMethod || 'N/A'}
-    </p>
-  </div>
-  <div>
-    <h4 className="text-sm font-medium text-gray-500">Status</h4>
-    <div className="mt-1">{getStatusBadge(selectedPayment.status)}</div>
-  </div>
-</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <h4 className="text-sm font-medium text-gray-500">Transaction ID</h4>
+                    <p className="font-mono">{selectedPayment.transactionId}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Payment Method</h4>
+                    <p className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      {selectedPayment.paymentMethod || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Status</h4>
+                    <div className="mt-1">{getStatusBadge(selectedPayment.status)}</div>
+                  </div>
+                </div>
 
                 {/* User Info */}
                 <div className="border-t pt-4">
@@ -1120,7 +1117,7 @@ const PaymentsPage = () => {
               <p className="text-sm text-gray-500 mb-4">
                 Update status for transaction: {selectedPayment.transactionId}
               </p>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">New Status</label>
@@ -1135,7 +1132,7 @@ const PaymentsPage = () => {
                     <option value="pending">Pending</option>
                   </select>
                 </div>
-                
+
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                   <p className="text-sm text-yellow-800">
                     <strong>Note:</strong> Changing status to "success" will automatically update the user's plan.
@@ -1154,11 +1151,10 @@ const PaymentsPage = () => {
                 <button
                   onClick={handleUpdateStatus}
                   disabled={!newStatus}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    !newStatus 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
+                  className={`px-4 py-2 rounded-lg transition-colors ${!newStatus
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    }`}
                 >
                   Update Status
                 </button>

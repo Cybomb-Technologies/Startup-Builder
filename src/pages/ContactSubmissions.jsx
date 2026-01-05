@@ -56,7 +56,7 @@
 //     }
  
 //     try {
-//       const response = await fetch('http://localhost:5000/api/contact/submissions');
+//       const response = await fetch('https://api.paplixo.com/api/contact/submissions');
      
 //       if (!response.ok) {
 //         throw new Error(`HTTP error! status: ${response.status}`);
@@ -87,7 +87,7 @@
  
 //   const handleMarkAsRead = async (id, currentStatus) => {
 //     try {
-//       const response = await fetch(`http://localhost:5000/api/contact/${id}/read`, {
+//       const response = await fetch(`https://api.paplixo.com/api/contact/${id}/read`, {
 //         method: 'PATCH',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -128,7 +128,7 @@
 //     if (!confirm('Are you sure you want to delete this submission?')) return;
  
 //     try {
-//       const response = await fetch(`http://localhost:5000/api/contact/${id}`, {
+//       const response = await fetch(`https://api.paplixo.com/api/contact/${id}`, {
 //         method: 'DELETE',
 //       });
  

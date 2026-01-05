@@ -1,13 +1,13 @@
 // src/pages/admin/AdminPricingManager.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Save, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Save,
   X,
   Zap,
   FileText,
@@ -26,15 +26,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue 
+  SelectValue
 } from '@/components/ui/select';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const AdminPricingManager = () => {
   const { toast } = useToast();
@@ -86,7 +86,7 @@ const AdminPricingManager = () => {
     try {
       const userData = JSON.parse(adminUser);
       const token = userData.token;
-      
+
       if (!token) {
         console.error('❌ No token found in admin session');
         return {};
@@ -118,7 +118,7 @@ const AdminPricingManager = () => {
       const response = await fetch(`${API_BASE_URL}/api/pricing/admin/all`, {
         headers
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Sort by position
@@ -203,7 +203,7 @@ const AdminPricingManager = () => {
       position: plan.position
     });
     setIsCreating(false);
-    
+
     // Scroll to form
     setTimeout(() => {
       document.getElementById('edit-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -231,7 +231,7 @@ const AdminPricingManager = () => {
       annualDiscount: 15,
       position: plans.length
     });
-    
+
     // Scroll to form
     setTimeout(() => {
       document.getElementById('edit-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -263,7 +263,7 @@ const AdminPricingManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) {
@@ -276,24 +276,24 @@ const AdminPricingManager = () => {
       }
 
       const colorGradient = colorOptions.find(c => c.value === formData.color)?.gradient || 'from-blue-500 to-cyan-600';
-      
+
       const payload = {
         ...formData,
         color: colorGradient
       };
 
-      const url = isCreating 
+      const url = isCreating
         ? `${API_BASE_URL}/api/pricing/admin/create`
         : `${API_BASE_URL}/api/pricing/admin/update/${formData.planId}`;
-      
+
       const method = isCreating ? 'POST' : 'PUT';
-      
+
       const response = await fetch(url, {
         method,
         headers,
         body: JSON.stringify(payload)
       });
-      
+
       if (response.ok) {
         toast({
           title: 'Success',
@@ -317,7 +317,7 @@ const AdminPricingManager = () => {
 
   const handleDelete = async (planId) => {
     if (!confirm('Are you sure you want to delete this plan? This action cannot be undone.')) return;
-    
+
     try {
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) {
@@ -333,7 +333,7 @@ const AdminPricingManager = () => {
         method: 'DELETE',
         headers
       });
-      
+
       if (response.ok) {
         toast({
           title: 'Success',
@@ -370,7 +370,7 @@ const AdminPricingManager = () => {
         method: 'PATCH',
         headers
       });
-      
+
       if (response.ok) {
         toast({
           title: 'Success',
@@ -393,21 +393,21 @@ const AdminPricingManager = () => {
 
   const movePlan = async (planId, direction) => {
     const planIndex = plans.findIndex(p => p.planId === planId);
-    if ((direction === 'up' && planIndex === 0) || 
-        (direction === 'down' && planIndex === plans.length - 1)) {
+    if ((direction === 'up' && planIndex === 0) ||
+      (direction === 'down' && planIndex === plans.length - 1)) {
       return;
     }
-    
+
     try {
       const headers = getAuthHeaders();
       const newPosition = direction === 'up' ? plans[planIndex - 1].position : plans[planIndex + 1].position;
-      
+
       const response = await fetch(`${API_BASE_URL}/api/pricing/admin/update/${planId}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ position: newPosition })
       });
-      
+
       if (response.ok) {
         toast({
           title: 'Success',
@@ -691,10 +691,10 @@ const AdminPricingManager = () => {
                         <label className="block text-sm font-medium text-gray-700">
                           Features *
                         </label>
-                        <Button 
-                          type="button" 
-                          onClick={addFeature} 
-                          variant="outline" 
+                        <Button
+                          type="button"
+                          onClick={addFeature}
+                          variant="outline"
                           size="sm"
                         >
                           <Plus className="w-4 h-4 mr-1" />
@@ -778,7 +778,7 @@ const AdminPricingManager = () => {
               .map((plan, index) => {
                 const IconComponent = icons[plan.icon] || Zap;
                 const colorInfo = colorOptions.find(c => c.gradient === plan.color) || colorOptions[0];
-                
+
                 return (
                   <motion.div
                     key={plan._id}
@@ -787,9 +787,8 @@ const AdminPricingManager = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`bg-white rounded-lg shadow-lg border-l-4 ${
-                      plan.popular ? 'border-blue-500' : 'border-gray-300'
-                    } ${!plan.active ? 'opacity-70' : ''}`}
+                    className={`bg-white rounded-lg shadow-lg border-l-4 ${plan.popular ? 'border-blue-500' : 'border-gray-300'
+                      } ${!plan.active ? 'opacity-70' : ''}`}
                   >
                     <div className="p-6">
                       <div className="flex flex-col lg:flex-row gap-6">
@@ -843,9 +842,9 @@ const AdminPricingManager = () => {
                                   </Badge>
                                 </div>
                               </div>
-                              
+
                               <p className="text-gray-600 mb-4">{plan.description}</p>
-                              
+
                               {/* Pricing */}
                               <div className="flex flex-wrap items-baseline gap-3 mb-4">
                                 <div className="flex items-baseline">

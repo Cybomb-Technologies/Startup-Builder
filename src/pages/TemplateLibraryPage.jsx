@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Edit, 
-  Star, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  Download,
+  Edit,
+  Star,
+  Eye,
   Loader2,
   RefreshCw,
   Image,
@@ -72,14 +72,14 @@ const metaPropsData = {
 };
 
 // Import the dropdown components
-import { 
-  DropdownMenu, 
-  DropdownMenuTrigger, 
-  DropdownMenuContent, 
-  DropdownMenuItem 
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 // Import the separate components
 import TemplateImageCarousel from '@/components/TemplateImageCarousel';
@@ -87,14 +87,14 @@ import TemplateThumbnail from '@/components/TemplateThumbnail';
 
 // API service (keep as is - same as before)
 const apiService = {
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? '/api' 
+  baseURL: (process.env.NODE_ENV === 'production')
+    ? 'https://api.paplixo.com/api'
     : `${API_BASE_URL}/api`,
 
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
     const token = localStorage.getItem('token');
-    
+
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -161,22 +161,31 @@ const apiService = {
 
   async getTemplates() {
     const data = await this.makeRequest('/templates');
-    return data.templates || data.data || data;
+
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.templates)) return data.templates;
+    if (Array.isArray(data?.data)) return data.data;
+
+    // fallback
+    return [];
   },
 
   async getCategories() {
     const data = await this.makeRequest('/categories');
-    return data.categories || data.data || data;
+    const categories = data.categories || data.data || data;
+    return Array.isArray(categories) ? categories : [];
   },
 
   async getSubCategories() {
     const data = await this.makeRequest('/subcategories');
-    return data.subcategories || data.data || data;
+    const subcats = data.subcategories || data.data || data;
+    return Array.isArray(subcats) ? subcats : [];
   },
 
   async getAccessLevels() {
     const data = await this.makeRequest('/access-levels');
-    return data.accessLevels || data.data || data;
+    const levels = data.accessLevels || data.data || data;
+    return Array.isArray(levels) ? levels : [];
   },
 
   async checkTemplateAccess(templateId) {
@@ -200,7 +209,7 @@ const apiService = {
 
   async downloadTemplate(templateId) {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       throw new Error('Please login to download templates');
     }
@@ -238,7 +247,7 @@ const apiService = {
 
       const contentDisposition = response.headers.get('content-disposition');
       let filename = `template-${templateId}`;
-      
+
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
         if (filenameMatch) filename = filenameMatch[1];
@@ -253,7 +262,7 @@ const apiService = {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       return true;
     } catch (error) {
       console.error('❌ Download error:', error);
@@ -272,7 +281,7 @@ const apiService = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     return data.template;
   },
 
@@ -293,7 +302,7 @@ const apiService = {
 
   async getUserFavorites() {
     const data = await this.makeRequest('/users/favorites');
-    return data.favorites || [];
+    return Array.isArray(data?.favorites) ? data.favorites : [];
   },
 
   async downloadImage(imageUrl) {
@@ -301,7 +310,7 @@ const apiService = {
     if (!response.ok) {
       throw new Error('Failed to download image');
     }
-    
+
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -336,7 +345,7 @@ const apiService = {
 // File Extension Badge component
 const FileExtensionBadge = ({ format }) => {
   const formatLower = format?.toLowerCase() || 'file';
-  
+
   const getExtensionColor = (ext) => {
     const colorMap = {
       'docx': 'bg-blue-500/20 text-blue-700 border-blue-300',
@@ -350,7 +359,7 @@ const FileExtensionBadge = ({ format }) => {
       'txt': 'bg-gray-500/20 text-gray-700 border-gray-300',
       'rtf': 'bg-gray-500/20 text-gray-700 border-gray-300',
     };
-    
+
     return colorMap[ext] || 'bg-gray-500/20 text-gray-700 border-gray-300';
   };
 
@@ -371,14 +380,14 @@ const AccessLevelBadge = ({ accessLevel, userPlan }) => {
       'enterprise': 'bg-green-500/20 text-green-700 border-green-300',
       'premium': 'bg-yellow-500/20 text-yellow-700 border-yellow-300'
     };
-    
+
     const levelName = accessLevel?.name?.toLowerCase() || 'free';
     return colorMap[levelName] || 'bg-gray-500/20 text-gray-700 border-gray-300';
   };
 
   const canAccessTemplate = (templateLevel, userPlanId) => {
     if (!userPlanId || templateLevel === 'free') return true;
-    
+
     const accessHierarchy = {
       'free': ['free'],
       'pro': ['free', 'pro'],
@@ -466,18 +475,18 @@ const QuickStats = ({ templates, filteredTemplates, userPlan }) => {
 };
 
 // Scalable Category Selector for Sidebar Only
-const SidebarCategorySelector = ({ 
-  categories, 
-  selectedCategory, 
+const SidebarCategorySelector = ({
+  categories,
+  selectedCategory,
   setSelectedCategory,
   categoryCounts = {}
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAll, setShowAll] = useState(false);
-  
+
   // Calculate total templates
   const totalTemplates = Object.values(categoryCounts).reduce((a, b) => a + b, 0);
-  
+
   // Filter categories based on search
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -487,7 +496,7 @@ const SidebarCategorySelector = ({
   // Show first 5 categories by default, show all when "Show All" is clicked
   const maxVisible = 3;
   const visibleCategories = showAll ? filteredCategories : filteredCategories.slice(0, maxVisible);
-  
+
   const hasManyCategories = categories.length > maxVisible;
   const hasSearchResults = searchTerm && filteredCategories.length > 0;
 
@@ -503,7 +512,7 @@ const SidebarCategorySelector = ({
       'bg-gradient-to-r from-indigo-500 to-indigo-600',
       'bg-gradient-to-r from-teal-500 to-teal-600'
     ];
-    
+
     const index = categories.findIndex(c => c._id === categoryId);
     return colors[index % colors.length] || 'bg-gradient-to-r from-gray-500 to-gray-600';
   };
@@ -546,11 +555,10 @@ const SidebarCategorySelector = ({
           {/* All Categories Option */}
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`w-full flex items-center justify-between px-3 py-3 rounded-lg mb-2 transition-all duration-200 ${
-              selectedCategory === 'all'
-                ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-md'
-                : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-            }`}
+            className={`w-full flex items-center justify-between px-3 py-3 rounded-lg mb-2 transition-all duration-200 ${selectedCategory === 'all'
+              ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-md'
+              : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+              }`}
           >
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-lg ${selectedCategory === 'all' ? 'bg-white/20' : 'bg-gray-100'}`}>
@@ -572,11 +580,10 @@ const SidebarCategorySelector = ({
               <button
                 key={category._id}
                 onClick={() => setSelectedCategory(category._id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  selectedCategory === category._id
-                    ? `${getCategoryColor(category._id)} text-white shadow-md`
-                    : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-                }`}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 ${selectedCategory === category._id
+                  ? `${getCategoryColor(category._id)} text-white shadow-md`
+                  : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-1.5 rounded-lg ${selectedCategory === category._id ? 'bg-white/20' : 'bg-gray-100'}`}>
@@ -592,7 +599,7 @@ const SidebarCategorySelector = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                     {selectedCategory === category._id && (
+                  {selectedCategory === category._id && (
                     <Check className="w-4 h-4" />
                   )}
                 </div>
@@ -680,14 +687,14 @@ const SidebarCategorySelector = ({
 };
 
 // Mobile Category Selector (for dialog)
-const MobileCategorySelector = ({ 
-  categories, 
-  selectedCategory, 
+const MobileCategorySelector = ({
+  categories,
+  selectedCategory,
   setSelectedCategory,
   categoryCounts = {}
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -717,11 +724,10 @@ const MobileCategorySelector = ({
         {/* All Categories */}
         <button
           onClick={() => setSelectedCategory('all')}
-          className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between ${
-            selectedCategory === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-          }`}
+          className={`w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between ${selectedCategory === 'all'
+            ? 'bg-blue-600 text-white'
+            : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+            }`}
         >
           <div className="flex items-center gap-2">
             <LayoutGrid className="w-4 h-4" />
@@ -735,11 +741,10 @@ const MobileCategorySelector = ({
           <button
             key={category._id}
             onClick={() => setSelectedCategory(category._id)}
-            className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between ${
-              selectedCategory === category._id
-                ? 'bg-blue-100 border border-blue-300 text-blue-700'
-                : 'hover:bg-gray-100 text-gray-700'
-            }`}
+            className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between ${selectedCategory === category._id
+              ? 'bg-blue-100 border border-blue-300 text-blue-700'
+              : 'hover:bg-gray-100 text-gray-700'
+              }`}
           >
             <div className="flex items-center gap-2">
               <Folder className="w-4 h-4" />
@@ -803,8 +808,8 @@ const TemplateLibraryPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubCategory, setSelectedSubCategory] = useState('all');
-  const [filters, setFilters] = useState({ 
-    fileType: 'all', 
+  const [filters, setFilters] = useState({
+    fileType: 'all',
     access: 'all',
     sortBy: 'newest'
   });
@@ -817,7 +822,7 @@ const TemplateLibraryPage = () => {
   const [connectionTested, setConnectionTested] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [userPlan, setUserPlan] = useState(null);
-  
+
   // Image carousel state
   const [carouselOpen, setCarouselOpen] = useState(false);
   const [selectedTemplateImages, setSelectedTemplateImages] = useState([]);
@@ -877,7 +882,7 @@ const TemplateLibraryPage = () => {
       setError(null);
 
       console.log('🔄 Loading templates from API...');
-      
+
       const [
         templatesData,
         categoriesData,
@@ -891,7 +896,17 @@ const TemplateLibraryPage = () => {
       setCategories(categoriesData || []);
       setAccessLevels(accessLevelsData || []);
 
-      const enhancedTemplates = (templatesData || []).map(template => {
+      const safeTemplates =
+        Array.isArray(templatesData)
+          ? templatesData
+          : Array.isArray(templatesData?.templates)
+            ? templatesData.templates
+            : Array.isArray(templatesData?.data)
+              ? templatesData.data
+              : [];
+
+      const enhancedTemplates = safeTemplates.map(template => {
+
         let fileExtension = 'docx';
 
         if (template.file && template.file.fileName) {
@@ -916,7 +931,7 @@ const TemplateLibraryPage = () => {
           imageUrls: template.imageUrls || []
         };
       });
-      
+
       setTemplates(enhancedTemplates);
       console.log(`✅ Loaded ${enhancedTemplates.length} templates`);
       console.log(`📊 Loaded ${categoriesData?.length || 0} categories`);
@@ -1077,7 +1092,7 @@ const TemplateLibraryPage = () => {
             });
             return;
           }
-          
+
           setDownloading(docId);
           await apiService.downloadTemplate(docId);
           toast({
@@ -1099,7 +1114,7 @@ const TemplateLibraryPage = () => {
             });
             return;
           }
-          
+
           setPreviewLoading(true);
           try {
             const enhancedTemplate = await apiService.getTemplatePreview(docId);
@@ -1116,9 +1131,9 @@ const TemplateLibraryPage = () => {
       }
     } catch (err) {
       console.error(`❌ ${action} Error:`, err);
-      
-      if (String(err.message).toLowerCase().includes("access denied") || 
-          String(err.message).toLowerCase().includes("upgrade your plan")) {
+
+      if (String(err.message).toLowerCase().includes("access denied") ||
+        String(err.message).toLowerCase().includes("upgrade your plan")) {
         setUpgradeModalOpen(true);
         toast({
           title: "Plan Upgrade Required",
@@ -1166,7 +1181,7 @@ const TemplateLibraryPage = () => {
 
     try {
       const isCurrentlyFavorite = userFavorites.has(templateId);
-      
+
       if (isCurrentlyFavorite) {
         await apiService.removeFromFavorites(templateId);
         setUserFavorites(prev => {
@@ -1174,16 +1189,16 @@ const TemplateLibraryPage = () => {
           newFavorites.delete(templateId);
           return newFavorites;
         });
-        toast({ 
-          title: "Removed from Favorites", 
-          description: "Template removed from your favorites." 
+        toast({
+          title: "Removed from Favorites",
+          description: "Template removed from your favorites."
         });
       } else {
         await apiService.addToFavorites(templateId);
         setUserFavorites(prev => new Set(prev).add(templateId));
-        toast({ 
-          title: "Added to Favorites!", 
-          description: "You can find this template in your dashboard." 
+        toast({
+          title: "Added to Favorites!",
+          description: "You can find this template in your dashboard."
         });
       }
     } catch (err) {
@@ -1199,7 +1214,7 @@ const TemplateLibraryPage = () => {
   const getSubCategoriesForCategory = async (categoryId) => {
     try {
       const allSubCategories = await apiService.getSubCategories();
-      return allSubCategories.filter(sub => 
+      return allSubCategories.filter(sub =>
         sub.category?._id === categoryId || sub.category === categoryId
       );
     } catch (error) {
@@ -1213,7 +1228,7 @@ const TemplateLibraryPage = () => {
       .map(template => template.fileExtension?.toLowerCase())
       .filter(Boolean)
       .filter((type, index, arr) => arr.indexOf(type) === index);
-    
+
     return fileTypes.map(type => ({
       _id: type,
       name: type.toUpperCase(),
@@ -1225,33 +1240,33 @@ const TemplateLibraryPage = () => {
   const filteredTemplates = templates
     .filter(template => {
       // Category filter - handle both object and string formats
-      const matchesCategory = selectedCategory === 'all' || 
-        template.category?._id === selectedCategory || 
+      const matchesCategory = selectedCategory === 'all' ||
+        template.category?._id === selectedCategory ||
         template.category === selectedCategory ||
         (typeof template.category === 'object' && template.category?._id === selectedCategory) ||
         (typeof template.category === 'string' && template.category === selectedCategory);
 
       // Subcategory filter
-      const matchesSubcategory = selectedSubCategory === 'all' || 
-        template.subCategory?._id === selectedSubCategory || 
+      const matchesSubcategory = selectedSubCategory === 'all' ||
+        template.subCategory?._id === selectedSubCategory ||
         template.subCategory === selectedSubCategory ||
         (typeof template.subCategory === 'object' && template.subCategory?._id === selectedSubCategory) ||
         (typeof template.subCategory === 'string' && template.subCategory === selectedSubCategory);
 
       // Search filter
-      const matchesSearch = searchQuery === '' || 
-        template.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      const matchesSearch = searchQuery === '' ||
+        template.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (template.tags && template.tags.some(tag => 
+        (template.tags && template.tags.some(tag =>
           tag?.toLowerCase().includes(searchQuery.toLowerCase())
         ));
-      
+
       // File type filter
-      const matchesFileType = filters.fileType === 'all' || 
+      const matchesFileType = filters.fileType === 'all' ||
         template.fileExtension?.toLowerCase() === filters.fileType;
-      
+
       // Access level filter
-      const matchesAccess = filters.access === 'all' || 
+      const matchesAccess = filters.access === 'all' ||
         template.accessLevel?.name?.toLowerCase() === filters.access;
 
       return matchesCategory && matchesSubcategory && matchesSearch && matchesFileType && matchesAccess;
@@ -1288,20 +1303,20 @@ const TemplateLibraryPage = () => {
     const hasAccess = canUserAccessTemplate(template);
 
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }} 
-        animate={{ opacity: 1, scale: 1 }} 
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: index * 0.1 }}
         className="group"
       >
         <Card className={`h-full bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 overflow-hidden ${!hasAccess ? 'border-yellow-300' : ''}`}>
           {/* Template Thumbnail */}
-          <TemplateThumbnail 
+          <TemplateThumbnail
             template={template}
             className="h-48"
             onImageClick={() => handleOpenImageCarousel(template)}
           />
-          
+
           {!hasAccess && (
             <div className="absolute top-4 right-4">
               <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
@@ -1310,7 +1325,7 @@ const TemplateLibraryPage = () => {
               </div>
             </div>
           )}
-          
+
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
@@ -1334,16 +1349,16 @@ const TemplateLibraryPage = () => {
                       disabled={!isAuthenticated || !hasAccess}
                       className={`h-8 w-8 p-0 ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-gray-600'} ${!hasAccess ? 'opacity-50' : ''}`}
                     >
-                      <Heart 
-                        className="w-4 h-4" 
-                        fill={isFavorite ? 'currentColor' : 'none'} 
+                      <Heart
+                        className="w-4 h-4"
+                        fill={isFavorite ? 'currentColor' : 'none'}
                       />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {!isAuthenticated ? 'Login to add favorites' : 
-                     !hasAccess ? 'Upgrade plan to add to favorites' :
-                     isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    {!isAuthenticated ? 'Login to add favorites' :
+                      !hasAccess ? 'Upgrade plan to add to favorites' :
+                        isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -1388,7 +1403,7 @@ const TemplateLibraryPage = () => {
                   </TooltipTrigger>
                   <TooltipContent>
                     {!hasAccess ? 'Upgrade plan to preview' :
-                     hasImages ? `Preview (${template.imageUrls.length} images)` : 'No preview available'}
+                      hasImages ? `Preview (${template.imageUrls.length} images)` : 'No preview available'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -1429,9 +1444,9 @@ const TemplateLibraryPage = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {!isAuthenticated ? 'Login to download' : 
-                     !hasAccess ? 'Upgrade plan to download' : 
-                     'Download template'}
+                    {!isAuthenticated ? 'Login to download' :
+                      !hasAccess ? 'Upgrade plan to download' :
+                        'Download template'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -1511,10 +1526,10 @@ const TemplateLibraryPage = () => {
                       {userPlan.plan} Plan
                     </Badge>
                     {userPlan.planId !== 'enterprise' && (
-                      <Button 
+                      <Button
                         onClick={() => navigate('/pricing')}
-                        size="sm" 
-                        variant="ghost" 
+                        size="sm"
+                        variant="ghost"
                         className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         Upgrade
@@ -1523,7 +1538,7 @@ const TemplateLibraryPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <Button
                   variant="outline"
@@ -1579,24 +1594,22 @@ const TemplateLibraryPage = () => {
                     <div className="space-y-2">
                       <button
                         onClick={() => setFilters(f => ({ ...f, access: 'all' }))}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                          filters.access === 'all'
-                            ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
-                            : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-                        }`}
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${filters.access === 'all'
+                          ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
+                          : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                          }`}
                       >
                         <span>All Templates</span>
-                        
+
                       </button>
                       {accessLevels.map((accessLevel) => (
                         <button
                           key={accessLevel._id}
                           onClick={() => setFilters(f => ({ ...f, access: accessLevel.name.toLowerCase() }))}
-                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                            filters.access === accessLevel.name.toLowerCase()
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${filters.access === accessLevel.name.toLowerCase()
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                            : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                            }`}
                         >
                           <div className="flex items-center gap-2">
                             <span>{accessLevel.name}</span>
@@ -1604,7 +1617,7 @@ const TemplateLibraryPage = () => {
                               <Crown className="w-3 h-3 text-yellow-500" fill="currentColor" />
                             )}
                           </div>
-                          </button>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
@@ -1678,9 +1691,9 @@ const TemplateLibraryPage = () => {
                         "Login to see your access level"
                       )}
                     </p>
-                    <Button 
-                      onClick={() => navigate(isAuthenticated ? '/pricing' : '/login')} 
-                      size="sm" 
+                    <Button
+                      onClick={() => navigate(isAuthenticated ? '/pricing' : '/login')}
+                      size="sm"
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                     >
                       {isAuthenticated ? 'Upgrade Plan' : 'Login'}
@@ -1698,8 +1711,8 @@ const TemplateLibraryPage = () => {
                     {filteredTemplates.length} Templates
                   </h2>
                   <p className="text-gray-600 text-sm">
-                    {selectedCategory !== 'all' 
-                      ? `in ${categories.find(c => c._id === selectedCategory)?.name || 'Selected Category'}` 
+                    {selectedCategory !== 'all'
+                      ? `in ${categories.find(c => c._id === selectedCategory)?.name || 'Selected Category'}`
                       : 'across all categories'}
                     {filters.access !== 'all' && ` • ${filters.access.toUpperCase()} access only`}
                     {selectedCategory !== 'all' && categoryCounts[selectedCategory] && ` • ${categoryCounts[selectedCategory]} templates`}
@@ -1807,7 +1820,7 @@ const TemplateLibraryPage = () => {
               Filters & Categories
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-4">
             <MobileCategorySelector
               categories={categories}
@@ -1821,11 +1834,10 @@ const TemplateLibraryPage = () => {
               <div className="space-y-2">
                 <button
                   onClick={() => setFilters(f => ({ ...f, access: 'all' }))}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                    filters.access === 'all'
-                      ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
-                      : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${filters.access === 'all'
+                    ? 'bg-gradient-to-r from-gray-900 to-gray-800 text-white'
+                    : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                    }`}
                 >
                   <span>All Templates</span>
                   <Badge variant={filters.access === 'all' ? 'secondary' : 'outline'}>
@@ -1836,11 +1848,10 @@ const TemplateLibraryPage = () => {
                   <button
                     key={accessLevel._id}
                     onClick={() => setFilters(f => ({ ...f, access: accessLevel.name.toLowerCase() }))}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                      filters.access === accessLevel.name.toLowerCase()
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                        : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
-                    }`}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${filters.access === accessLevel.name.toLowerCase()
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                      : 'hover:bg-gray-100 text-gray-700 border border-gray-200'
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <span>{accessLevel.name}</span>
@@ -1894,14 +1905,14 @@ const TemplateLibraryPage = () => {
             </div>
 
             <div className="pt-4 border-t">
-              <Button 
+              <Button
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('all');
                   setSelectedSubCategory('all');
                   setFilters({ fileType: 'all', access: 'all', sortBy: 'newest' });
-                }} 
-                variant="outline" 
+                }}
+                variant="outline"
                 className="w-full"
               >
                 Clear All Filters
@@ -1929,8 +1940,8 @@ const TemplateLibraryPage = () => {
               Upgrade Your Plan
             </DialogTitle>
             <DialogDescription>
-              {isAuthenticated 
-                ? `Your current ${userPlan?.plan || 'Free'} plan doesn't include this feature.` 
+              {isAuthenticated
+                ? `Your current ${userPlan?.plan || 'Free'} plan doesn't include this feature.`
                 : 'Login to access templates and features.'}
             </DialogDescription>
           </DialogHeader>
@@ -1959,18 +1970,18 @@ const TemplateLibraryPage = () => {
               </div>
 
               <div className="flex gap-3">
-                <Button 
+                <Button
                   onClick={() => {
                     setUpgradeModalOpen(false);
                     navigate(isAuthenticated ? '/pricing' : '/login');
-                  }} 
+                  }}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {isAuthenticated ? 'View Plans' : 'Login'}
                 </Button>
-                <Button 
-                  onClick={() => setUpgradeModalOpen(false)} 
-                  variant="outline" 
+                <Button
+                  onClick={() => setUpgradeModalOpen(false)}
+                  variant="outline"
                   className="flex-1"
                 >
                   Maybe Later

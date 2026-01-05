@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Image, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
-const TemplateThumbnail = ({ 
-  template, 
+const TemplateThumbnail = ({
+  template,
   className = "h-48",
-  onImageClick 
+  onImageClick
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageErrors, setImageErrors] = useState({});
-  
+
   // Ensure imageUrls exists and handle potential issues
   const images = template.imageUrls || [];
   const hasImages = images.length > 0;
@@ -18,14 +18,14 @@ const TemplateThumbnail = ({
 
   const nextImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? images.length - 1 : prev - 1
     );
   };
@@ -48,14 +48,14 @@ const TemplateThumbnail = ({
 
   const getImageUrl = (image) => {
     if (!image || !image.url) return null;
-    
+
     // Ensure URL is absolute
     if (image.url.startsWith('http')) {
       return image.url;
     } else {
       // Prepend base URL for relative URLs
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? window.location.origin 
+      const baseURL = process.env.NODE_ENV === 'production'
+        ? 'https://api.paplixo.com'
         : `${API_BASE_URL}`;
       return `${baseURL}${image.url}`;
     }
@@ -81,7 +81,7 @@ const TemplateThumbnail = ({
   const hasCurrentImageError = imageErrors[currentImageIndex];
 
   return (
-    <div 
+    <div
       className={`${className} bg-gradient-to-br ${getBackgroundColor(template.fileExtension)} relative overflow-hidden group cursor-pointer`}
       onClick={handleImageClick}
     >
@@ -95,7 +95,7 @@ const TemplateThumbnail = ({
             onError={() => handleImageError(currentImageIndex)}
             onLoad={() => handleImageLoad(currentImageIndex)}
           />
-          
+
           {/* Navigation Arrows for multiple images */}
           {images.length > 1 && (
             <>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const PaymentResult = () => {
   const [searchParams] = useSearchParams();
@@ -67,7 +67,7 @@ const PaymentResult = () => {
         console.warn("Payment verification API error:", data);
         setStatus("pending");
         setMessage("Payment verification in progress... Please wait.");
-        
+
         // Retry after delay
         setTimeout(() => {
           verifyPayment();
@@ -83,7 +83,7 @@ const PaymentResult = () => {
         // Update user context with new plan if user data is returned
         if (data.user && updateUser) {
           console.log("Updating user context with:", data.user);
-          
+
           // Force update the user context with new plan data
           updateUser({
             ...user,
@@ -103,11 +103,11 @@ const PaymentResult = () => {
       } else {
         // Check if payment might be successful in database despite verification error
         console.log("Payment verification returned false, checking status:", data);
-        
+
         if (data.orderStatus === "PENDING" || data.orderStatus === "ACTIVE") {
           setStatus("pending");
           setMessage("Payment is being processed... Please wait a moment.");
-          
+
           // Retry after delay
           setTimeout(() => {
             verifyPayment();
@@ -119,19 +119,19 @@ const PaymentResult = () => {
       }
     } catch (error) {
       console.error("Payment verification error:", error);
-      
+
       // If network error, retry
       if (error.name === 'TypeError' || error.message.includes('Failed to fetch')) {
         setStatus("pending");
         setMessage("Network error. Retrying...");
-        
+
         setTimeout(() => {
           verifyPayment();
         }, 3000);
       } else {
         setStatus("pending");
         setMessage("Finalizing payment... Please wait.");
-        
+
         // Retry on error
         setTimeout(verifyPayment, 3000);
       }
@@ -143,14 +143,14 @@ const PaymentResult = () => {
   // Function to fetch user plan directly
   const fetchUserPlan = async () => {
     if (!token) return;
-    
+
     try {
       const response = await fetch(`${API_URL}/api/users/current-plan`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && updateUser) {

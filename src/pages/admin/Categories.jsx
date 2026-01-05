@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast'; 
+import { useToast } from '@/components/ui/use-toast';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 // Auth functions directly in the component
 const getAdminToken = () => {
@@ -48,7 +48,7 @@ const Categories = () => {
     }
 
     const token = getAdminToken();
-    
+
     if (!token) {
       console.error('❌ No valid admin token found');
       toast({
@@ -61,9 +61,9 @@ const Categories = () => {
       }, 2000);
       return {};
     }
-    
+
     console.log('🔐 Using token for API request');
-    
+
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -79,7 +79,7 @@ const Categories = () => {
     try {
       setLoading(true);
       const headers = getAuthHeaders();
-      
+
       // Check if headers are empty (no token)
       if (Object.keys(headers).length === 0) {
         setLoading(false);
@@ -87,13 +87,13 @@ const Categories = () => {
       }
 
       console.log('📡 Loading categories from API...');
-      
+
       const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         headers
       });
-      
+
       console.log('📡 Categories API Response Status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || []);
@@ -130,25 +130,25 @@ const Categories = () => {
 
     try {
       const headers = getAuthHeaders();
-      
+
       // Check if headers are empty (no token)
       if (Object.keys(headers).length === 0) {
         return;
       }
 
       console.log('📤 Creating category:', newCategory);
-      
+
       const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: newCategory.trim(),
           description: ''
         }),
       });
 
       console.log('📡 Create category response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         setCategories(prev => [...prev, data.category]);
@@ -204,8 +204,8 @@ const Categories = () => {
               if (e.key === 'Enter') handleCreateCategory();
             }}
           />
-          <Button 
-            onClick={handleCreateCategory} 
+          <Button
+            onClick={handleCreateCategory}
             disabled={!newCategory.trim()}
           >
             <Plus className="w-4 h-4 mr-1" />

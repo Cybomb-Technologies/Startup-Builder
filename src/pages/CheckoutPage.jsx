@@ -7,7 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const CheckoutPage = () => {
   const { planId } = useParams();
@@ -332,8 +332,8 @@ const CheckoutPage = () => {
                   <button
                     onClick={() => setBillingCycle("monthly")}
                     className={`px-4 py-2 rounded-lg border transition-colors ${billingCycle === "monthly"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
                       }`}
                   >
                     Monthly
@@ -341,8 +341,8 @@ const CheckoutPage = () => {
                   <button
                     onClick={() => setBillingCycle("annual")}
                     className={`px-4 py-2 rounded-lg border transition-colors ${billingCycle === "annual"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
                       }`}
                   >
                     Annual {plan.annualDiscount && `(${plan.annualDiscount}% off)`}
@@ -359,8 +359,8 @@ const CheckoutPage = () => {
                   <button
                     onClick={() => setCurrency("USD")}
                     className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${currency === "USD"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
                       }`}
                   >
                     USD ($)
@@ -368,8 +368,8 @@ const CheckoutPage = () => {
                   <button
                     onClick={() => setCurrency("INR")}
                     className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${currency === "INR"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:border-blue-300"
                       }`}
                   >
                     INR (₹)
@@ -442,8 +442,8 @@ const CheckoutPage = () => {
                 onClick={handlePayment}
                 disabled={loading}
                 className={`w-full py-3 text-lg font-semibold ${loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : `bg-gradient-to-r ${planColor} hover:opacity-90`
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : `bg-gradient-to-r ${planColor} hover:opacity-90`
                   }`}
               >
                 {loading ? (

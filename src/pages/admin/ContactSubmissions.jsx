@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Mail, 
-  User, 
-  Clock, 
-  Eye, 
-  EyeOff, 
-  MessageSquare, 
-  Download, 
-  Filter, 
-  Search, 
+import {
+  Mail,
+  User,
+  Clock,
+  Eye,
+  EyeOff,
+  MessageSquare,
+  Download,
+  Filter,
+  Search,
   Flag,
   Calendar,
   Phone,
@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 // Auth functions directly in the component
 const getAdminToken = () => {
@@ -67,7 +67,7 @@ const ContactSubmissions = () => {
     }
 
     const token = getAdminToken();
-    
+
     if (!token) {
       toast({
         title: 'Authentication Required',
@@ -79,7 +79,7 @@ const ContactSubmissions = () => {
       }, 2000);
       return {};
     }
-    
+
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -99,7 +99,7 @@ const ContactSubmissions = () => {
     try {
       setLoading(true);
       const headers = getAuthHeaders();
-      
+
       if (Object.keys(headers).length === 0) {
         setLoading(false);
         return;
@@ -108,7 +108,7 @@ const ContactSubmissions = () => {
       const response = await fetch(`${API_BASE_URL}/api/contact/submissions`, {
         headers
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSubmissions(data.submissions || []);
@@ -153,7 +153,7 @@ const ContactSubmissions = () => {
   const handleMarkAsRead = async (id, currentStatus) => {
     try {
       const headers = getAuthHeaders();
-      
+
       if (Object.keys(headers).length === 0) {
         return;
       }
@@ -163,7 +163,7 @@ const ContactSubmissions = () => {
         headers,
         body: JSON.stringify({ read: !currentStatus }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSubmissions(prev =>
@@ -195,7 +195,7 @@ const ContactSubmissions = () => {
   const handleFlagSubmission = async (id, flagType) => {
     try {
       const headers = getAuthHeaders();
-      
+
       if (Object.keys(headers).length === 0) {
         return;
       }
@@ -205,7 +205,7 @@ const ContactSubmissions = () => {
         headers,
         body: JSON.stringify({ flag: flagType }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setSubmissions(prev =>
@@ -213,16 +213,16 @@ const ContactSubmissions = () => {
             sub._id === id ? { ...sub, flag: flagType } : sub
           )
         );
-        
+
         if (selectedSubmission && selectedSubmission._id === id) {
           setSelectedSubmission({ ...selectedSubmission, flag: flagType });
         }
-        
+
         toast({
           title: 'Flagged',
           description: `Submission marked as ${getFlagLabel(flagType)}`,
         });
-        
+
         setShowFlagDropdown(false);
       } else {
         const errorData = await response.json();
@@ -262,10 +262,10 @@ const ContactSubmissions = () => {
 
   const exportToCSV = () => {
     setExportLoading(true);
-    
+
     try {
       const dataToExport = filteredSubmissions.length > 0 ? filteredSubmissions : submissions;
-      
+
       if (dataToExport.length === 0) {
         toast({
           title: 'No Data',
@@ -276,7 +276,7 @@ const ContactSubmissions = () => {
       }
 
       const headers = ['Name', 'Email', 'Phone', 'Subject', 'Message', 'Status', 'Flag', 'Submission Date', 'Submission Time'];
-      
+
       const csvContent = [
         headers.join(','),
         ...dataToExport.map(submission => [
@@ -295,15 +295,15 @@ const ContactSubmissions = () => {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
-      
+
       link.setAttribute('href', url);
       link.setAttribute('download', `contact-submissions-${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: 'Export Successful',
         description: `Exported ${dataToExport.length} contact submissions to CSV`,
@@ -437,7 +437,7 @@ const ContactSubmissions = () => {
               <option value="flagged">Flagged Only</option>
             </select>
           </div>
-          
+
           <div className="flex gap-2 w-full lg:w-auto">
             <Button
               onClick={exportToCSV}
@@ -492,7 +492,7 @@ const ContactSubmissions = () => {
                 {searchTerm ? 'No submissions found' : 'No contact submissions yet'}
               </h3>
               <p className="text-gray-500 max-w-sm mx-auto">
-                {searchTerm 
+                {searchTerm
                   ? `No submissions match "${searchTerm}". Try a different search term.`
                   : 'Contact form submissions will appear here once users start submitting messages.'
                 }
@@ -506,14 +506,12 @@ const ContactSubmissions = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`flex items-center justify-between p-6 hover:bg-gray-50 transition-colors duration-200 ${
-                    !submission.read ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''
-                  }`}
+                  className={`flex items-center justify-between p-6 hover:bg-gray-50 transition-colors duration-200 ${!submission.read ? 'bg-blue-50 border-l-4 border-l-blue-400' : ''
+                    }`}
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      !submission.read ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${!submission.read ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
                       <User className="w-6 h-6" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -556,11 +554,10 @@ const ContactSubmissions = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleMarkAsRead(submission._id, submission.read)}
-                      className={`border ${
-                        !submission.read
-                          ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200'
-                          : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`border ${!submission.read
+                        ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200'
+                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {submission.read ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
@@ -669,7 +666,7 @@ const ContactSubmissions = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <div className="relative">
                     {/* <Button
                       onClick={() => setShowFlagDropdown(!showFlagDropdown)}
@@ -679,7 +676,7 @@ const ContactSubmissions = () => {
                       Actions
                       <ChevronDown className="w-4 h-4" />
                     </Button> */}
-                    
+
                     {showFlagDropdown && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                         <div className="p-2 space-y-1">

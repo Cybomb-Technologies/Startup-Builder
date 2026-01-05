@@ -4,7 +4,7 @@ import { FileText, Trash2, Edit, Plus, Upload, Download, Eye, X, Image, Star, Ch
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.paplixo.com';
 
 const Templates = () => {
   const { toast } = useToast();
@@ -38,7 +38,7 @@ const Templates = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // NEW STATE FOR IMAGE MANAGEMENT
   const [showImageManager, setShowImageManager] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -55,7 +55,7 @@ const Templates = () => {
     try {
       const userData = JSON.parse(adminUser);
       const token = userData.token;
-      
+
       if (!token) {
         console.error('❌ No token found in admin session');
         return {};
@@ -80,7 +80,7 @@ const Templates = () => {
     try {
       setLoading(true);
       console.log('📡 Loading all template data...');
-      
+
       const headers = getAuthHeaders();
       if (Object.keys(headers).length === 0) {
         console.error('❌ No auth headers available');
@@ -175,7 +175,7 @@ const Templates = () => {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: 'Invalid file type',
@@ -228,7 +228,7 @@ const Templates = () => {
         ...prev,
         previewImages: [...(prev.previewImages || []), ...validImages]
       }));
-      
+
       toast({
         title: 'Images added',
         description: `Added ${validImages.length} preview image(s)`,
@@ -267,7 +267,7 @@ const Templates = () => {
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: 'Invalid file type',
@@ -336,24 +336,24 @@ const Templates = () => {
 
     try {
       console.log('📤 Creating template with data:', newTemplate);
-      
+
       // Step 1: Create the template with the document file
       const formData = new FormData();
       formData.append('name', newTemplate.name.trim());
       formData.append('description', newTemplate.description || '');
       formData.append('category', newTemplate.category);
-      
+
       if (newTemplate.subCategory && newTemplate.subCategory.trim()) {
         formData.append('subCategory', newTemplate.subCategory);
       }
-      
+
       formData.append('accessLevel', newTemplate.accessLevel);
       formData.append('content', newTemplate.content.trim());
       formData.append('file', newTemplate.file);
 
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
-      
+
       const response = await fetch(`${API_BASE_URL}/api/admin/templates`, {
         method: 'POST',
         headers: headers,
@@ -398,17 +398,17 @@ const Templates = () => {
         previewImages: []
       });
       setShowAddTemplate(false);
-      
+
       toast({
         title: 'Success',
-        description: newTemplate.previewImages && newTemplate.previewImages.length > 0 
-          ? `Template created with ${newTemplate.previewImages.length} preview images` 
+        description: newTemplate.previewImages && newTemplate.previewImages.length > 0
+          ? `Template created with ${newTemplate.previewImages.length} preview images`
           : 'Template created successfully',
       });
-      
+
       // Reload templates to get the latest data
       loadAllData();
-      
+
     } catch (error) {
       console.error('❌ Error creating template:', error);
       toast({
@@ -466,27 +466,27 @@ const Templates = () => {
 
     try {
       console.log('📤 Updating template with data:', editTemplate);
-      
+
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('name', editTemplate.name.trim());
       formData.append('description', editTemplate.description || '');
       formData.append('category', editTemplate.category);
-      
+
       if (editTemplate.subCategory && editTemplate.subCategory.trim()) {
         formData.append('subCategory', editTemplate.subCategory);
       }
-      
+
       formData.append('accessLevel', editTemplate.accessLevel);
       formData.append('content', editTemplate.content.trim());
-      
+
       if (editTemplate.file) {
         formData.append('file', editTemplate.file);
       }
 
       const headers = getAuthHeaders();
       delete headers['Content-Type'];
-      
+
       const response = await fetch(`${API_BASE_URL}/api/admin/templates/${selectedTemplate._id}`, {
         method: 'PUT',
         headers: headers,
@@ -497,12 +497,12 @@ const Templates = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Update the template in the local state
-        setTemplates(prev => prev.map(template => 
+        setTemplates(prev => prev.map(template =>
           template._id === selectedTemplate._id ? data.template : template
         ));
-        
+
         setShowEditTemplate(false);
         setSelectedTemplate(null);
         toast({
@@ -510,11 +510,11 @@ const Templates = () => {
           description: 'Template updated successfully',
         });
         console.log('✅ Template updated:', data.template);
-        
+
       } else {
         const errorData = await response.json();
         console.error('❌ Template update failed:', errorData);
-        
+
         let errorMessage = errorData.message || 'Failed to update template';
         if (response.status === 400) {
           errorMessage = 'Validation failed: ' + errorData.message;
@@ -523,7 +523,7 @@ const Templates = () => {
         } else if (response.status === 500) {
           errorMessage = 'Server error. Please try again.';
         }
-        
+
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -575,7 +575,7 @@ const Templates = () => {
       setUploadingImages(true);
       const headers = getAuthHeaders();
       delete headers['Content-Type']; // Let browser set content type
-      
+
       const formData = new FormData();
       images.forEach(image => {
         formData.append('images', image);
@@ -620,10 +620,10 @@ const Templates = () => {
       }
     } catch (error) {
       console.error('Delete image error:', error);
-      toast({ 
-        title: 'Error', 
-        description: error.message || 'Failed to delete image', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete image',
+        variant: 'destructive'
       });
     }
   };
@@ -646,10 +646,10 @@ const Templates = () => {
       }
     } catch (error) {
       console.error('Set primary image error:', error);
-      toast({ 
-        title: 'Error', 
-        description: error.message || 'Failed to set primary image', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to set primary image',
+        variant: 'destructive'
       });
     }
   };
@@ -705,7 +705,7 @@ const Templates = () => {
 
       if (response.ok) {
         const blob = await response.blob();
-        
+
         if (blob.size === 0) {
           throw new Error('Downloaded file is empty');
         }
@@ -717,10 +717,10 @@ const Templates = () => {
         a.download = template.file.fileName;
         document.body.appendChild(a);
         a.click();
-        
+
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         toast({
           title: 'Download Started',
           description: `Downloading ${template.file.fileName}`,
@@ -757,9 +757,9 @@ const Templates = () => {
 
   const getCategoryName = (categoryId) => {
     if (!categoryId) return '-';
-    
+
     // Check if categoryId is an object with _id property
-    const category = categories.find(cat => 
+    const category = categories.find(cat =>
       cat._id === (categoryId._id || categoryId)
     );
     return category ? category.name : '-';
@@ -767,8 +767,8 @@ const Templates = () => {
 
   const getSubCategoryName = (subCategoryId) => {
     if (!subCategoryId) return '-';
-    
-    const subCategory = subCategories.find(sub => 
+
+    const subCategory = subCategories.find(sub =>
       sub._id === (subCategoryId._id || subCategoryId)
     );
     return subCategory ? subCategory.name : '-';
@@ -777,14 +777,14 @@ const Templates = () => {
   // FIXED: Get access level name - handle both object and ID
   const getAccessLevelName = (accessLevel) => {
     if (!accessLevel) return '-';
-    
+
     // If accessLevel is an object with name property
     if (typeof accessLevel === 'object' && accessLevel !== null) {
       return accessLevel.name || '-';
     }
-    
+
     // If accessLevel is a string ID
-    const level = accessLevels.find(level => 
+    const level = accessLevels.find(level =>
       level._id === accessLevel
     );
     return level ? level.name : '-';
@@ -793,7 +793,7 @@ const Templates = () => {
   // Get filtered subcategories for the selected category
   const getFilteredSubCategories = () => {
     if (!newTemplate.category) return [];
-    
+
     return subCategories.filter(sub => {
       const subCategoryId = sub.category?._id || sub.category;
       return subCategoryId === newTemplate.category;
@@ -803,7 +803,7 @@ const Templates = () => {
   // Get filtered subcategories for edit
   const getFilteredEditSubCategories = () => {
     if (!editTemplate.category) return [];
-    
+
     return subCategories.filter(sub => {
       const subCategoryId = sub.category?._id || sub.category;
       return subCategoryId === editTemplate.category;
@@ -813,7 +813,7 @@ const Templates = () => {
   // Get file icon based on file type
   const getFileIcon = (fileName) => {
     if (!fileName) return <FileText className="w-4 h-4" />;
-    
+
     const extension = fileName.split('.').pop()?.toLowerCase();
     switch (extension) {
       case 'pdf':
@@ -835,11 +835,11 @@ const Templates = () => {
   const formatFileSize = (bytes) => {
     if (!bytes) return 'Unknown size';
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
@@ -862,13 +862,13 @@ const Templates = () => {
     const currentImage = images[currentImageIndex];
 
     const nextImage = () => {
-      setCurrentImageIndex(prev => 
+      setCurrentImageIndex(prev =>
         prev === images.length - 1 ? 0 : prev + 1
       );
     };
 
     const prevImage = () => {
-      setCurrentImageIndex(prev => 
+      setCurrentImageIndex(prev =>
         prev === 0 ? images.length - 1 : prev - 1
       );
     };
@@ -941,7 +941,7 @@ const Templates = () => {
                 <h4 className="text-lg font-medium mb-4">
                   Template Images ({images.length})
                 </h4>
-                
+
                 {/* Main Image Viewer */}
                 <div className="relative bg-gray-100 rounded-lg p-4 mb-4">
                   {currentImage && (
@@ -951,7 +951,7 @@ const Templates = () => {
                         alt={currentImage.altText}
                         className="max-w-full max-h-96 object-contain mx-auto rounded"
                       />
-                      
+
                       {images.length > 1 && (
                         <>
                           <button
@@ -970,7 +970,7 @@ const Templates = () => {
                       )}
                     </div>
                   )}
-                  
+
                   <div className="text-center mt-2">
                     <span className="text-sm text-gray-600">
                       Image {currentImageIndex + 1} of {images.length}
@@ -988,9 +988,8 @@ const Templates = () => {
                   {images.map((image, index) => (
                     <div
                       key={index}
-                      className={`relative border-2 rounded overflow-hidden cursor-pointer ${
-                        index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
-                      }`}
+                      className={`relative border-2 rounded overflow-hidden cursor-pointer ${index === currentImageIndex ? 'border-blue-500' : 'border-gray-200'
+                        }`}
                       onClick={() => setCurrentImageIndex(index)}
                     >
                       <img
@@ -1082,7 +1081,7 @@ const Templates = () => {
           className="mb-6 p-4 bg-gray-50 rounded-lg border"
         >
           <h3 className="font-semibold mb-3">Add New Template</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Template Name */}
             <div>
@@ -1233,8 +1232,8 @@ const Templates = () => {
                 <label htmlFor="preview-images-upload" className="cursor-pointer">
                   <Image className="w-8 h-8 text-blue-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">
-                    {newTemplate.previewImages && newTemplate.previewImages.length > 0 
-                      ? `${newTemplate.previewImages.length} images selected` 
+                    {newTemplate.previewImages && newTemplate.previewImages.length > 0
+                      ? `${newTemplate.previewImages.length} images selected`
                       : 'Click to upload preview images'
                     }
                   </p>
@@ -1331,41 +1330,40 @@ const Templates = () => {
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <p className="text-gray-900 font-medium">{selectedTemplate.name}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <p className="text-gray-900">{selectedTemplate.description || 'No description'}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <p className="text-gray-900">{getCategoryName(selectedTemplate.category)}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
                   <p className="text-gray-900">{getSubCategoryName(selectedTemplate.subCategory) || 'No subcategory'}</p>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    getAccessLevelName(selectedTemplate.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelName(selectedTemplate.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
                     getAccessLevelName(selectedTemplate.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
-                    getAccessLevelName(selectedTemplate.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
+                      getAccessLevelName(selectedTemplate.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
+                        "bg-gray-100 text-gray-800"
+                    }`}>
                     {getAccessLevelName(selectedTemplate.accessLevel)}
                   </span>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Created</label>
                   <p className="text-gray-900">{formatDate(selectedTemplate.createdAt)}</p>
@@ -1392,14 +1390,14 @@ const Templates = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
                 <div className="bg-gray-50 p-4 rounded-md">
                   <p className="text-gray-900 whitespace-pre-wrap">{selectedTemplate.content}</p>
                 </div>
               </div>
-              
+
               {selectedTemplate.file && selectedTemplate.file.fileName && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Attached File</label>
@@ -1408,7 +1406,7 @@ const Templates = () => {
                     <div className="flex-1">
                       <p className="text-gray-900 font-medium">{selectedTemplate.file.fileName}</p>
                       <p className="text-xs text-gray-500">
-                        {formatFileSize(selectedTemplate.file.fileSize)} • 
+                        {formatFileSize(selectedTemplate.file.fileSize)} •
                         {selectedTemplate.file.fileType || 'Unknown type'}
                       </p>
                     </div>
@@ -1424,7 +1422,7 @@ const Templates = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end gap-2 p-6 border-t">
               <Button
                 variant="outline"
@@ -1464,7 +1462,7 @@ const Templates = () => {
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
+
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -1718,25 +1716,24 @@ const Templates = () => {
                     </div>
                   </td>
                   <td className="p-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      getAccessLevelName(template.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelName(template.accessLevel) === "Public" ? "bg-green-100 text-green-800" :
                       getAccessLevelName(template.accessLevel) === "Private" ? "bg-red-100 text-red-800" :
-                      getAccessLevelName(template.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
+                        getAccessLevelName(template.accessLevel) === "Team Only" ? "bg-blue-100 text-blue-800" :
+                          "bg-gray-100 text-gray-800"
+                      }`}>
                       {getAccessLevelName(template.accessLevel)}
                     </span>
                   </td>
                   <td className="p-3 flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleViewTemplate(template)}
                     >
                       <Eye className="w-4 h-4 mr-1" /> View
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleEditClick(template)}
                     >

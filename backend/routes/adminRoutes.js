@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+
 const { adminProtect } = require('../middleware/adminauth');
  
+
 // Import ALL controllers including image management
 const { 
   loginAdmin, 
