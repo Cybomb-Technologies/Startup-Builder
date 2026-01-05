@@ -33,9 +33,11 @@ const corsOptions = {
             'http://127.0.0.1:3000',
             'http://localhost:3001',
             'http://127.0.0.1:3001',
+            'http://localhost:5173',
             'http://localhost:8081',
             'http://127.0.0.1:8081',
             'https://paplixo.com',
+            'https://cybombadmin.cybomb.com',
             process.env.CLIENT_URL
         ].filter(Boolean);
 
@@ -172,6 +174,15 @@ app.use('/api/pricing', pricingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/payments', billingRoutes); // NEW: Billing routes under payments
 
+console.log("✅ Admin routes mounted at /api/admin");
+console.log("✅ User routes mounted at /api/users");
+console.log("✅ Newsletter routes mounted at /api/newsletter");
+console.log("✅ Contact routes mounted at /api/contact");
+console.log("✅ Public routes mounted at /api");
+console.log("✅ Editor routes mounted at /api/editor");
+console.log("✅ Pricing routes mounted at /api/pricing");
+console.log("✅ Payment routes mounted at /api/payments");
+console.log("✅ Billing routes mounted at /api/payments"); // NEW: Billing routes log
 
 // -------------------- Error Handling --------------------
 app.use((err, req, res, next) => {
@@ -223,8 +234,8 @@ app.use('*', (req, res) => {
 });
 
 // -------------------- Start Server --------------------
-const PORT = process.env.PORT;
-const HOST = process.env.HOST;
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.listen(PORT, HOST, () => {
     console.log(`\n🚀 Server running on port ${PORT}`);
@@ -236,5 +247,7 @@ app.listen(PORT, HOST, () => {
     console.log(`💳 Payment API: http://${HOST}:${PORT}/api/payments`);
     console.log(`📊 Billing API: http://${HOST}:${PORT}/api/payments/history`);
     console.log(`✅ Available billing routes:`);
-
+    console.log(`   - GET /api/payments/history`);
+    console.log(`   - GET /api/payments/auto-renewal/status`);
+    console.log(`   - POST /api/payments/auto-renewal/toggle`);
 });

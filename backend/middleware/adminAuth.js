@@ -1,8 +1,22 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
+// Domains allowed without token
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://cybombadmin.cybomb.com"
+];
+
 const adminProtect = async (req, res, next) => {
   try {
+    const origin = req.headers.origin;
+
+    // Allow same bypass for admin routes
+    if (allowedOrigins.includes(origin)) {
+      console.log("Bypassed admin token (allowed origin):", origin);
+      return next();
+    }
+
     let token;
 
     // Check for token in header
@@ -24,10 +38,10 @@ const adminProtect = async (req, res, next) => {
       // Verify token with detailed error handling
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       console.log('✅ Token decoded successfully, admin ID:', decoded.id);
-      
+
       // Find admin and exclude password
       req.admin = await Admin.findById(decoded.id).select('-password');
-      
+
       if (!req.admin) {
         console.log('❌ Admin not found for ID:', decoded.id);
         return res.status(401).json({
@@ -35,12 +49,12 @@ const adminProtect = async (req, res, next) => {
           message: 'Admin account not found'
         });
       }
-      
+
       console.log('✅ Admin authenticated:', req.admin.email);
       next();
     } catch (jwtError) {
       console.error('❌ JWT Verification Error:', jwtError.message);
-      
+
       // Specific error messages for different JWT errors
       if (jwtError.name === 'JsonWebTokenError') {
         return res.status(401).json({
